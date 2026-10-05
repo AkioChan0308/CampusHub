@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đề xuất và duyệt chi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Montserrat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4A3699}a:hover{color:#2F2266}
+button,input,select,textarea{font:inherit;color:inherit}
+.h{font-family:Montserrat,'Segoe UI',sans-serif;color:#14121A;margin:0}
+.card{background:#FFFFFF;border:1px solid #E4E2EA;border-radius:12px}
+.lab{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5E5A6B}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #604ABD;background:#604ABD;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn:hover{background:#4E3A9E;border-color:#4E3A9E;color:#FFFFFF}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #D6D3DF;background:#FFFFFF;color:#14121A;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn2:hover{background:#F4F2F9;color:#14121A}
+.nav{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:8px;color:#3B3846;font-size:14px;font-weight:500;text-decoration:none}
+.nav:hover{background:#F4F2F9;color:#14121A}
+.nav.on{background:#EEEAF8;color:#4A3699;font-weight:600}
+.navlab{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6B6778;padding:14px 10px 4px}
+.cnt{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#FDEBE5;color:#8F3418;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.tab{display:inline-flex;align-items:center;height:36px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:transparent;font-size:13.5px;font-weight:500;color:#5E5A6B;cursor:pointer}
+.tab.on{border-bottom-color:#604ABD;color:#4A3699;font-weight:600}
+.item{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;padding:14px 16px;border:1px solid #E4E2EA;border-radius:10px;background:#FFFFFF;text-align:left;cursor:pointer}
+.item.on{border-color:#C9BFEA;background:#F7F5FC}
+.b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.b-warn{background:#FDEBE5;color:#8F3418}
+.b-mute{background:#EEEDF2;color:#4A4657}
+.dl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 16px;margin:0;font-size:14px}
+.dl dt{color:#5E5A6B}
+.dl dd{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #F4F3F7; font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; color: #14121A; overflow: hidden">
+<aside style="width: 248px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E4E2EA; display: flex; flex-direction: column; gap: 18px; padding: 20px 14px; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 10px">
+<div style="width: 28px; height: 28px; border-radius: 7px; background: #604ABD; color: #FFFFFF; display: grid; place-items: center; font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 15px">C</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 17px; color: #14121A">CampusHub</span>
+</div>
+<button type="button" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid #E4E2EA; border-radius: 10px; background: #F7F6FA; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14px">CLB Cầu lông Sân Nhà</span>
+<span style="font-size: 12.5px; color: #5E5A6B">Chủ nhiệm · Fall 2026</span>
+</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<nav aria-label="Menu ban điều hành" style="display: flex; flex-direction: column; gap: 2px">
+<a class="nav" href="Main.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>Trang chủ</a>
+<a class="nav" href="BDH-ThanhVien.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18 14.8c1.9.7 3.1 2.4 3.5 5.2"></path></svg>Thành viên<span class="cnt">3</span></a>
+<a class="nav" href="BDH-QR.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 20h4v-3"></path></svg>Điểm danh</a>
+<div class="navlab">Sổ quỹ</div>
+<a class="nav" href="BDH-DotThu.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Đợt thu</a>
+<a class="nav" href="BDH-DoiSoat.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11"></path><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"></path></svg>Đối soát sao kê<span class="cnt">4</span></a>
+<a class="nav on" href="BDH-DuyetChi.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path><path d="m9 14 2 2 4-4"></path></svg>Đề xuất và duyệt chi<span class="cnt">2</span></a>
+<a class="nav" href="BDH-DuTru.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>Dự trù kỳ</a>
+<div class="navlab">Nhiệm kỳ</div>
+<a class="nav" href="BDH-BanGiao.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"></path></svg>Bàn giao</a>
+</nav>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 10px 0; border-top: 1px solid #EEEDF2">
+<div style="width: 32px; height: 32px; border-radius: 50%; background: #EEEAF8; color: #4A3699; display: grid; place-items: center; font-size: 12.5px; font-weight: 700">QB</div>
+<div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px">
+<span style="font-weight: 600">Phạm Quốc Bảo</span>
+<span style="color: #5E5A6B">Chủ nhiệm</span>
+</div>
+</div>
+</aside>
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 22px; padding: 32px 40px; box-sizing: border-box">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="h" style="font-size: 26px; font-weight: 700">Đề xuất và duyệt chi</h1>
+<p style="margin: 0; font-size: 14px; color: #5E5A6B">Không ai được duyệt khoản do chính mình đề xuất. Khoản trên 2.000.000 ₫ cần mentor duyệt thêm.</p>
+</div>
+<div style="display: flex; gap: 10px">
+<button type="button" class="btn2">Gửi yêu cầu hoàn ứng</button>
+<button type="button" class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Đề xuất chi</button>
+</div>
+</header>
+<div style="display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 24px; align-items: start">
+<section class="card" style="padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 4px; border-bottom: 1px solid #EEEDF2">
+<button type="button" class="tab on" aria-pressed="true">Chờ duyệt (2)</button>
+<button type="button" class="tab" aria-pressed="false">Chờ mentor (1)</button>
+<button type="button" class="tab" aria-pressed="false">Đã duyệt</button>
+<button type="button" class="tab" aria-pressed="false">Từ chối</button>
+</div>
+<button type="button" class="item on" aria-pressed="true">
+<span style="display: flex; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 14.5px"><span>Thuê sân tuần 6–7</span><span style="font-variant-numeric: tabular-nums">400.000 ₫</span></span>
+<span style="font-size: 13px; color: #5E5A6B">Trần Gia Huy · trưởng ban Hậu cần · 01/10</span>
+<span><span class="b b-warn">Chưa có chứng từ</span></span>
+</button>
+<button type="button" class="item" aria-pressed="false">
+<span style="display: flex; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 14.5px"><span>Mua 2 ống cầu</span><span style="font-variant-numeric: tabular-nums">250.000 ₫</span></span>
+<span style="font-size: 13px; color: #5E5A6B">Phạm Quốc Bảo (bạn) · 30/09</span>
+<span><span class="b b-mute">Bạn đề xuất, cần người khác duyệt</span></span>
+</button>
+</section>
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span class="lab">Đề xuất chi · chi trước khi tiêu</span>
+<h2 class="h" style="font-size: 22px; font-weight: 700">Thuê sân tuần 6–7</h2>
+</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums">400.000 ₫</span>
+</div>
+<dl class="dl">
+<dt>Người đề xuất</dt><dd>Trần Gia Huy, trưởng ban Hậu cần</dd>
+<dt>Gửi lúc</dt><dd>19:02 ngày 01/10/2026</dd>
+<dt>Thuộc dự trù</dt><dd>Thuê sân sinh hoạt hằng tuần · còn 1.600.000 ₫ trong dự trù</dd>
+<dt>Chứng từ</dt><dd style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="b b-warn">Chưa có chứng từ</span><span style="color: #5E5A6B; font-size: 13px">Vẫn ghi sổ được. Nhãn này hiện cho mọi thành viên thấy.</span></dd>
+<dt>Lý do</dt><dd>“Đặt trước sân cho buổi sinh hoạt tuần 6 và tuần 7, mỗi buổi 200.000 ₫.”</dd>
+</dl>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ghi-chu" style="font-size: 13.5px; font-weight: 600">Ghi chú (bắt buộc khi từ chối)</label>
+<textarea id="ghi-chu" rows="3" placeholder="Ví dụ: cần báo giá của sân trước khi duyệt" style="padding: 10px 12px; border: 1px solid #D6D3DF; border-radius: 8px; font-size: 14px; resize: none"></textarea>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" class="btn2">Từ chối</button>
+<button type="button" class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>Duyệt</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid #EEEDF2">
+<span class="lab">Lịch sử</span>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px">
+<li><span style="color: #5E5A6B; font-variant-numeric: tabular-nums">01/10 19:02</span> · Trần Gia Huy tạo đề xuất</li>
+<li><span style="color: #5E5A6B; font-variant-numeric: tabular-nums">01/10 19:02</span> · Đã báo cho Phạm Quốc Bảo và Lê Thu Hà</li>
+</ol>
+<p style="margin: 4px 0 0; font-size: 13px; color: #5E5A6B">Sổ quỹ không sửa, không xóa được. Muốn điều chỉnh thì thêm bút toán mới.</p>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

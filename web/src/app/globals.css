@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Không làm dark mode: biến thể dark: của Tailwind chỉ chạy khi có lớp .dark, mà app không đặt lớp này. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * CampusHub · phần chung cho mọi trang.
+ * Màu, chữ, nút và bố cục của các màn nằm ở lich.css (hệ "Lịch bloc", luật trong DESIGN.md). File này chỉ có:
+ * - biến theme của shadcn/ui, nối vào biến của lich.css, để component thêm bằng `npx shadcn add` ra đúng màu Lịch bloc;
+ * - lớp tiện ích của Tailwind, chỉ dùng các biến đó;
+ * - quy tắc cho thẻ HTML, nằm trong @layer base để lớp của lich.css (không nằm trong layer nào) luôn thắng.
+ */
+
+:root {
+  /* Biến theme của shadcn/ui. Không có dark mode. Không có màu đỏ lịch: đỏ chỉ dành cho tờ lịch hôm nay và hạn gấp. */
+  --background: var(--l-ground);
+  --foreground: var(--l-ink);
+  --card: var(--l-paper);
+  --card-foreground: var(--l-ink);
+  --popover: var(--l-paper);
+  --popover-foreground: var(--l-ink);
+  --primary: var(--l-blue);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--l-paper);
+  --secondary-foreground: var(--l-ink);
+  --muted: var(--l-rule-soft);
+  --muted-foreground: var(--l-ink-3);
+  --accent: var(--l-blue-tint);
+  --accent-foreground: var(--l-blue);
+  --destructive: var(--l-red-ink);
+  --border: var(--l-rule);
+  --input: var(--l-rule);
+  --ring: var(--l-blue);
+  --radius: var(--l-r);
+}
+
+/* Lớp tiện ích của Tailwind (bg-primary, rounded-lg, font-heading…) chỉ dùng biến ở :root.
+   Bỏ bảng màu, font, bóng đổ và độ mờ mặc định của Tailwind, để không ai dùng được màu hay kiểu ngoài Lịch bloc. */
+@theme inline reference {
+  --color-*: initial;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-*: initial;
+  --radius-sm: calc(var(--l-r) - 4px);
+  --radius-md: calc(var(--l-r) - 2px);
+  --radius-lg: var(--l-r);
+  --radius-xl: var(--l-r-lg);
+  --font-*: initial;
+  --font-sans: var(--l-body);
+  --font-heading: var(--l-body);
+  --font-mono: var(--l-mono);
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --blur-*: initial;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html, body { margin: 0; }
+  body { background: var(--l-ground); color: var(--l-ink); font-family: var(--l-body); font-size: 15px; }
+  a { color: var(--l-blue); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--l-blue); outline-offset: 2px; }
+  h1, h2, h3, p { margin: 0; }
+
+  /* Tailwind (preflight) bỏ kiểu mặc định của trình duyệt. Trả lại những chỗ các màn đang dùng. */
+  h1, h2, h3, h4, h5, h6 { font-size: revert; font-weight: revert; }
+  ol, ul { list-style: revert; }
+  a { text-decoration: revert; }
+  ::placeholder { color: revert; opacity: revert; }
+  button, input, select, textarea { opacity: revert; }
+}
+
+@layer components {
+  /* Tiêu đề nhận focus bằng code (tabindex="-1") để trình đọc màn hình đọc chỗ vừa đổi: không cần viền focus. */
+  [tabindex="-1"]:focus { outline: none; }
+}
+
+/* Sonner tự chèn CSS không nằm trong layer nào, nên phần chỉnh của nó cũng để ngoài layer.
+   Thông báo không bóng đổ (Lịch bloc không dùng bóng), chuyển động 200 ms. Màu và chữ: lich.css. */
+[data-sonner-toast] { box-shadow: none; transition-duration: 200ms; }

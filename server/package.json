@@ -1,0 +1,29 @@
+{
+  "name": "campushub-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CampusHub MVP: máy chủ API (Express). Dữ liệu lưu trong PostgreSQL khi đặt DATABASE_URL, không thì giữ dữ liệu mẫu trong bộ nhớ",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "node --experimental-strip-types --env-file-if-exists=.env --watch src/index.ts",
+    "start": "node --experimental-strip-types --env-file-if-exists=.env src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "test:db": "node --experimental-strip-types --env-file=test/pglite.env --test test/*.test.ts"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "pg": "8.23.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@types/express": "5.0.6",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "typescript": "5.9.3"
+  }
+}

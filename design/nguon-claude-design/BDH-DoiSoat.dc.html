@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đối soát sao kê</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Montserrat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4A3699}a:hover{color:#2F2266}
+button,input,select,textarea{font:inherit;color:inherit}
+.h{font-family:Montserrat,'Segoe UI',sans-serif;color:#14121A;margin:0}
+.card{background:#FFFFFF;border:1px solid #E4E2EA;border-radius:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #604ABD;background:#604ABD;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn:hover{background:#4E3A9E;border-color:#4E3A9E;color:#FFFFFF}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #D6D3DF;background:#FFFFFF;color:#14121A;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn2:hover{background:#F4F2F9;color:#14121A}
+.sm{height:32px;padding:0 12px;font-size:13px}
+.nav{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:8px;color:#3B3846;font-size:14px;font-weight:500;text-decoration:none}
+.nav:hover{background:#F4F2F9;color:#14121A}
+.nav.on{background:#EEEAF8;color:#4A3699;font-weight:600}
+.navlab{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6B6778;padding:14px 10px 4px}
+.cnt{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#FDEBE5;color:#8F3418;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.stat{padding:14px 20px;display:flex;flex-direction:column;gap:2px}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-weight:600;font-size:12.5px;color:#5E5A6B;padding:9px 14px;background:#F7F6FA;border-bottom:1px solid #E4E2EA;white-space:nowrap}
+.tbl td{padding:10px 14px;border-bottom:1px solid #EEEDF2;vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-size:12.5px}
+.b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.b-warn{background:#FDEBE5;color:#8F3418}
+.b-info{background:#EEEAF8;color:#4A3699}
+.fld{height:32px;padding:0 10px;border:1px solid #D6D3DF;border-radius:8px;background:#FFFFFF;font-size:13px;box-sizing:border-box}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gan{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #F4F3F7; font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; color: #14121A; overflow: hidden">
+<aside style="width: 248px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E4E2EA; display: flex; flex-direction: column; gap: 18px; padding: 20px 14px; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 10px">
+<div style="width: 28px; height: 28px; border-radius: 7px; background: #604ABD; color: #FFFFFF; display: grid; place-items: center; font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 15px">C</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 17px; color: #14121A">CampusHub</span>
+</div>
+<button type="button" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid #E4E2EA; border-radius: 10px; background: #F7F6FA; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14px">CLB Cầu lông Sân Nhà</span>
+<span style="font-size: 12.5px; color: #5E5A6B">Thủ quỹ · Fall 2026</span>
+</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<nav aria-label="Menu ban điều hành" style="display: flex; flex-direction: column; gap: 2px">
+<a class="nav" href="Main.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>Trang chủ</a>
+<a class="nav" href="BDH-ThanhVien.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18 14.8c1.9.7 3.1 2.4 3.5 5.2"></path></svg>Thành viên<span class="cnt">3</span></a>
+<a class="nav" href="BDH-QR.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 20h4v-3"></path></svg>Điểm danh</a>
+<div class="navlab">Sổ quỹ</div>
+<a class="nav" href="BDH-DotThu.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Đợt thu</a>
+<a class="nav on" href="BDH-DoiSoat.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11"></path><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"></path></svg>Đối soát sao kê<span class="cnt">4</span></a>
+<a class="nav" href="BDH-DuyetChi.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path><path d="m9 14 2 2 4-4"></path></svg>Đề xuất và duyệt chi<span class="cnt">2</span></a>
+<a class="nav" href="BDH-DuTru.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>Dự trù kỳ</a>
+<div class="navlab">Nhiệm kỳ</div>
+<a class="nav" href="BDH-BanGiao.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"></path></svg>Bàn giao</a>
+</nav>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 10px 0; border-top: 1px solid #EEEDF2">
+<div style="width: 32px; height: 32px; border-radius: 50%; background: #EEEAF8; color: #4A3699; display: grid; place-items: center; font-size: 12.5px; font-weight: 700">TH</div>
+<div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px">
+<span style="font-weight: 600">Lê Thu Hà</span>
+<span style="color: #5E5A6B">Thủ quỹ</span>
+</div>
+</div>
+</aside>
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 18px; padding: 32px 40px; box-sizing: border-box">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="h" style="font-size: 26px; font-weight: 700">Đối soát sao kê</h1>
+<p style="margin: 0; font-size: 14px; color: #5E5A6B">Đợt thu: Quỹ học kỳ Fall 2026 · tài khoản nhận quỹ của Lê Thu Hà</p>
+</div>
+<button type="button" class="btn2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5m-5 5 5-5 5 5M4 20h16"></path></svg>Tải sao kê khác</button>
+</header>
+<section class="card" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px">
+<div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: #EEEAF8; color: #4A3699; display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path></svg></div>
+<div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+<span style="font-weight: 600; font-size: 14.5px">sao-ke-25-09-den-01-10.xlsx</span>
+<span style="font-size: 13px; color: #5E5A6B">32 giao dịch tiền vào, từ 25/09 đến 01/10/2026 · mẫu sao kê: [ngân hàng của CLB]</span>
+</div>
+<p style="margin: 0; max-width: 430px; font-size: 13px; line-height: 1.5; color: #5E5A6B">CampusHub không kết nối với tài khoản ngân hàng. Thủ quỹ tự tải file sao kê từ app ngân hàng rồi đưa lên đây.</p>
+</section>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div class="card stat">
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-size: 24px; font-weight: 700">26 khớp tự động</span>
+<span style="font-size: 13px; color: #5E5A6B">Đúng mã và đúng số tiền, đã chuyển sang “Đã đóng”.</span>
+</div>
+<div class="card stat" style="border-color: #F6C9B8; background: #FFF8F5">
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-size: 24px; font-weight: 700; color: #8F3418">4 cần bạn gán tay</span>
+<span style="font-size: 13px; color: #5E5A6B">Sai cú pháp, chuyển hộ hoặc thiếu tiền.</span>
+</div>
+<div class="card stat">
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-size: 24px; font-weight: 700">2 không thuộc đợt thu</span>
+<span style="font-size: 13px; color: #5E5A6B">Ví dụ tiền hoàn ứng. Bỏ qua, không ghi vào đợt thu.</span>
+</div>
+</div>
+<section class="card" style="overflow: hidden">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 20px 10px">
+<h2 class="h" style="font-size: 16px; font-weight: 700">Cần gán tay (4)</h2>
+<span style="font-size: 13px; color: #5E5A6B">Chưa bấm “Ghi nhận” thì sổ quỹ chưa thay đổi.</span>
+</div>
+<table class="tbl">
+<thead>
+<tr><th>Ngày</th><th class="r">Số tiền</th><th>Người chuyển</th><th>Nội dung chuyển khoản</th><th>Vì sao chưa khớp</th><th class="r">Gán cho thành viên</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>27/09</td><td class="r">100.000 ₫</td><td>NGUYEN THI MAI</td><td class="mono">CK</td><td><span class="b b-warn">Thiếu mã thành viên</span></td>
+<td><div class="gan"><label for="gan-1" class="sr">Gán giao dịch ngày 27/09 cho thành viên</label><select id="gan-1" class="fld" style="width: 190px"><option>Chọn thành viên</option></select><button type="button" class="btn sm">Ghi nhận</button></div></td>
+</tr>
+<tr>
+<td>29/09</td><td class="r">200.000 ₫</td><td>TRAN VAN KHOA</td><td class="mono">QFALL26 A021 A022</td><td><span class="b b-warn">Một lần chuyển cho 2 người</span></td>
+<td><div class="gan"><span style="font-size: 13px">Đỗ Bảo Ngọc, Lý Hoàng Nam</span><button type="button" class="btn sm">Ghi nhận cả hai</button></div></td>
+</tr>
+<tr>
+<td>30/09</td><td class="r">50.000 ₫</td><td>BUI KHANH VY</td><td class="mono">QFALL26 A030</td><td><span class="b b-warn">Thiếu 50.000 ₫</span></td>
+<td><div class="gan"><span style="font-size: 13px">Bùi Khánh Vy, còn nợ 50.000 ₫</span><button type="button" class="btn sm">Ghi nhận</button></div></td>
+</tr>
+<tr>
+<td>30/09</td><td class="r">100.000 ₫</td><td>NGUYEN MINH ANH</td><td class="mono">quy cau long minh anh</td><td><span class="b b-warn">Sai cú pháp, không có mã</span></td>
+<td><div class="gan"><span style="font-size: 13px">Gợi ý: Nguyễn Minh Anh (trùng tên)</span><button type="button" class="btn sm">Ghi nhận</button></div></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="card" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px">
+<div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1">
+<span style="font-weight: 600; font-size: 14.5px">Báo đã chuyển nhưng chưa thấy trong sao kê (1)</span>
+<span style="font-size: 13px; color: #5E5A6B">Hoàng Đức Trí · <span class="mono">QFALL26 A024</span> · báo đã chuyển lúc 21:40 ngày 01/10. Sao kê này chỉ tới 01/10, giao dịch về trễ sẽ có ở lần tải sau.</span>
+</div>
+<span class="b b-info">Chờ lần tải sau</span>
+<button type="button" class="btn2 sm">Nhắn hỏi</button>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

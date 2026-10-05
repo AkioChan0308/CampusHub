@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Lời mời và đồng ý dữ liệu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Montserrat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4A3699}a:hover{color:#2F2266}
+button,input,select,textarea{font:inherit;color:inherit}
+.h{font-family:Montserrat,'Segoe UI',sans-serif;color:#14121A;margin:0}
+.lab{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5E5A6B}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;padding:0 18px;border-radius:10px;border:1px solid #604ABD;background:#604ABD;color:#FFFFFF;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.btn2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;padding:0 18px;border-radius:10px;border:1px solid #D6D3DF;background:#FFFFFF;color:#14121A;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.chk{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#FFFFFF;border:1px solid #E4E2EA;border-radius:12px;cursor:pointer}
+.chk input{width:22px;height:22px;margin:1px 0 0;flex-shrink:0;accent-color:#604ABD}
+.chk .t{display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.45}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F3F7; font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; color: #14121A; overflow: hidden">
+<header style="height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: #FFFFFF; border-bottom: 1px solid #E4E2EA; box-sizing: border-box">
+<div style="width: 26px; height: 26px; border-radius: 7px; background: #604ABD; color: #FFFFFF; display: grid; place-items: center; font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 14px">C</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 16px">CampusHub</span>
+</header>
+<main style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 16px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span class="lab">Lời mời tham gia</span>
+<h1 class="h" style="font-size: 23px; font-weight: 700; line-height: 1.3">CLB Cầu lông Sân Nhà mời bạn tham gia</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #3B3846">Phạm Quốc Bảo (chủ nhiệm) đã thêm bạn vào danh sách thành viên học kỳ Fall 2026.</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E4E2EA; font-size: 13.5px">
+<span>Đăng nhập bằng <strong>minhanh.nguyen@example.com</strong></span>
+<button type="button" style="height: 44px; padding: 0 4px; border: 0; background: transparent; color: #4A3699; font-weight: 600; cursor: pointer; white-space: nowrap">Đổi</button>
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+<legend style="padding: 0 0 8px; font-weight: 600; font-size: 15px">Trước khi tham gia, bạn chọn:</legend>
+<label class="chk" for="dong-y-1">
+<input id="dong-y-1" type="checkbox">
+<span class="t">
+<span>Cho CLB lưu họ tên, email, lịch sử điểm danh và các khoản đóng quỹ của tôi để quản lý thành viên.</span>
+<span style="font-size: 12.5px; font-weight: 600; color: #8F3418">Bắt buộc để tham gia</span>
+</span>
+</label>
+<label class="chk" for="dong-y-2">
+<input id="dong-y-2" type="checkbox">
+<span class="t">
+<span>Cho CLB lưu số điện thoại của tôi để liên lạc.</span>
+<span style="font-size: 12.5px; font-weight: 600; color: #5E5A6B">Không bắt buộc</span>
+</span>
+</label>
+<label class="chk" for="dong-y-3">
+<input id="dong-y-3" type="checkbox">
+<span class="t">
+<span>Tôi xác nhận đã đủ 16 tuổi.</span>
+<span style="font-size: 12.5px; font-weight: 600; color: #8F3418">Bắt buộc</span>
+</span>
+</label>
+</fieldset>
+<p style="margin: 0; font-size: 13px; line-height: 1.55; color: #5E5A6B">Dữ liệu lưu tại [nhà cung cấp cloud], máy chủ đặt tại [quốc gia]. CampusHub không chia sẻ dữ liệu cho bên thứ ba. Bạn xem, sửa, tải về hoặc xóa dữ liệu của mình ở mục Của tôi. <a href="#chinh-sach">Đọc chính sách dữ liệu</a></p>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px">
+<button type="button" class="btn" disabled style="background: #E6E3EE; border-color: #E6E3EE; color: #5E5A6B; cursor: not-allowed">Tham gia CLB</button>
+<span style="font-size: 12.5px; color: #5E5A6B; text-align: center">Chọn 2 ô bắt buộc để tiếp tục</span>
+<button type="button" class="btn2" style="border-color: transparent; background: transparent">Không tham gia</button>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

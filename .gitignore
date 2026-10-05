@@ -1,0 +1,49 @@
+# Thư viện và bản build
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# File TypeScript và Next.js tự sinh khi build
+*.tsbuildinfo
+next-env.d.ts
+
+# Biến môi trường, khóa bí mật (chỉ commit file .env.example)
+.env
+.env.*
+!.env.example
+# File khóa tải từ Google Cloud (OAuth) và các file chứng chỉ
+client_secret*.json
+*.pem
+*.key
+*.p12
+
+# Dữ liệu thật (danh sách thành viên, sao kê ngân hàng): không commit.
+data-that/
+# Bảng tính và file sao kê dễ là dữ liệu thật. Chỉ commit file trong thư mục mau/ (dữ liệu mẫu tự đặt, ghi rõ là mẫu).
+*.csv
+*.xlsx
+*.xls
+!**/mau/*.csv
+!**/mau/*.xlsx
+!**/mau/*.xls
+# File sao lưu PostgreSQL (pg_dump) có dữ liệu thành viên
+sao-luu*.sql
+*.dump
+
+# Ảnh chụp và file tạm của các script bấm thử (web/e2e)
+web/e2e/anh/
+
+# Skill và cấu hình Claude Code (karpathy-guidelines, Impeccable): mỗi người tự cài theo docs/tien-do-mvp.md, không commit.
+.claude/
+# File skill Impeccable tạo ra (design.json, mô tả bề mặt, ảnh review, log). Luật thiết kế cho cả nhóm nằm ở DESIGN.md và PRODUCT.md.
+.impeccable/
+
+# Log, file hệ điều hành, cấu hình riêng của trình soạn mã
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

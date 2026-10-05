@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thành viên và đơn xin vào · CampusHub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Montserrat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4A3699}a:hover{color:#2F2266}
+button,input,select,textarea{font:inherit;color:inherit}
+.h{font-family:Montserrat,'Segoe UI',sans-serif;color:#14121A;margin:0}
+.card{background:#FFFFFF;border:1px solid #E4E2EA;border-radius:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #604ABD;background:#604ABD;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn:hover{background:#4E3A9E;border-color:#4E3A9E;color:#FFFFFF}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid #D6D3DF;background:#FFFFFF;color:#14121A;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.btn2:hover{background:#F4F2F9;color:#14121A}
+.sm{height:32px;padding:0 12px;font-size:13px}
+.nav{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:8px;color:#3B3846;font-size:14px;font-weight:500;text-decoration:none}
+.nav:hover{background:#F4F2F9;color:#14121A}
+.nav.on{background:#EEEAF8;color:#4A3699;font-weight:600}
+.navlab{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6B6778;padding:14px 10px 4px}
+.cnt{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#FDEBE5;color:#8F3418;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-weight:600;font-size:12.5px;color:#5E5A6B;padding:10px 16px;background:#F7F6FA;border-bottom:1px solid #E4E2EA;white-space:nowrap}
+.tbl td{padding:11px 16px;border-bottom:1px solid #EEEDF2;vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.b-ok{background:#E4F2EA;color:#1D6B47}
+.b-warn{background:#FDEBE5;color:#8F3418}
+.b-info{background:#EEEAF8;color:#4A3699}
+.b-mute{background:#EEEDF2;color:#4A4657}
+.fld{height:40px;padding:0 12px;border:1px solid #D6D3DF;border-radius:8px;background:#FFFFFF;font-size:14px;box-sizing:border-box}
+.req{display:grid;grid-template-columns:240px minmax(0,1fr) auto;gap:20px;align-items:center;padding:12px 20px;border-top:1px solid #EEEDF2}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 900px; display: flex; background: #F4F3F7; font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; color: #14121A; overflow: hidden">
+<aside style="width: 248px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E4E2EA; display: flex; flex-direction: column; gap: 18px; padding: 20px 14px; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 10px">
+<div style="width: 28px; height: 28px; border-radius: 7px; background: #604ABD; color: #FFFFFF; display: grid; place-items: center; font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 15px">C</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 17px; color: #14121A">CampusHub</span>
+</div>
+<button type="button" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid #E4E2EA; border-radius: 10px; background: #F7F6FA; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14px">CLB Cầu lông Sân Nhà</span>
+<span style="font-size: 12.5px; color: #5E5A6B">Chủ nhiệm · Fall 2026</span>
+</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<nav aria-label="Menu ban điều hành" style="display: flex; flex-direction: column; gap: 2px">
+<a class="nav" href="BDH-TrangChu.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>Trang chủ</a>
+<a class="nav on" href="BDH-ThanhVien.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18 14.8c1.9.7 3.1 2.4 3.5 5.2"></path></svg>Thành viên<span class="cnt">3</span></a>
+<a class="nav" href="BDH-QR.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 20h4v-3"></path></svg>Điểm danh</a>
+<div class="navlab">Sổ quỹ</div>
+<a class="nav" href="BDH-DotThu.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Đợt thu</a>
+<a class="nav" href="BDH-DoiSoat.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11"></path><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"></path></svg>Đối soát sao kê<span class="cnt">4</span></a>
+<a class="nav" href="BDH-DuyetChi.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path><path d="m9 14 2 2 4-4"></path></svg>Đề xuất và duyệt chi<span class="cnt">2</span></a>
+<a class="nav" href="BDH-DuTru.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>Dự trù kỳ</a>
+<div class="navlab">Nhiệm kỳ</div>
+<a class="nav" href="BDH-BanGiao.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"></path></svg>Bàn giao</a>
+</nav>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 10px 0; border-top: 1px solid #EEEDF2">
+<div style="width: 32px; height: 32px; border-radius: 50%; background: #EEEAF8; color: #4A3699; display: grid; place-items: center; font-size: 12.5px; font-weight: 700">QB</div>
+<div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px">
+<span style="font-weight: 600">Phạm Quốc Bảo</span>
+<span style="color: #5E5A6B">Chủ nhiệm</span>
+</div>
+</div>
+</aside>
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 24px; padding: 32px 40px; box-sizing: border-box">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="h" style="font-size: 26px; font-weight: 700">Thành viên</h1>
+<p style="margin: 0; font-size: 14px; color: #5E5A6B">42 thành viên · 6 người chưa nhận lời mời · học kỳ Fall 2026</p>
+</div>
+<div style="display: flex; gap: 10px">
+<button type="button" class="btn2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5m-5 5 5-5 5 5M4 20h16"></path></svg>Nhập từ Excel</button>
+<button type="button" class="btn2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M4 20h16"></path></svg>Xuất Excel</button>
+<button type="button" class="btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>Tạo link mời</button>
+</div>
+</header>
+<section class="card" style="overflow: hidden">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 16px 20px 12px">
+<h2 class="h" style="font-size: 16px; font-weight: 700">Đơn xin vào đang chờ (3)</h2>
+<span style="font-size: 13px; color: #5E5A6B">Người xin vào nhận email ngay khi bạn duyệt hoặc từ chối.</span>
+</div>
+<div class="req">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14.5px">Võ Thị Hồng Nhung</span>
+<span style="font-size: 13px; color: #5E5A6B">Năm 2 · gửi 28/09 (4 ngày trước)</span>
+</div>
+<span style="font-size: 13.5px; color: #3B3846">“Mình chơi cầu lông từ cấp 3, muốn có nhóm đánh đều mỗi tuần.”</span>
+<div style="display: flex; gap: 8px">
+<button type="button" class="btn2 sm">Từ chối</button>
+<button type="button" class="btn sm">Duyệt</button>
+</div>
+</div>
+<div class="req">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14.5px">Đặng Quốc Việt</span>
+<span style="font-size: 13px; color: #5E5A6B">Năm 1 · gửi 30/09 (2 ngày trước)</span>
+</div>
+<span style="font-size: 13.5px; color: #5E5A6B">Không ghi lý do.</span>
+<div style="display: flex; gap: 8px">
+<button type="button" class="btn2 sm">Từ chối</button>
+<button type="button" class="btn sm">Duyệt</button>
+</div>
+</div>
+<div class="req">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 600; font-size: 14.5px">Hồ Gia Linh</span>
+<span style="font-size: 13px; color: #5E5A6B">Năm 3 · gửi 01/10 (hôm qua)</span>
+</div>
+<span style="font-size: 13.5px; color: #3B3846">“Muốn tham gia giải nội bộ tháng 10.”</span>
+<div style="display: flex; gap: 8px">
+<button type="button" class="btn2 sm">Từ chối</button>
+<button type="button" class="btn sm">Duyệt</button>
+</div>
+</div>
+</section>
+<section class="card" style="overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px">
+<h2 class="h" style="font-size: 16px; font-weight: 700">Danh sách thành viên</h2>
+<div style="display: flex; align-items: center; gap: 10px">
+<label for="tim-tv" style="font-size: 13px; color: #5E5A6B">Tìm</label>
+<input id="tim-tv" class="fld" type="search" placeholder="Tên hoặc email" style="width: 240px">
+<label for="loc-ban" style="font-size: 13px; color: #5E5A6B">Ban</label>
+<select id="loc-ban" class="fld" style="width: 170px">
+<option>Tất cả các ban</option>
+</select>
+</div>
+</div>
+<table class="tbl">
+<thead>
+<tr><th>Họ tên</th><th>Ban</th><th>Vai trò</th><th class="r">Điểm danh kỳ này</th><th>Quỹ Fall 2026</th><th>Tài khoản</th></tr>
+</thead>
+<tbody>
+<tr><td style="font-weight: 600">Phạm Quốc Bảo</td><td>Ban chủ nhiệm</td><td>Chủ nhiệm</td><td class="r">5/5</td><td><span class="b b-ok">Đã đóng</span></td><td>Đã nhận lời mời</td></tr>
+<tr><td style="font-weight: 600">Lê Thu Hà</td><td>Ban chủ nhiệm</td><td>Thủ quỹ</td><td class="r">5/5</td><td><span class="b b-ok">Đã đóng · tiền mặt</span></td><td>Đã nhận lời mời</td></tr>
+<tr><td style="font-weight: 600">Trần Gia Huy</td><td>Hậu cần</td><td>Trưởng ban</td><td class="r">4/5</td><td><span class="b b-ok">Đã đóng</span></td><td>Đã nhận lời mời</td></tr>
+<tr><td style="font-weight: 600">Nguyễn Minh Anh</td><td>Truyền thông</td><td>Thành viên</td><td class="r">4/5</td><td><span class="b b-info">Báo đã chuyển</span></td><td>Đã nhận lời mời</td></tr>
+<tr><td style="font-weight: 600">Đỗ Bảo Ngọc</td><td>Hậu cần</td><td>Thành viên</td><td class="r">3/5</td><td><span class="b b-warn">Chưa đóng</span></td><td>Đã nhận lời mời</td></tr>
+<tr><td style="font-weight: 600">Lý Hoàng Nam</td><td>Chuyên môn</td><td>Thành viên</td><td class="r">2/5</td><td><span class="b b-warn">Chưa đóng</span></td><td><span class="b b-mute">Chưa nhận lời mời</span></td></tr>
+</tbody>
+</table>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 20px; border-top: 1px solid #EEEDF2; font-size: 13px; color: #5E5A6B">
+<span>Đang hiện 6/42. Người chưa nhận lời mời vẫn có tên trong danh sách và vẫn được điểm danh tay.</span>
+<button type="button" class="btn2 sm">Xem tiếp</button>
+</div>
+</section>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Danh sách CLB · CampusHub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Montserrat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#4A3699}a:hover{color:#2F2266}
+button,input,select,textarea{font:inherit;color:inherit}
+.h{font-family:Montserrat,'Segoe UI',sans-serif;color:#14121A;margin:0}
+.card{background:#FFFFFF;border:1px solid #E4E2EA;border-radius:14px}
+.btn2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;padding:0 18px;border-radius:10px;border:1px solid #D6D3DF;background:#FFFFFF;color:#14121A;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.btn2:hover{background:#F4F2F9;color:#14121A}
+.fld{width:100%;height:48px;padding:0 14px;border:1px solid #D6D3DF;border-radius:10px;background:#FFFFFF;font-size:15px;box-sizing:border-box}
+.f{display:flex;flex-direction:column;gap:6px}
+.f label{font-size:13px;font-weight:600}
+.b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.b-ok{background:#E4F2EA;color:#1D6B47}
+.b-info{background:#EEEAF8;color:#4A3699}
+.b-mute{background:#EEEDF2;color:#4A4657}
+.clb{padding:16px;display:flex;flex-direction:column;gap:10px}
+.meta{display:flex;flex-direction:column;gap:3px;font-size:13.5px;color:#3B3846}
+</style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #F4F3F7; font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif; color: #14121A; overflow: hidden">
+<header style="height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: #FFFFFF; border-bottom: 1px solid #E4E2EA; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 8px">
+<div style="width: 26px; height: 26px; border-radius: 7px; background: #604ABD; color: #FFFFFF; display: grid; place-items: center; font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 14px">C</div>
+<span style="font-family: Montserrat, 'Segoe UI', sans-serif; font-weight: 700; font-size: 16px">CampusHub</span>
+</div>
+<span style="font-size: 13px; color: #5E5A6B">Hồng Nhung</span>
+</header>
+<main style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 16px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 class="h" style="font-size: 22px; font-weight: 700">CLB đang dùng CampusHub</h1>
+<span style="font-size: 13.5px; color: #5E5A6B">[Tên trường] · học kỳ Fall 2026</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 10px">
+<div class="f">
+<label for="tim-clb">Tìm CLB</label>
+<input id="tim-clb" class="fld" type="search" placeholder="Tên CLB">
+</div>
+<div class="f">
+<label for="linh-vuc">Lĩnh vực</label>
+<select id="linh-vuc" class="fld"><option>Tất cả</option></select>
+</div>
+</div>
+<article class="card clb">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<h2 class="h" style="font-size: 16px; font-weight: 700; line-height: 1.35">CLB Cầu lông Sân Nhà</h2>
+<span class="b b-ok">Đang nhận đơn</span>
+</div>
+<div class="meta">
+<span>Nghệ thuật, thể thao · 42 thành viên</span>
+<span style="color: #5E5A6B">Sinh hoạt sáng Thứ Bảy · hoạt động gần nhất 03/10</span>
+</div>
+<a class="btn2" href="SV-DonXinVao.html">Xem và gửi đơn</a>
+</article>
+<article class="card clb">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<h2 class="h" style="font-size: 16px; font-weight: 700; line-height: 1.35">CLB Lập trình Vòng Lặp</h2>
+<span class="b b-info">Đã gửi đơn</span>
+</div>
+<div class="meta">
+<span>Học thuật, nghiên cứu · 38 thành viên</span>
+<span style="color: #5E5A6B">Đơn của bạn gửi 30/09, đang chờ ban điều hành duyệt.</span>
+</div>
+<button type="button" class="btn2">Xem đơn của tôi</button>
+</article>
+<article class="card clb">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<h2 class="h" style="font-size: 16px; font-weight: 700; line-height: 1.35">Đội Tình nguyện Gieo Mầm</h2>
+<span class="b b-mute">Tạm ngưng nhận đơn</span>
+</div>
+<div class="meta">
+<span>Tình nguyện, xã hội · 55 thành viên</span>
+<span style="color: #5E5A6B">Hoạt động gần nhất 21/09</span>
+</div>
+</article>
+</main>
+</div>
+</body>
+</html>

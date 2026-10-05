@@ -1,0 +1,53 @@
+{
+ "v": 3,
+ "createdOnFiles": {"v": 1, "at": "2026-10-02T14:40:00Z"},
+ "title": "Wireframe CampusHub MVP",
+ "launch": {"view": "canvas"},
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 900, "title": "Ban điều hành · Trang chủ CLB", "is_interactive": true},
+  "BDH-ThanhVien.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 900, "title": "Ban điều hành · Thành viên và đơn xin vào", "is_interactive": true},
+  "BDH-QR.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 900, "title": "Ban điều hành · Chiếu QR điểm danh", "is_interactive": true},
+  "BDH-DotThu.dc.html": {"x": 4560, "y": 0, "w": 1440, "h": 900, "title": "Ban điều hành · Đợt thu: ai đã đóng", "is_interactive": true},
+  "BDH-DoiSoat.dc.html": {"x": 0, "y": 1360, "w": 1440, "h": 900, "title": "Ban điều hành · Đối soát sao kê", "is_interactive": true},
+  "BDH-DuyetChi.dc.html": {"x": 1520, "y": 1360, "w": 1440, "h": 900, "title": "Ban điều hành · Đề xuất và duyệt chi", "is_interactive": true},
+  "BDH-DuTru.dc.html": {"x": 3040, "y": 1360, "w": 1440, "h": 900, "title": "Ban điều hành · Dự trù kinh phí kỳ", "is_interactive": true},
+  "BDH-BanGiao.dc.html": {"x": 4560, "y": 1360, "w": 1440, "h": 900, "title": "Ban điều hành · Bàn giao nhiệm kỳ", "is_interactive": true},
+  "TV-LoiMoi.dc.html": {"x": 0, "y": 2700, "w": 390, "h": 844, "title": "Thành viên · Lời mời và đồng ý dữ liệu"},
+  "TV-DiemDanh.dc.html": {"x": 470, "y": 2700, "w": 390, "h": 844, "title": "Thành viên · Điểm danh xong", "is_interactive": true},
+  "TV-DongQuy.dc.html": {"x": 940, "y": 2700, "w": 390, "h": 844, "title": "Thành viên · Đóng quỹ bằng VietQR", "is_interactive": true},
+  "TV-CuaToi.dc.html": {"x": 1410, "y": 2700, "w": 390, "h": 844, "title": "Thành viên · Của tôi", "is_interactive": true},
+  "SV-DanhSach.dc.html": {"x": 2040, "y": 2700, "w": 390, "h": 844, "title": "Sinh viên · Danh sách CLB", "is_interactive": true},
+  "SV-DonXinVao.dc.html": {"x": 2510, "y": 2700, "w": 390, "h": 844, "title": "Sinh viên · Trang CLB và đơn xin vào", "is_interactive": true},
+  "NT-TongQuan.dc.html": {"x": 0, "y": 3984, "w": 1440, "h": 900, "title": "Nhà trường · Các CLB", "is_interactive": true},
+  "NT-ChiTietCLB.dc.html": {"x": 1520, "y": 3984, "w": 1440, "h": 900, "title": "Nhà trường, mentor · Chi tiết một CLB", "is_interactive": true}
+ },
+ "order": [
+  "Main.dc.html",
+  "BDH-ThanhVien.dc.html",
+  "BDH-QR.dc.html",
+  "BDH-DotThu.dc.html",
+  "BDH-DoiSoat.dc.html",
+  "BDH-DuyetChi.dc.html",
+  "BDH-DuTru.dc.html",
+  "BDH-BanGiao.dc.html",
+  "TV-LoiMoi.dc.html",
+  "TV-DiemDanh.dc.html",
+  "TV-DongQuy.dc.html",
+  "TV-CuaToi.dc.html",
+  "SV-DanhSach.dc.html",
+  "SV-DonXinVao.dc.html",
+  "NT-TongQuan.dc.html",
+  "NT-ChiTietCLB.dc.html"
+ ],
+ "notes": {
+  "t1": {"x": 0, "y": -300, "text": "Ban điều hành CLB · laptop", "kind": "title1", "maxW": 6000},
+  "t2": {"x": 0, "y": 1060, "text": "Ban điều hành · sổ quỹ, dự trù, bàn giao", "kind": "title1", "maxW": 6000},
+  "t3": {"x": 0, "y": 2400, "text": "Thành viên · điện thoại", "kind": "title1", "maxW": 1800},
+  "t4": {"x": 2040, "y": 2400, "text": "Sinh viên chưa vào CLB", "kind": "title1", "maxW": 860},
+  "t5": {"x": 0, "y": 3684, "text": "Ban quản lý CLB của trường, mentor · laptop", "kind": "title1", "maxW": 2960},
+  "mau": {"x": 6080, "y": 0, "w": 440, "fill": "orange", "size": "m", "text": "Dữ liệu mẫu: mọi tên người, tên CLB, số tiền và ngày trong bản vẽ là tự đặt để xem bố cục, không phải số liệu thật.\n\nChữ trong ngoặc vuông [ ] là thông tin chưa có, chờ nhóm điền (ví dụ nơi lưu dữ liệu, mẫu dự trù của trường)."},
+  "chuave": {"x": 6080, "y": 1360, "w": 440, "fill": "gray", "size": "m", "text": "Chưa vẽ ở vòng này:\n• Danh sách sự kiện, tạo sự kiện\n• Nhập danh sách từ Excel\n• Các lỗi khi quét QR: mã hết hạn, không phải thành viên, điện thoại đã điểm danh cho người khác\n• Ghi tiền mặt, hoàn tiền khi chuyển nhầm\n• Sổ quỹ đầy đủ\n• Mentor xác nhận bàn giao"}
+ },
+ "designSystems": []
+}

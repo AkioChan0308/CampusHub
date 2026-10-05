@@ -1,0 +1,31 @@
+# PostgreSQL cho máy phát triển. Hướng dẫn đủ: ../docs/postgresql.md
+# Chạy trong thư mục server/:  docker compose up -d
+# Mật khẩu lấy từ server/.env (POSTGRES_PASSWORD), không ghi vào file này.
+
+name: campushub
+
+services:
+  db:
+    # Cùng bản chính (17) với PGlite mà test dùng.
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: campushub
+      POSTGRES_USER: campushub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong server/.env (xem server/.env.example)}
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
+    ports:
+      # Chỉ mở cho chính máy này (127.0.0.1), máy khác trong mạng không vào được.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - campushub-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campushub -d campushub"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  # Dữ liệu nằm ở đây: dừng hay xóa container vẫn còn. Xóa hẳn: docker compose down -v
+  campushub-pg:
