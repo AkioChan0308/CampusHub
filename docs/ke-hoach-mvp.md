@@ -28,11 +28,10 @@ Làm thật ngay phần cho **ban điều hành CLB**: thành viên, điểm dan
 
 Phần cho **ban quản lý CLB của trường** chỉ làm bản mỏng. Nhà trường là bên trả tiền chính, nhưng các giả thuyết về phía trường (H9–H11) chưa hỏi được ai.
 
-Thứ tự 4 hạng mục:
+Thứ tự 3 hạng mục:
 1. Luồng theo vai trò: làm trước, vì nó quyết định màn hình và phân quyền.
 2. MVP lõi.
 3. Thanh toán: nằm trong phần sổ quỹ.
-4. Dự toán chi tiêu: không làm trong code. Đây là sheet chi phí của cả dự án, nộp ở Checkpoint 3, để ở thư mục `../CP3` (ngoài repo). MVP nộp ở Checkpoint 4.
 
 ## Vì sao làm phần lõi được ngay
 
@@ -74,7 +73,6 @@ Từ tuần 1, Nghĩa và Khang bắt đầu tìm CLB pilot. Đã có hai ngư�
 
 ## 2. Dự trù kinh phí theo kỳ (tính năng cho CLB)
 
-- Không nhầm với dự toán chi tiêu của dự án: bảng đó nộp ở Checkpoint 3, để ở `../CP3`, không thuộc code.
 - CLB nhập các hoạt động dự kiến trong kỳ. Mỗi hoạt động có số tiền dự trù và nguồn tiền: quỹ thành viên, trường hỗ trợ hoặc tài trợ.
 - Số dư cuối kỳ dự kiến = số dư hiện tại + tiền thu dự kiến từ các đợt thu đang mở + hỗ trợ dự kiến − phần dự trù chưa chi. Không trừ tổng dự trù: tiền đã chi đã nằm trong số dư hiện tại, trừ tổng là trừ hai lần. Nếu ra số âm thì báo cho ban điều hành.
 - Sau mỗi hoạt động, so số dự trù với số chi thật trong sổ quỹ.
