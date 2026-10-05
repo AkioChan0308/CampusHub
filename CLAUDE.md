@@ -13,7 +13,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
   - cách làm việc với Hiệu, thế nào là "xong" một nhóm màn.
   Xong mỗi nhóm việc thì cập nhật file đó.
 - **Hai skill bắt buộc:** `karpathy-guidelines` (cách viết code) và `impeccable` (thiết kế giao diện). Cách cài ở `docs/tien-do-mvp.md`, mục 8. Không đưa `.claude/` vào commit.
-- **Chưa commit gì** cho tới khi Hiệu bảo.
+- Repo: https://github.com/AkioChan0308/CampusHub (nhánh `main` và `develop`). **Chỉ commit và push khi Hiệu bảo.**
 - **Hỏi Hiệu bằng câu trắc nghiệm ngay trong chat.** Màn chưa có bản vẽ thì viết mô tả trước, Hiệu duyệt rồi mới code.
 
 ## Cách làm việc

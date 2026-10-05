@@ -22,7 +22,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 - Dữ liệu vẫn là dữ liệu mẫu (giả).
 - Đăng nhập Google đã có code, nhưng nhóm chưa tạo khóa Google.
 - Chưa đưa lên mạng.
-- **Repo chưa có commit nào.** Chỉ commit khi Hiệu bảo.
+- Repo trên GitHub: https://github.com/AkioChan0308/CampusHub (nhánh `main` và `develop`, commit đầu ngày 05/10/2026). **Chỉ commit và push khi Hiệu bảo.**
 
 **Mục tiêu trước mắt** (Hiệu chốt ngày 05/10/2026): MVP chạy trọn các luồng bằng dữ liệu giả, trên máy này.
 - Đã xong: nhóm "tạo dữ liệu từ đầu"; script bấm thử vào repo (`web/e2e/`); bỏ hệ tím cũ, trang chọn vai sang Lịch bloc; `.gitignore` chặn skill và file có thể chứa dữ liệu thật. Hiệu duyệt tất cả ngày 05/10/2026.
