@@ -16,6 +16,7 @@ import { schoolHandlers } from "./handlers/school.ts";
 import { setupHandlers } from "./handlers/setup.ts";
 import { systemHandlers } from "./handlers/system.ts";
 import type { AuthKit, Ctx, Handlers } from "./handlers/types.ts";
+import { createAccounts, type Accounts } from "./accounts.ts";
 import { createSessions, SESSION_COOKIE, SESSION_SECONDS, type Sessions } from "./sessions.ts";
 import { createStore, type Store } from "./store.ts";
 
@@ -27,13 +28,14 @@ export interface AppOptions {
   /** Đồng hồ, để test cố định được thời điểm. */
   now?: () => number;
   sessions?: Sessions;
+  accounts?: Accounts;
   /** Test thay bằng hàm giả để không gọi Google thật. */
   exchangeGoogleCode?: ExchangeGoogleCode;
 }
 
 const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers };
 
-export function createApp({ config, store = createStore(), now = Date.now, sessions = createSessions(now), exchangeGoogleCode = googleExchange(config, now) }: AppOptions) {
+export function createApp({ config, store = createStore(), now = Date.now, sessions = createSessions(now), accounts = createAccounts(), exchangeGoogleCode = googleExchange(config, now) }: AppOptions) {
   const app = express();
   app.disable("x-powered-by");
   app.use(cors(config.webOrigin));
@@ -64,6 +66,7 @@ export function createApp({ config, store = createStore(), now = Date.now, sessi
           setCookie(SESSION_COOKIE, "", 0);
         },
         sessions,
+        accounts: trackAccounts(accounts, (w) => writes.push(w)),
         exchangeGoogleCode,
       };
       const ctx: Ctx<EndpointId> = {
@@ -109,6 +112,27 @@ export function createApp({ config, store = createStore(), now = Date.now, sessi
   });
   app.use(errorHandler);
   return app;
+}
+
+/** Kho tài khoản của một yêu cầu: lần nào đổi tài khoản thì yêu cầu chờ lần ghi đó vào cơ sở dữ liệu rồi mới trả lời. */
+function trackAccounts(accounts: Accounts, wrote: (w: Promise<void>) => void): Accounts {
+  const changes = <A extends unknown[], R>(fn: (personId: string, ...rest: A) => R) => (personId: string, ...rest: A): R => {
+    const before = accounts.get(personId);
+    const result = fn(personId, ...rest);
+    if (accounts.get(personId) !== before) wrote(accounts.persisted());
+    return result;
+  };
+  return {
+    ...accounts,
+    ensure: changes(accounts.ensure),
+    setCredentials: changes(accounts.setCredentials),
+    recordFailure: changes(accounts.recordFailure),
+    clearFailures: changes(accounts.clearFailures),
+    reset: () => {
+      accounts.reset();
+      wrote(accounts.persisted());
+    },
+  };
 }
 
 /**

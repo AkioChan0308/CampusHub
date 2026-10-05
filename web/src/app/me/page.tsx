@@ -8,6 +8,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ConsentRes, MeRes, MyClubRes, MyExportRes } from "@contract";
@@ -18,7 +19,7 @@ import { Icon } from "@/components/Icon";
 import { LichConfirm } from "@/components/lich/Confirm";
 import { ErrorGate, NOT_IN_MVP } from "@/components/lich/Gate";
 import { dueLabel, isUrgent, Leaf } from "@/components/lich/Leaf";
-import { LichPage, Loading, Reveal, Skel, SkelLine, Spinner, useSawPending } from "@/components/lich/motion";
+import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, Spinner, useSawPending } from "@/components/lich/motion";
 import { NoClubGate } from "@/components/lich/NoClub";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { downloadCsv } from "@/lib/csv";
@@ -71,6 +72,11 @@ function MeSkeleton() {
         <div className="l-kv"><span>Điểm danh</span><span className="l-kv-value"><SkelLine w={64} /></span></div>
         <div className="l-kv"><span><SkelLine w={150} /></span><Skel w={150} h={26} /></div>
         <div className="l-kv"><span>Sổ quỹ của CLB</span><span className="l-note">Xem (chỉ đọc) · chưa có</span></div>
+      </section>
+      <section className="l-pay-card l-list">
+        <h2 className="l-list-head">Đăng nhập</h2>
+        <div className="l-kv"><span>Tên tài khoản</span><SkelLine w={120} /></div>
+        <span className="l-act l-inert"><span><SkelLine w={130} /></span></span>
       </section>
       <section className="l-pay-card l-list">
         <h2 className="l-list-head">Dữ liệu của tôi</h2>
@@ -167,6 +173,18 @@ function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
         </div>
         {data.collection && <div className="l-kv"><span>{data.collection.name}</span><PayState collection={data.collection} /></div>}
         <div className="l-kv"><span>Sổ quỹ của CLB</span><span className="l-note">Xem (chỉ đọc) · chưa có</span></div>
+      </section>
+
+      <section className="l-pay-card l-list" aria-labelledby="dang-nhap">
+        <h2 id="dang-nhap" className="l-list-head">Đăng nhập</h2>
+        <div className="l-kv">
+          <span>Tên tài khoản</span>
+          {me.account.username ? <strong className="l-kv-text">{me.account.username}</strong> : <span className="l-note">Chưa đặt · đăng nhập bằng Google</span>}
+        </div>
+        <Link className="l-act" href="/account?next=%2Fme">
+          <span>{me.account.hasPassword ? "Đổi tên tài khoản và mật khẩu" : "Đặt tên tài khoản và mật khẩu"}</span>
+          <span className="l-act-end"><LinkIcon name="chevronRight" size={18} /></span>
+        </Link>
       </section>
 
       <section className="l-pay-card l-list" aria-labelledby="du-lieu">

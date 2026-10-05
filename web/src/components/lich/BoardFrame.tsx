@@ -12,7 +12,7 @@ import { useBoardQuery } from "@/api/queries";
 import { Icon, type IconName } from "@/components/Icon";
 import { initials } from "@/lib/format";
 import { ROLE_LABEL } from "@/lib/types";
-import { ErrorGate, useDemoMode, useLogout } from "./Gate";
+import { ErrorGate, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
 /** Mục đang chọn trên thanh bên. */
@@ -56,7 +56,6 @@ const NAV: NavItem[] = [
 
 export function BoardFrame({ clubId, active, fallback, children }: { clubId: string; active: BoardNav; fallback?: ReactNode; children: ReactNode }) {
   const query = useBoardQuery(clubId);
-  const demo = useDemoMode();
   const { logout, pending: leaving } = useLogout();
   const saw = useSawPending(query.isPending);
   const fade = saw ? " l-fade-in" : "";
@@ -110,7 +109,6 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
                     <div className={`l-who-text${fade}`}>
                       <strong>{board.me.name}</strong>
                       <div className="l-who-links">
-                        {demo && <Link href="/">Đổi vai (bản demo)</Link>}
                         <button type="button" className="l-linkbtn" aria-busy={leaving || undefined} onClick={() => logout()}>Đăng xuất</button>
                       </div>
                     </div>

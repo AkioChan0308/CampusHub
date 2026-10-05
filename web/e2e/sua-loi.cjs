@@ -91,7 +91,7 @@ const C = "/clubs/cau-long-san-nha";
   await p.getByRole("link", { name: "Quỹ" }).click();
   await p.getByRole("button", { name: "Mình đã chuyển khoản" }).click();
   ok(await waitText(p, /Chờ thủ quỹ xác nhận/, 5000), "7b. Màn đóng quỹ: đã báo chuyển");
-  await p.getByRole("link", { name: "Của tôi" }).click();
+  await p.getByRole("link", { name: "Của tôi", exact: true }).click();
   await p.waitForURL("**/me");
   ok(await waitText(p, /Chờ thủ quỹ xác nhận/, 3000), "7b. Về Của tôi: ghi \"Chờ thủ quỹ xác nhận\" ngay");
   await p.screenshot({ path: path.join(OUT, "3-cua-toi-sau-bao-chuyen.png") });

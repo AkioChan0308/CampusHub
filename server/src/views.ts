@@ -36,8 +36,13 @@ export function personDto(p: Person): C.MeRes["person"] {
 }
 
 /** Người đang đăng nhập và các CLB họ ở (GET /me, và kết quả của đăng nhập nhanh). */
-export function meRes(s: AppState, p: Person): C.MeRes {
-  return { person: personDto(p), memberships: s.memberships.filter((m) => m.personId === p.id).map((m) => membershipDto(s, m)) };
+/** account: tài khoản đăng nhập bằng mật khẩu của người này (kho riêng, src/accounts.ts). Chỉ trả tên tài khoản và có mật khẩu chưa. */
+export function meRes(s: AppState, p: Person, account?: { username?: string; passwordHash?: string }): C.MeRes {
+  return {
+    person: personDto(p),
+    memberships: s.memberships.filter((m) => m.personId === p.id).map((m) => membershipDto(s, m)),
+    account: { ...(account?.username ? { username: account.username } : {}), hasPassword: !!account?.passwordHash },
+  };
 }
 
 export function eventDto(e: ClubEvent): C.EventDto {

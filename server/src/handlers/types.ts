@@ -2,6 +2,7 @@ import type { Api, EndpointId } from "../contract.ts";
 import type { Config } from "../config.ts";
 import type { AppState, Person, Update } from "../domain.ts";
 import type { ExchangeGoogleCode } from "../google.ts";
+import type { Accounts } from "../accounts.ts";
 import type { Sessions } from "../sessions.ts";
 
 /** Những gì một handler được dùng. Handler không đụng tới req/res của Express, để dễ test và dễ đổi framework. */
@@ -32,6 +33,8 @@ export interface AuthKit {
   /** Xóa phiên hiện tại (nếu có) và cookie phiên. */
   endSession(): void;
   sessions: Sessions;
+  /** Tài khoản đăng nhập bằng mật khẩu (tên tài khoản, mã băm, khóa tạm). */
+  accounts: Accounts;
   exchangeGoogleCode: ExchangeGoogleCode;
 }
 

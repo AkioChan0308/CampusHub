@@ -4,7 +4,7 @@
 
 File này kể **ai làm gì, theo thứ tự nào** trong CampusHub. Mỗi luồng có: ai làm, các bước, luật cần nhớ, và phần bản demo chưa có. Cuối mỗi luồng có tên màn và đường dẫn trong bản demo, cho người cần mở thử hoặc sửa code.
 
-Muốn thử ngay: chạy bản demo (xem [README](../README.md)), mở http://localhost:3000 rồi chọn vai.
+Muốn thử ngay: chạy bản demo (xem [README](../README.md)), mở http://localhost:3000/login rồi bấm một vai trong bảng tài khoản mẫu. Trang http://localhost:3000 là trang giới thiệu cho người chưa đăng nhập, có hai video demo.
 
 ## Bốn nhóm người dùng
 
@@ -261,5 +261,10 @@ Ngoài CLB:
 
 ## Đăng nhập
 
-- Bản thật: đăng nhập bằng tài khoản Google. Dùng đúng email mà CLB đã dùng để mời.
-- Bản demo: trang đầu cho chọn vai có sẵn để vào nhanh bằng tài khoản mẫu. Phần này không có trong bản thật.
+- **Đăng ký** chỉ bằng tài khoản Google, vì cần email đã được Google xác minh. Dùng đúng email mà CLB đã dùng để mời.
+- Ngay sau lần đầu, CampusHub hỏi đặt **tên tài khoản và mật khẩu** (bấm "Để sau" được). Tên tài khoản khác tên hiển thị và khác email.
+- Từ lần sau, đăng nhập bằng Google, hoặc bằng tên tài khoản (hay email) kèm mật khẩu.
+- Nhập sai mật khẩu 5 lần thì phải chờ 15 phút mới thử mật khẩu lại được; đăng nhập Google vẫn dùng được.
+- **Quên mật khẩu:** đăng nhập bằng Google, rồi đặt mật khẩu mới trong 15 phút sau đó, không cần mật khẩu cũ.
+- Đổi tên tài khoản hay mật khẩu: trang "Của tôi", mục "Đăng nhập".
+- Bản demo: dưới ô đăng nhập có bảng tài khoản mẫu cho 7 vai, mật khẩu chung `CauLong#2026`; bấm một vai là điền sẵn. Phần này không có trong bản thật.

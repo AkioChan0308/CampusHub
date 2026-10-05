@@ -27,7 +27,12 @@ Tài liệu này chốt cách web (giao diện) gọi server: có những API n�
 
 Cập nhật ngày 03/10/2026: đã có đăng nhập thật.
 
-- **Đăng nhập Google** (luồng mã có PKCE): web mở `GET /auth/google/start` kèm `?next=/trang-can-mo`, Google gọi lại `GET /auth/google/callback`, server cấp phiên rồi đưa trình duyệt về trang `next`. Lỗi thì về `/login?loi=<lý do>`. Cần `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` trong `server/.env`; Authorized redirect URI trên Google Cloud là `<WEB_ORIGIN>/api/v1/auth/google/callback`.
+- **Đăng nhập Google** (luồng mã có PKCE): web mở `GET /auth/google/start` kèm `?next=/trang-can-mo`, Google gọi lại `GET /auth/google/callback`, server cấp phiên rồi đưa trình duyệt về trang `next`. Lỗi thì về `/login?loi=<mã>`, mã là một trong `google-chua-bat`, `huy`, `het-han`, `google-loi`, `email-chua-xac-minh` (`LoginErrorCode` trong `contract.ts`); web đổi mã thành câu có sẵn, mã lạ thì hiện một câu chung. Cần `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` trong `server/.env`; Authorized redirect URI trên Google Cloud là `<WEB_ORIGIN>/api/v1/auth/google/callback`.
+- **Tên tài khoản và mật khẩu** (thêm ngày 05/10/2026, Hiệu duyệt): đăng ký là lần đầu đăng nhập Google. Lần đầu đó server chuyển về `/account?moi=1&next=<trang cần mở>` để web hỏi đặt tên tài khoản và mật khẩu (có nút "Để sau"). Sau đó đăng nhập được bằng `POST /auth/login` (tên tài khoản hoặc email, kèm mật khẩu).
+  - Tên tài khoản 3–30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới; lưu chữ thường, không trùng. Mật khẩu ít nhất 10 ký tự, có chữ hoa, chữ số, ký tự đặc biệt, không chứa tên tài khoản hay phần trước @ của email. Luật ở `web/src/lib/account.ts`.
+  - Mật khẩu băm bằng scrypt (N = 2^17, r = 8, p = 1), salt ngẫu nhiên riêng; bảng `accounts` chỉ có mã băm. API không bao giờ trả mật khẩu hay mã băm; `GET /me` chỉ có `account: { username?, hasPassword }`.
+  - Sai mật khẩu 5 lần liền thì khóa đăng nhập bằng mật khẩu 15 phút (429 `TOO_MANY_ATTEMPTS`); đăng nhập Google vẫn dùng được. Sai tên hay sai mật khẩu đều cùng một câu báo.
+  - Quên mật khẩu: đăng nhập Google, trong 15 phút sau đó `PUT /me/account` đặt mật khẩu mới không cần mật khẩu cũ. Ngoài khoảng đó, đổi mật khẩu phải gửi `currentPassword`.
 - **Phiên:** cookie httpOnly `ch_session`, SameSite=Lax, giữ 30 ngày, lưu trong bộ nhớ của server (tắt server là phải đăng nhập lại). Web gọi API qua cùng địa chỉ với web (Next.js chuyển tiếp `/api/v1` sang server) nên cookie tự đi kèm.
 - **Email nào là ai:** email ghép sẵn trong `LOGIN_AS` của `server/.env` (dùng để thử từng vai bằng tài khoản Google thật), rồi email có trong dữ liệu; email lạ thành tài khoản sinh viên mới, chưa ở CLB nào.
 - **Chỉ ở chế độ demo** (`AUTH_MODE=demo`): đăng nhập nhanh `POST /auth/dev-login` bằng mã người trong dữ liệu mẫu (cho trang đăng nhập của bản demo và test tự động), và header `X-Demo-User` (cho test, curl và "thử điểm danh với vai" ở màn chiếu QR). Có header thì header được ưu tiên hơn cookie phiên: cookie dùng chung cho mọi tab, header chỉ của một tab. Chế độ `google` tắt cả hai.
@@ -67,6 +72,7 @@ Mọi lỗi trả về cùng một dạng. `message` là câu tiếng Việt, we
 | NOT_MEMBER | 403 | Chưa là thành viên CLB. `details` có `clubId`, `clubName` để web hiện nút gửi đơn |
 | INVITE_PENDING | 403 | Chưa nhận lời mời. `details` có `inviteCode` để web hiện nút xem lời mời |
 | DEVICE_USED | 409 | Điện thoại này đã điểm danh cho người khác trong buổi |
+| TOO_MANY_ATTEMPTS | 429 | Nhập sai mật khẩu 5 lần liền, tạm khóa đăng nhập bằng mật khẩu 15 phút; `details.until` là giờ hết khóa |
 | INTERNAL | 500 | Lỗi của server |
 
 ## Quyền
@@ -104,13 +110,15 @@ Cột "Màn" là tên màn trong `design/screens/`.
 | `GET /auth/google/start` | Ai cũng gọi được | Trang đăng nhập | Chuyển trình duyệt (302) sang Google. `?next=` là trang mở lại sau khi xong, chỉ nhận đường dẫn trong web |
 | `GET /auth/google/callback` | Google gọi lại | Trang đăng nhập | Kiểm tra `state` khớp cookie, đổi mã lấy email, cấp phiên, chuyển về trang `next` |
 | `POST /auth/dev-login` | Chỉ khi chạy ở chế độ demo | Trang đăng nhập (bản demo) | Gửi `personId`; cấp phiên như đăng nhập Google, trả về giống `GET /me` |
+| `POST /auth/login` | Ai cũng gọi được | Trang đăng nhập | Gửi `login` (tên tài khoản hoặc email) và `password`; đúng thì cấp phiên, trả về giống `GET /me`. Sai: 401, cùng một câu cho mọi trường hợp. Sai 5 lần: 429 `TOO_MANY_ATTEMPTS`, `details.until` |
 | `POST /auth/logout` | Người đã đăng nhập | Mọi màn | Xóa phiên và cookie phiên |
 
 ### Thành viên (điện thoại)
 
 | API | Ai gọi | Màn | Ghi chú |
 |---|---|---|---|
-| `GET /me` | Người đã đăng nhập | Mọi màn | Thông tin của mình và các CLB đang ở. Lời mời chưa nhận có `inviteCode` |
+| `GET /me` | Người đã đăng nhập | Mọi màn | Thông tin của mình và các CLB đang ở. Lời mời chưa nhận có `inviteCode`. `account`: tên tài khoản đã đặt, đã có mật khẩu chưa |
+| `PUT /me/account` | Người đã đăng nhập | Đặt tên tài khoản và mật khẩu | Gửi `name` (tên hiển thị), `username`, `password`, và `currentPassword` khi đã có mật khẩu (trừ khi vừa đăng nhập Google). Lỗi từng ô ở `details.fields`. Tên tài khoản đã có người dùng: 409 |
 | `GET /me/clubs/:clubId` | Thành viên đã nhận lời mời | TV-CuaToi | Điểm danh kỳ này, khoản quỹ, các mục đã đồng ý, yêu cầu xóa |
 | `GET /me/clubs/:clubId/attendance` | Thành viên đã nhận lời mời | TV-DiemDanh | Các buổi đã mở điểm danh và các lần mình điểm danh |
 | `POST /me/clubs/:clubId/consents/phone/withdraw` | Thành viên đã nhận lời mời | TV-CuaToi | Rút đồng ý lưu số điện thoại |

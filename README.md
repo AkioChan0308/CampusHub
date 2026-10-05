@@ -57,7 +57,14 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000. Trang đầu là **trang chọn vai** (chỉ có ở bản demo): bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", để vào ngay bằng tài khoản mẫu. Bên dưới có 5 bước thử nhanh các luồng chính.
+Mở http://localhost:3000. Trang đầu là trang giới thiệu, có hai video demo ngắn (thành viên trên điện thoại, ban điều hành trên laptop) và nút Đăng nhập, Đăng ký. Bấm **Đăng nhập**: dưới ô đăng nhập có bảng **tài khoản mẫu** cho 7 vai (chỉ có ở bản demo). Bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", là điền sẵn tên tài khoản và mật khẩu (mật khẩu chung `CauLong#2026`), rồi bấm Đăng nhập. Đổi vai thì Đăng xuất rồi đăng nhập tài khoản khác. Nút "Đặt lại dữ liệu mẫu" nằm dưới bảng.
+
+Thử nhanh các luồng chính:
+1. Đăng nhập **Chủ nhiệm**, bấm "Mở QR điểm danh" rồi "Bắt đầu điểm danh". Dưới mã QR, chọn một thành viên rồi bấm "Mở link điểm danh": một tab mới điểm danh bằng vai đó, và tab chiếu QR thấy tên người vừa điểm danh. Thử thêm người thứ hai trên cùng trình duyệt để thấy luật "mỗi điện thoại chỉ điểm danh cho một người".
+2. Đăng nhập **Sinh viên chưa vào CLB**, gửi đơn vào CLB Cầu lông. Đổi sang **Chủ nhiệm**, duyệt đơn ở mục Thành viên.
+3. Đăng nhập **Thủ quỹ**, gán tay các giao dịch chưa khớp ở Đối soát sao kê: Đợt thu và Trang chủ đổi số theo.
+4. Đăng nhập **Trưởng ban**, duyệt khoản "Mua 2 ống cầu" do chủ nhiệm đề xuất. Chủ nhiệm không tự duyệt được khoản của mình.
+5. Đăng nhập **Ban quản lý CLB của trường**, duyệt khoản chi đang chờ mentor. Sau đó thủ quỹ ghi đã chi, và Dự trù kỳ đổi theo.
 
 Muốn lưu dữ liệu vào PostgreSQL thay vì bộ nhớ: xem [docs/postgresql.md](docs/postgresql.md).
 

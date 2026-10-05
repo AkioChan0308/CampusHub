@@ -16,6 +16,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 
 **Đã có:**
 - Web có đủ 16 màn của bản vẽ, cộng 5 màn mới để tạo dữ liệu từ đầu. Màn nào cũng theo hệ thiết kế "Lịch bloc" và gọi API thật. Hệ tím cũ đã bỏ hẳn (05/10).
+- Trang đầu cho người chưa đăng nhập, có hai video demo; đăng ký bằng Google rồi đặt tên tài khoản và mật khẩu; đăng nhập bằng mật khẩu (Hiệu duyệt 05/10/2026).
 - Máy chủ kiểm tra quyền ở mọi API.
 - Dữ liệu lưu trong bộ nhớ, hoặc trong PostgreSQL khi đặt `DATABASE_URL`.
 
@@ -27,6 +28,8 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 
 **Mục tiêu trước mắt** (Hiệu chốt ngày 05/10/2026): MVP chạy trọn các luồng bằng dữ liệu giả, trên máy này.
 - Đã xong: nhóm "tạo dữ liệu từ đầu"; script bấm thử vào repo (`web/e2e/`); bỏ hệ tím cũ, trang chọn vai sang Lịch bloc; `.gitignore` chặn skill và file có thể chứa dữ liệu thật. Hiệu duyệt tất cả ngày 05/10/2026.
+- Đã xong và Hiệu duyệt ngày 05/10/2026: trang đầu (hai video demo, hiệu ứng trượt trái vào, phải ra khi cuộn), đăng nhập bằng mật khẩu, đăng ký bằng Google, đặt tên tài khoản và mật khẩu. Chưa commit.
+- Cũng ngày 05/10/2026 (Hiệu yêu cầu): bỏ trang chọn vai `/demo`. Thay bằng bảng tài khoản mẫu của 7 vai dưới ô đăng nhập (bấm là điền sẵn) và nút đặt lại dữ liệu mẫu; máy chủ chế độ demo tự tạo các tài khoản này. Link "Đổi vai" trong app đã bỏ, đổi vai bằng Đăng xuất.
 - Việc tiếp theo: nhóm 2 "luật còn thiếu" (mục 6). Phiên sau bắt đầu bằng việc viết mô tả các màn của nhóm 2 rồi hỏi Hiệu duyệt bằng trắc nghiệm; chưa code gì cho nhóm này.
 
 Người dùng trong các phiên làm việc là **Hiệu**, design lead tạm thời, có quyền quyết định mọi việc. Chỗ nào tài liệu ghi "chờ Hiệu duyệt" thì hỏi thẳng người dùng.
@@ -40,18 +43,18 @@ cd server && npm install && npm run dev   # http://localhost:4000/api/v1, chế 
 cd web && npm install && npm run dev      # http://localhost:3000
 ```
 
-- **Thử:** mở http://localhost:3000. Đó là trang chọn vai (chỉ có ở bản demo). Bấm một vai là đăng nhập nhanh bằng tài khoản mẫu.
+- **Thử:** mở http://localhost:3000/login. Dưới ô đăng nhập là bảng tài khoản mẫu cho 7 vai (chỉ có ở bản demo, mật khẩu chung `CauLong#2026`); bấm một vai là điền sẵn, rồi bấm Đăng nhập. http://localhost:3000 là trang đầu cho người chưa đăng nhập (mở bằng cửa sổ ẩn danh nếu trình duyệt đang đăng nhập).
 - **Dùng PostgreSQL:** xem `docs/postgresql.md`, có cách chạy bằng Docker và không Docker.
 - **Lệnh kiểm tra:**
 
 | Ở đâu | Lệnh | Kết quả lúc cập nhật file này |
 |---|---|---|
-| `server/` | `npm test` | 63/63 |
-| `server/` | `npm run test:db` (cùng các test, lưu bằng PostgreSQL chạy trong Node) | 63/63 |
+| `server/` | `npm test` | 71/71 |
+| `server/` | `npm run test:db` (cùng các test, lưu bằng PostgreSQL chạy trong Node) | 71/71 |
 | `server/` | `npm run typecheck` | sạch |
-| `web/` | `npm test` | 31/31 |
+| `web/` | `npm test` | 35/35 |
 | `web/` | `npm run typecheck`, `npm run build` | sạch |
-| `web/` | `npm run e2e` (bấm thử mọi luồng; cần web đang chạy và máy chủ chạy bằng `npm start`) | smoke 40/40, nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27, sửa lỗi 12/12 |
+| `web/` | `npm run e2e` (bấm thử mọi luồng; cần web đang chạy và máy chủ chạy bằng `npm start`) | smoke 40/40, nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27, sửa lỗi 12/12, đăng nhập 29/29 |
 
 ## 3. Các màn đã làm
 
@@ -67,7 +70,8 @@ Mọi màn dưới đây theo Lịch bloc và gọi API. CLB mẫu có mã `cau-
 | TV-CuaToi, tab Quỹ, TV-LoiMoi, SV-DanhSach, SV-DonXinVao | `/me`, `/me/pay`, `/invite/[code]`, `/explore`, `/explore/[clubId]` | 04/10/2026 |
 | NT-TongQuan, NT-ChiTietCLB | `/school`, `/school/clubs/[clubId]` | 04/10/2026 |
 | **Chưa có bản vẽ** (Hiệu duyệt mô tả trước khi làm): Tạo CLB, Thêm thành viên, Các buổi, Đợt thu (danh sách, tạo, sửa) | `/clubs/new`, `/clubs/[clubId]/members/add`, `/clubs/[clubId]/events`, `/clubs/[clubId]/collections`, `/clubs/[clubId]/collections/new` | 05/10/2026 |
-| Trang chọn vai (chỉ có ở bản demo), trang lỗi, trang không tìm thấy | `/` | 05/10/2026 (bố cục dòng kẻ) |
+| Trang lỗi, trang không tìm thấy (trang chọn vai của bản demo đã bỏ ngày 05/10/2026, thay bằng bảng tài khoản mẫu ở `/login`) | | 05/10/2026 |
+| **Chưa có bản vẽ:** Trang đầu (hai video demo), Đăng nhập bằng mật khẩu, Đăng ký, Đặt tên tài khoản và mật khẩu; mục "Đăng nhập" ở Của tôi | `/`, `/login`, `/register`, `/account` | 05/10/2026 |
 
 Hệ tím cũ `design/ui.css` đã bỏ khỏi code ngày 05/10/2026. Bản vẽ trong `design/screens/` chỉ còn dùng để lấy nội dung, chữ và luật.
 
@@ -126,6 +130,7 @@ Danh sách đầy đủ, kèm lý do: `web/README.md`, mục "Chỗ code khác b
 - Lỗi khi quét QR: 7 trường hợp.
 - Hộp hỏi lại trước mọi thao tác khó hoàn lại.
 - Lịch sử điểm danh của thành viên.
+- Trang đầu, đăng ký, đăng nhập bằng mật khẩu, đặt tên tài khoản và mật khẩu (05/10). Hai video của trang đầu quay bằng `web/e2e/quay-video.cjs`; giao diện đổi thì chạy lại (cách chạy ở `web/e2e/README.md`).
 - 5 màn tạo dữ liệu ở mục 3. Kèm theo:
   - trang chủ của CLB mới nhắc 3 việc: thêm thành viên, tạo buổi, tạo đợt thu;
   - cột "Thao tác" ở màn Thành viên: link mời, sửa vai;
@@ -169,7 +174,7 @@ Mỗi API mới làm theo mục 9, bước 3. Luật gốc: `CLAUDE.md`, mục "
 - Xác nhận đủ 16 tuổi cho người tạo CLB.
 - Chạy nhiều máy chủ: phải đổi cách lưu (`docs/postgresql.md`, mục "Giới hạn").
 - Bảo mật, chưa sửa ở bản demo (ghi ngày 05/10/2026):
-  - `AUTH_MODE` mặc định là `demo` (không đặt trong `server/.env` thì ai cũng đăng nhập nhanh được bằng tài khoản mẫu). Bản thật phải mặc định `google`.
+  - `AUTH_MODE` mặc định là `demo` (không đặt trong `server/.env` thì ai cũng đăng nhập được bằng tài khoản mẫu, mật khẩu ghi ngay trên trang đăng nhập). Bản thật phải mặc định `google`.
   - `POST /demo/reset` không cần đăng nhập: ai gọi cũng xóa được dữ liệu về dữ liệu mẫu.
   - Thêm thành viên bằng email của một tài khoản đã có thì máy chủ trả về họ tên thật của tài khoản đó, dù file nhập ghi tên khác: ban điều hành dò được tên của email bất kỳ.
   - Chưa kiểm tra `Origin` của yêu cầu ghi để chống CSRF (phiên đăng nhập bằng cookie).
@@ -179,7 +184,7 @@ Mỗi API mới làm theo mục 9, bước 3. Luật gốc: `CLAUDE.md`, mục "
   - duyệt hợp đồng API (bản nháp v0) và các thay đổi trong `server/README.md`;
   - chốt chuẩn code, cấu trúc thư mục, quy ước commit.
 - **Commit, đưa lên GitHub:** chỉ khi Hiệu bảo. `.gitignore` đã chặn `.claude/`, `.impeccable/`, `.env`, file khóa Google, bảng tính và sao kê (trừ thư mục `mau/`). Trước khi commit lần đầu, chạy `git status` xem lại danh sách file.
-- **Dọn code:** gọn `web/src/lib/store.tsx`. Hiện chỉ trang chọn vai và mã thiết bị (điểm danh) còn dùng.
+- **Dọn code:** gọn `web/src/lib/store.tsx`. Trang chọn vai đã bỏ (05/10/2026); hiện chỉ còn mã thiết bị (điểm danh), vai đang chọn và nút đặt lại dữ liệu mẫu dùng.
 
 ## 7. Cách làm việc với Hiệu (bắt buộc)
 

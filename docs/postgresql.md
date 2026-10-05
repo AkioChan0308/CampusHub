@@ -41,7 +41,7 @@ Chạy test (`npm test`) thì không cần cách nào: test dùng PGlite, một 
 4. Chạy máy chủ như thường lệ: `npm run dev`. Lần đầu, dòng log có:
 
    ```
-   Đã tạo hoặc cập nhật bảng: 001_khoi_tao.sql
+   Đã tạo hoặc cập nhật bảng: 001_khoi_tao.sql, 002_tien_cho_sao_ke.sql
    Cơ sở dữ liệu còn trống: đã nạp dữ liệu mẫu.
    CampusHub API: http://localhost:4000/api/v1 · đăng nhập: demo · dữ liệu: PostgreSQL localhost:5432
    ```

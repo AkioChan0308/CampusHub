@@ -48,6 +48,8 @@ src/
   config.ts       đọc biến môi trường
   sessions.ts     phiên đăng nhập và lượt đăng nhập Google đang dở (bản trong bộ nhớ)
   google.ts       đăng nhập Google: link sang Google, đổi mã lấy email
+  accounts.ts     tên tài khoản, mã băm mật khẩu, số lần sai và giờ hết khóa (bản trong bộ nhớ); tách khỏi AppState như phiên đăng nhập
+  password.ts     băm và kiểm tra mật khẩu (scrypt, salt riêng cho mỗi người)
   db/             lưu bằng PostgreSQL (khi có DATABASE_URL)
     client.ts     kết nối (thư viện pg), transaction
     migrate.ts    chạy các file trong db/migrations chưa chạy
@@ -55,7 +57,8 @@ src/
     state.ts      nạp toàn bộ dữ liệu; ghi phần thay đổi sau mỗi thao tác
     store.ts      kho dữ liệu lưu PostgreSQL (giữ một bản trong bộ nhớ để đọc nhanh)
     sessions.ts   phiên đăng nhập lưu PostgreSQL (chỉ lưu mã băm của cookie)
-db/migrations/    lược đồ SQL: 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ)
+    accounts.ts   tài khoản đăng nhập bằng mật khẩu lưu PostgreSQL (bảng accounts)
+db/migrations/    lược đồ SQL: 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ), 002_tien_cho_sao_ke.sql, 003_tai_khoan.sql (bảng accounts)
 docker-compose.yml  PostgreSQL 17 cho máy phát triển
 test/             test gọi API qua HTTP với đồng hồ cố định 07:40 ngày 03/10/2026; pglite.ts: PostgreSQL chạy trong Node cho test
 ```
@@ -145,6 +148,20 @@ Khi nối web với server, Hiệu cho sửa server và ghi lại ở đây đ�
   - **Mentor không tự duyệt:** `POST /school/expenses/:expenseId/approve` và `/reject` trả 403 `SELF_APPROVAL` khi mentor là người đề xuất khoản đó.
   - **Thành viên mới:** duyệt đơn và thêm thành viên chỉ tạo khoản phải đóng ở đợt thu của kỳ hiện tại mà chưa quá hạn (`openCollections`), không tạo ở đợt cũ. `addMembers` nhận thêm thời điểm.
   - Test: server 63 (thêm 1 test mentor), `db.test.ts` có thêm bước ghi nhận tay để kiểm tra cột mới còn sau khi khởi động lại.
+- **Đăng nhập bằng tên tài khoản và mật khẩu (05/10/2026, Hiệu duyệt mô tả):**
+  - Đăng ký chỉ bằng Google (email đã được Google xác minh). Lần đầu đăng nhập Google, `GET /auth/google/callback` chuyển về `/account?moi=1&next=<trang cần mở>` để web hỏi đặt tên tài khoản và mật khẩu (web có nút "Để sau").
+  - 2 API mới:
+    - `POST /auth/login`: `login` (tên tài khoản hoặc email) và `password`. Đúng thì cấp phiên như đăng nhập Google, trả về giống `GET /me`. Sai tên hay sai mật khẩu đều 401 cùng một câu. Người chưa có tài khoản cũng chạy một lần băm giả, để thời gian trả lời không lộ tên tài khoản nào có thật.
+    - `PUT /me/account`: `name` (tên hiển thị), `username`, `password`, và `currentPassword` khi đã có mật khẩu. Lỗi từng ô ở `details.fields`; tên tài khoản đã có người dùng thì 409.
+  - `GET /me` (và các API trả `MeRes`) có thêm `account: { username?, hasPassword }`. Không API nào trả mật khẩu hay mã băm.
+  - Luật (dùng chung với web, `web/src/lib/account.ts`): tên tài khoản 3–30 ký tự `a-z 0-9 . _`, lưu chữ thường, không trùng; mật khẩu ít nhất 10 ký tự, có chữ hoa, chữ số, ký tự đặc biệt, không chứa tên tài khoản hay phần trước @ của email. Thêm `setPersonName` trong `web/src/lib/actions.ts`.
+  - Băm bằng scrypt (N = 2^17, r = 8, p = 1), salt ngẫu nhiên 16 byte, lưu dạng `scrypt$N$r$p$salt$hash`, so bằng `timingSafeEqual`.
+  - Sai mật khẩu 5 lần liền thì khóa đăng nhập bằng mật khẩu 15 phút: 429 `TOO_MANY_ATTEMPTS`, `details.until`. Đăng nhập Google vẫn dùng được. Nhập sai mật khẩu hiện tại ở `PUT /me/account` cũng tính là một lần sai.
+  - Quên mật khẩu: đăng nhập Google; trong 15 phút sau đó `PUT /me/account` không cần `currentPassword`. Giờ đăng nhập Google gần nhất chỉ giữ trong bộ nhớ.
+  - Lưu: `src/accounts.ts` (trong bộ nhớ), `src/db/accounts.ts` (PostgreSQL, ghi lần lượt; `app.ts` chờ phần ghi của chính yêu cầu như kho dữ liệu). Bảng `accounts` ở `db/migrations/003_tai_khoan.sql`, không nối khóa ngoại sang `persons`. `POST /demo/reset` xóa cả tài khoản.
+  - **Tài khoản mẫu (05/10/2026, Hiệu yêu cầu, thay trang chọn vai):** ở chế độ demo, máy chủ tạo tài khoản cho 7 người mẫu (danh sách và mật khẩu chung ở `web/src/lib/demo-accounts.ts`, xuất qua `domain.ts`): lúc khởi động thì chỉ tạo người chưa có tài khoản (`src/index.ts`), `POST /demo/reset` thì xóa hết rồi tạo lại (`src/handlers/system.ts`). Code ở `src/demo-accounts.ts`; mật khẩu mẫu chỉ băm một lần. `POST /auth/dev-login` vẫn còn cho script bấm thử.
+  - Test: `test/account.test.ts` (8 test; người thử là a018 vì a017 có tài khoản mẫu; thêm kiểm tra đặt lại dữ liệu thì tạo lại đủ 7 tài khoản mẫu); `auth.test.ts` sửa theo đường chuyển mới sau lần đầu đăng nhập Google; `db.test.ts` kiểm tra tài khoản còn sau khi khởi động lại. Cả bộ: 71/71, `npm run test:db` 71/71.
+  - **Lỗi đăng nhập Google gửi mã, không gửi câu:** `GET /auth/google/start` và `/callback` chuyển về `/login?loi=<mã>` (`LoginErrorCode` trong `contract.ts`: `google-chua-bat`, `huy`, `het-han`, `google-loi`, `email-chua-xac-minh`). Trước đây gửi nguyên câu tiếng Việt và web hiện thẳng câu đó, nên ai cũng gửi được link kèm câu báo giả trong khung đỏ của trang đăng nhập. Web đổi mã thành câu có sẵn; mã lạ thì hiện một câu chung.
 
 ## Chưa có
 

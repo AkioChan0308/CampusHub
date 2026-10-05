@@ -39,15 +39,26 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     await dialog.getByRole("button", { name: label, exact: true }).click();
     await dialog.waitFor({ state: "detached" });
   }
+  // Đổi vai: đăng xuất, rồi đăng nhập bằng tài khoản mẫu của vai đó ở trang đăng nhập (bấm dòng của vai là điền sẵn),
+  // rồi mở trang hay dùng của vai (thay trang chọn vai /demo đã bỏ ngày 05/10/2026).
+  const ROLE_PAGE = {
+    "Chủ nhiệm CLB": "/clubs/cau-long-san-nha", "Thủ quỹ": "/clubs/cau-long-san-nha/reconcile", "Trưởng ban": "/clubs/cau-long-san-nha/expenses",
+    "Thành viên": "/me", "Thành viên mới được mời": "/invite/moi-a022", "Sinh viên chưa vào CLB": "/explore", "Ban quản lý CLB của trường": "/school",
+  };
   async function choose(title, p = page) {
-    await p.goto(BASE + "/");
-    await p.locator("button.l-demo-role").filter({ has: p.locator(".l-demo-role-title", { hasText: new RegExp(`^${title}$`, "i") }) }).click();
+    await p.goto(BASE + "/login");
+    await p.evaluate(() => fetch("/api/v1/auth/logout", { method: "POST" }));
+    await p.goto(BASE + "/login");
+    await p.locator(".l-auth-pick").filter({ has: p.locator("strong", { hasText: new RegExp(`^${title}$`) }) }).click();
+    await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+    await p.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 15000 });
+    await p.goto(BASE + ROLE_PAGE[title]);
     await p.waitForLoadState("networkidle");
   }
 
   try {
     // ===== Chủ nhiệm =====
-    await page.goto(BASE + "/");
+    await page.goto(BASE + "/login");
     await page.locator("button", { hasText: "Đặt lại dữ liệu mẫu" }).click();
     await confirmDialog("Đặt lại");
     await choose("Chủ nhiệm CLB");

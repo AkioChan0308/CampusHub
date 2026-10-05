@@ -4,7 +4,7 @@
 const { spawnSync } = require("child_process");
 const path = require("path");
 
-const FLOWS = ["smoke.cjs", "nhom-tien.cjs", "nhom-2.cjs", "nhom-3-4.cjs", "tao-du-lieu.cjs", "sua-loi.cjs"];
+const FLOWS = ["smoke.cjs", "nhom-tien.cjs", "nhom-2.cjs", "nhom-3-4.cjs", "tao-du-lieu.cjs", "sua-loi.cjs", "dang-nhap.cjs"];
 const SHIFTS = ["khung-xuong-tien.cjs", "khung-xuong-tien-2.cjs", "khung-xuong-2.cjs", "khung-xuong-3-4.cjs", "khung-xuong-tao-du-lieu.cjs"];
 const shifts = process.argv.includes("--khung-xuong");
 const list = shifts ? SHIFTS : FLOWS;

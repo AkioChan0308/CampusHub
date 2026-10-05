@@ -36,7 +36,14 @@ export type ErrorCode =
   | "NOT_MEMBER" // 403: chưa là thành viên CLB; details: { clubId, clubName }
   | "INVITE_PENDING" // 403: chưa nhận lời mời; details: { clubName, inviteCode }
   | "DEVICE_USED" // 409: điện thoại đã điểm danh cho người khác trong buổi này
+  | "TOO_MANY_ATTEMPTS" // 429: nhập sai mật khẩu quá nhiều lần, tạm khóa đăng nhập bằng mật khẩu; details: { until }
   | "INTERNAL"; // 500
+
+/**
+ * Lý do đăng nhập Google không xong, máy chủ gửi về web bằng `/login?loi=<mã>`. Web đổi mã thành câu có sẵn
+ * (web/src/app/login/auth-screen.tsx); mã lạ thì hiện một câu chung, để không ai gửi được link kèm câu báo giả.
+ */
+export type LoginErrorCode = "google-chua-bat" | "huy" | "het-han" | "google-loi" | "email-chua-xac-minh";
 
 /** Mọi lỗi đều trả về dạng này. `message` là câu tiếng Việt hiện được cho người dùng. */
 export interface ApiErrorBody {
@@ -211,6 +218,8 @@ export interface SchoolClubRowDto {
 export interface MeRes {
   person: { id: string; name: string; email: string; kind: "student" | "staff"; staffTitle?: string; year?: number };
   memberships: MembershipDto[];
+  /** Đăng nhập bằng mật khẩu: tên tài khoản đã đặt (chữ thường) và đã có mật khẩu chưa. Không bao giờ có mật khẩu hay mã băm. */
+  account: { username?: string; hasPassword: boolean };
 }
 
 export interface MyClubRes {
@@ -566,6 +575,19 @@ export interface DevLoginBody {
   personId: string; // mã người trong dữ liệu mẫu, ví dụ a001
 }
 
+export interface PasswordLoginBody {
+  login: string; // tên tài khoản hoặc email
+  password: string;
+}
+
+/** Đặt hoặc đổi tên hiển thị, tên tài khoản và mật khẩu. currentPassword: bắt buộc khi đã có mật khẩu, trừ khi vừa đăng nhập Google. */
+export interface UpdateAccountBody {
+  name: string;
+  username: string;
+  password: string;
+  currentPassword?: string;
+}
+
 export interface AddBudgetItemBody {
   name: string;
   period?: string;
@@ -650,9 +672,11 @@ export const ENDPOINTS = {
   googleLogin: { method: "GET", path: "/auth/google/start", auth: "public", redirect: true, who: "Ai cũng gọi được", screen: "Trang đăng nhập" },
   googleCallback: { method: "GET", path: "/auth/google/callback", auth: "public", redirect: true, who: "Google gọi lại sau khi đăng nhập", screen: "Trang đăng nhập" },
   devLogin: { method: "POST", path: "/auth/dev-login", auth: "public", who: "Chỉ khi chạy ở chế độ demo", screen: "Trang đăng nhập (bản demo)" },
+  passwordLogin: { method: "POST", path: "/auth/login", auth: "public", who: "Ai cũng gọi được", screen: "Trang đăng nhập" },
   logout: { method: "POST", path: "/auth/logout", auth: "public", who: "Người đã đăng nhập", screen: "Mọi màn" },
 
   getMe: { method: "GET", path: "/me", auth: "user", who: "Người đã đăng nhập", screen: "Mọi màn" },
+  updateAccount: { method: "PUT", path: "/me/account", auth: "user", who: "Người đã đăng nhập", screen: "Đặt tên tài khoản và mật khẩu" },
   getMyClub: { method: "GET", path: "/me/clubs/:clubId", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   getMyAttendance: { method: "GET", path: "/me/clubs/:clubId/attendance", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DiemDanh" },
   withdrawPhoneConsent: { method: "POST", path: "/me/clubs/:clubId/consents/phone/withdraw", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
@@ -725,12 +749,14 @@ export interface Api {
 
   /** ?next=/duong-dan: trang web mở lại sau khi đăng nhập xong. */
   googleLogin: { params: {}; body: NoBody; res: RedirectRes };
-  /** Google gửi ?code, ?state (hoặc ?error). Xong thì về trang `next`; lỗi thì về /login?loi=... */
+  /** Google gửi ?code, ?state (hoặc ?error). Xong thì về trang `next`; lỗi thì về /login?loi=<LoginErrorCode> */
   googleCallback: { params: {}; body: NoBody; res: RedirectRes };
   devLogin: { params: {}; body: DevLoginBody; res: MeRes };
+  passwordLogin: { params: {}; body: PasswordLoginBody; res: MeRes };
   logout: { params: {}; body: NoBody; res: OkRes };
 
   getMe: { params: {}; body: NoBody; res: MeRes };
+  updateAccount: { params: {}; body: UpdateAccountBody; res: MeRes };
   getMyClub: { params: Club; body: NoBody; res: MyClubRes };
   getMyAttendance: { params: Club; body: NoBody; res: MyAttendanceRes };
   withdrawPhoneConsent: { params: Club; body: NoBody; res: ConsentRes };

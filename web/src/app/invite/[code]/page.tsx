@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import type { AcceptInviteBody, AcceptInviteRes, InviteRes } from "@contract";
 import { ApiError, apiPost } from "@/api/client";
 import { errorText, keys, useInvite } from "@/api/queries";
-import { ErrorGate, LichGate, useDemoMode, useLogout } from "@/components/lich/Gate";
+import { ErrorGate, LichGate, useLogout } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LichPage, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
@@ -21,7 +21,6 @@ import { ROLE_LABEL } from "@/lib/types";
 export default function InvitePage() {
   const { code } = useParams<{ code: string }>();
   const invite = useInvite(code);
-  const demo = useDemoMode();
   const saw = useSawPending(!invite.data);
   const [declined, setDeclined] = useState(false);
   // Đổi qua lại giữa lời mời và "Bạn đã không tham gia": nút vừa bấm biến mất, nên đưa focus tới chỗ tương ứng ở màn mới.
@@ -31,7 +30,6 @@ export default function InvitePage() {
     return (
       <LichGate title="Link mời không còn dùng được" text={invite.error.message}>
         <Link className="l-btn" href="/me">Vào trang của tôi</Link>
-        {demo && <Link className="l-btn2" href="/">Đổi vai (bản demo)</Link>}
       </LichGate>
     );
   }
@@ -126,7 +124,6 @@ function ConsentRows({ value, onChange, refs }: {
 function Invite({ code, data, fade, focusDecline, onDecline }: { code: string; data: InviteRes; fade: boolean; focusDecline: boolean; onDecline: () => void }) {
   const client = useQueryClient();
   const router = useRouter();
-  const demo = useDemoMode();
   const { logout, pending: switching } = useLogout();
   const [boxes, setBoxes] = useState<Record<Box, boolean>>({ keep: false, phone: false, age: false });
   const [leaving, setLeaving] = useState(false);
@@ -166,9 +163,8 @@ function Invite({ code, data, fade, focusDecline, onDecline }: { code: string; d
 
       <div className="l-pay-card l-login-row">
         <span>Đăng nhập bằng <strong>{data.email}</strong></span>
-        {/* Bản demo: đổi vai ở trang đầu. Bản thật: đăng xuất, đăng nhập đúng email rồi quay lại link này. */}
-        {demo ? <Link href="/">Đổi</Link>
-          : <button type="button" className="l-linkbtn" aria-busy={switching || undefined} onClick={() => logout(`/invite/${code}`)}>Đổi</button>}
+        {/* Đăng xuất, đăng nhập đúng email rồi quay lại link này. */}
+        <button type="button" className="l-linkbtn" aria-busy={switching || undefined} onClick={() => logout(`/invite/${code}`)}>Đổi</button>
       </div>
 
       <fieldset className="l-pay-card l-consent">

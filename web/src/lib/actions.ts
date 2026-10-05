@@ -16,6 +16,12 @@ export function uid(prefix: string): string {
 
 export const setPersona = (personId: string | null): Update => (s) => ({ ...s, persona: personId });
 
+/** Đổi tên hiển thị của một người (màn "Đặt tên tài khoản và mật khẩu"). Tên đã kiểm ở nơi gọi (displayNameError). */
+export const setPersonName = (personId: string, name: string): Update => (s) => ({
+  ...s,
+  persons: s.persons.map((p) => (p.id === personId ? { ...p, name: name.trim() } : p)),
+});
+
 // ---------- Thành viên, đơn xin vào, lời mời ----------
 
 export const submitApplication = (a: { id: string; clubId: string; personId: string; year: number; reason: string; at: string }): Update => (s) => {

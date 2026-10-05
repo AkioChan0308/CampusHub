@@ -13,13 +13,12 @@ import { useMe, useSchoolClubs } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { downloadCsv } from "@/lib/csv";
 import { initials } from "@/lib/format";
-import { ErrorGate, NOT_IN_MVP, useDemoMode, useLogout } from "./Gate";
+import { ErrorGate, NOT_IN_MVP, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
 export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; children: ReactNode }) {
   const me = useMe();
   const list = useSchoolClubs();
-  const demo = useDemoMode();
   const { logout, pending: leaving } = useLogout();
   const saw = useSawPending(!list.data || !me.data);
   const fade = saw ? " l-fade-in" : "";
@@ -64,7 +63,6 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
                   <strong>{person.name}</strong>
                   {person.staffTitle && <span className="l-who-title">{person.staffTitle}</span>}
                   <div className="l-who-links">
-                    {demo && <Link href="/">Đổi vai (bản demo)</Link>}
                     <button type="button" className="l-linkbtn" aria-busy={leaving || undefined} onClick={() => logout()}>Đăng xuất</button>
                   </div>
                 </div>

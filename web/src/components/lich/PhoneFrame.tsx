@@ -9,7 +9,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { initials } from "@/lib/format";
-import { useDemoMode } from "./Gate";
 import { LinkIcon, Skel } from "./motion";
 
 export type PhoneTab = "attendance" | "pay" | "me";
@@ -21,14 +20,13 @@ export function PhoneFrame({ clubName, personName, tab, payHref, fade = false, b
   fade?: boolean;
   children: ReactNode;
 }) {
-  const demo = useDemoMode();
   const tabLink = (key: PhoneTab, href: string, icon: "qr" | "wallet" | "user", label: string) => (
     <Link className={`l-tab${tab === key ? " on" : ""}`} href={href} aria-current={tab === key ? "page" : undefined}><LinkIcon name={icon} size={22} /><span>{label}</span></Link>
   );
-  // Bản demo: bấm avatar để đổi vai. Bản thật: về trang của tôi.
+  // Bấm avatar: về trang của tôi.
   const fadeCls = fade ? " l-fade-in" : "";
   const avatar = () => personName && (
-    <Link className={`l-avatar l-phead-avatar${fadeCls}`} href={demo ? "/" : "/me"} aria-label={demo ? `${personName}, đổi vai (bản demo)` : `${personName}, trang của tôi`}>{initials(personName)}</Link>
+    <Link className={`l-avatar l-phead-avatar${fadeCls}`} href="/me" aria-label={`${personName}, trang của tôi`}>{initials(personName)}</Link>
   );
   return (
     <div className="lich">

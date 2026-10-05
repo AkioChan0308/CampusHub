@@ -19,7 +19,7 @@ npm run typecheck
 npm run build        # build bản chạy thật; chạy bằng npm start
 ```
 
-Trang đầu cho chọn vai: chủ nhiệm, thủ quỹ, trưởng ban, thành viên, thành viên mới được mời, sinh viên chưa vào CLB, ban quản lý CLB của trường. Bấm một vai là đăng nhập nhanh bằng tài khoản mẫu đó (chỉ khi máy chủ chạy chế độ demo). Bên dưới có 5 luồng thử nhanh. Nút "Đặt lại dữ liệu mẫu" xóa mọi thay đổi, cả trên máy chủ lẫn trong trình duyệt. Trang /login có nút đăng nhập Google khi máy chủ đã có khóa Google (xem `../server/.env.example`).
+Trang đầu `/` là trang giới thiệu cho người chưa đăng nhập (có hai video demo); người đã đăng nhập mở `/` thì về thẳng trang của mình. Bản demo không còn trang chọn vai (bỏ ngày 05/10/2026). Trang /login có bảng tài khoản mẫu cho 7 vai (chủ nhiệm `quocbao`, thủ quỹ `thuha`, trưởng ban `giahuy`, thành viên `minhanh`, thành viên mới được mời `hoangnam`, sinh viên chưa vào CLB `baochau`, ban quản lý CLB của trường `thutrang`), mật khẩu chung `CauLong#2026`; bấm một dòng là điền sẵn (chỉ khi máy chủ chạy chế độ demo; danh sách ở `src/lib/demo-accounts.ts`). Dưới bảng là nút "Đặt lại dữ liệu mẫu": xóa mọi thay đổi, cả trên máy chủ lẫn trong trình duyệt, và tạo lại các tài khoản mẫu. Các luồng thử nhanh ở `../README.md`. Trang /login có ô tên tài khoản (hoặc email) và mật khẩu, và nút đăng nhập Google khi máy chủ đã có khóa Google (xem `../server/.env.example`).
 
 ## Màn trong bản vẽ ứng với đường dẫn nào
 
@@ -54,13 +54,23 @@ Màn chưa có bản vẽ (mô tả được Hiệu duyệt ngày 04/10/2026):
 | Đợt thu: mở đợt đang dùng, hoặc mời tạo khi chưa có | `/clubs/cau-long-san-nha/collections` |
 | Tạo đợt thu | `/clubs/cau-long-san-nha/collections/new` |
 
+Màn chưa có bản vẽ, mô tả được Hiệu duyệt ngày 05/10/2026:
+
+| Màn | Đường dẫn |
+|---|---|
+| Trang đầu (giới thiệu, hai video demo) | `/` |
+| Đăng nhập (tên tài khoản hoặc email và mật khẩu, hoặc Google) | `/login` |
+| Đăng ký (chỉ bằng Google) | `/register` |
+| Đặt tên tài khoản và mật khẩu | `/account` (`?moi=1` ngay sau lần đầu đăng ký, `?datlai=1` sau "Quên mật khẩu") |
+
 Mở thẳng đường dẫn mà chưa đăng nhập thì trang chuyển sang `/login?next=<đường dẫn>`, đăng nhập xong quay lại đúng trang đó. Sai vai (ví dụ thành viên mở trang ban điều hành, sinh viên mở trang nhà trường) thì máy chủ trả 403 và trang hiện trang chặn.
 
 ## Cấu trúc thư mục
 
 ```
 src/app/                 mỗi thư mục là một đường dẫn (Next.js App Router)
-  page.tsx               trang chọn vai, chỉ có ở bản demo
+  page.tsx               trang đầu (giới thiệu); demo-video.tsx: video demo và các bước; video-buoc.json: giây bắt đầu từng bước (script quay ghi)
+  login/  register/  account/  đăng nhập, đăng ký, đặt tên tài khoản và mật khẩu; login/auth-screen.tsx: khung chung của đăng nhập và đăng ký
   lich.css               hệ thiết kế "Lịch bloc": màu, chữ, nút, khung xương, chuyển động (biến màu ở :root, kiểu của màn dưới lớp .lich)
   globals.css            nạp Tailwind v4; quy tắc nền cho thẻ HTML; biến theme của shadcn/ui nối vào biến của lich.css
   error.tsx, not-found.tsx  trang lỗi và trang không tìm thấy (trang chặn của Lịch bloc)
@@ -77,6 +87,8 @@ src/components/lich/     thành phần của Lịch bloc: tờ lịch (Leaf), kh
 src/components/          icon, mã QR, nút sao chép, appUrl (url.ts), MotionProvider (chuyển động dùng chung),
                          money-input.ts (đọc số tiền gõ tay)
 e2e/                     script bấm thử bằng Playwright (npm run e2e), xem e2e/README.md
+src/proxy.ts             chạy trước khi vẽ trang: ai đã có cookie phiên mà mở / thì chuyển về trang của mình
+public/video/            hai video demo của trang đầu và ảnh đầu video, quay bằng e2e/quay-video.cjs
 src/components/ui/       component của shadcn/ui: sonner (thông báo ngắn). Thêm bằng npx shadcn add thì ra màu Lịch bloc
 src/lib/                 dữ liệu và luật nghiệp vụ, không dính tới giao diện
   types.ts               kiểu dữ liệu
@@ -84,7 +96,7 @@ src/lib/                 dữ liệu và luật nghiệp vụ, không dính tớ
   selectors.ts           tính số (số dư, đợt thu, dự trù) và quyền theo vai
   actions.ts             thao tác đổi dữ liệu: duyệt đơn, điểm danh, ghi tiền, duyệt chi...
   reconcile.ts           luật đối soát sao kê, đọc ngày và số tiền trong file sao kê
-  store.tsx              phần chỉ chạy trên trình duyệt của bản demo: vai đang chọn, mã thiết bị (điểm danh), dữ liệu mẫu cho trang chọn vai
+  store.tsx              phần chỉ chạy trên trình duyệt của bản demo: vai đang chọn, mã thiết bị (điểm danh), nút đặt lại dữ liệu mẫu
   *.test.ts              test, chạy bằng npm test
 ```
 
@@ -93,13 +105,13 @@ Chữ trên giao diện viết thẳng trong từng trang, không qua file dịc
 ## Dữ liệu và vai trong bản demo
 
 - Dữ liệu nằm ở máy chủ: trong PostgreSQL khi `server/.env` có `DATABASE_URL` (`../docs/postgresql.md`), không thì trong bộ nhớ. Lần đầu máy chủ nạp từ `src/lib/seed.ts`. Nút "Đặt lại dữ liệu mẫu" ở trang chọn vai gọi máy chủ nạp lại.
-- Chọn vai là đăng nhập nhanh bằng tài khoản mẫu (cookie phiên). Tab chiếu QR mà mở thêm tab "thử điểm danh với vai" thì tab mới gọi API bằng vai đó (header `X-Demo-User`, lưu trong `sessionStorage` của tab), nên tab chiếu vẫn là của chủ nhiệm.
+- Đăng nhập bằng tài khoản mẫu ở trang /login (cookie phiên). Tab chiếu QR mà mở thêm tab "thử điểm danh với vai" thì tab mới gọi API bằng vai đó (header `X-Demo-User`, lưu trong `sessionStorage` của tab), nên tab chiếu vẫn là của chủ nhiệm.
 - Mỗi trình duyệt có một mã thiết bị (`localStorage`), gửi kèm khi quét mã, để thử luật "mỗi điện thoại chỉ điểm danh cho một người trong một buổi".
-- Trình duyệt vẫn giữ một bản dữ liệu mẫu trong `localStorage` (khóa `campushub-demo-state`) chỉ để trang chọn vai hiện tên người. Việc gọn phần này (chỉ giữ vai và mã thiết bị) để làm sau.
+- Trình duyệt vẫn giữ một bản dữ liệu mẫu trong `localStorage` (khóa `campushub-demo-state`) (trước dùng cho trang chọn vai, đã bỏ). Việc gọn phần này (chỉ giữ vai và mã thiết bị) để làm sau.
 
 ## Phần chỉ có ở bản demo, phải thay khi có máy chủ
 
-- **Đăng nhập:** máy chủ có đăng nhập Google và phiên bằng cookie. Ở chế độ demo, chọn vai ở trang đầu là đăng nhập nhanh bằng tài khoản mẫu. Chế độ Google (`AUTH_MODE=google`) thì trang đầu chuyển sang /login.
+- **Đăng nhập:** máy chủ có đăng nhập Google và phiên bằng cookie. Từ 05/10/2026 có thêm đăng nhập bằng tên tài khoản (hoặc email) và mật khẩu. Ở chế độ demo, trang /login liệt kê tài khoản mẫu của 7 vai (máy chủ tự tạo lúc khởi động và mỗi lần đặt lại dữ liệu mẫu). API đăng nhập nhanh `POST /auth/dev-login` vẫn còn cho script bấm thử, giao diện không dùng nữa. Chế độ Google (`AUTH_MODE=google`) thì không có bảng tài khoản mẫu.
 - **Mã QR điểm danh:** máy chủ ký mã và kiểm tra hạn (từ ngày 04/10/2026). Ô "thử điểm danh với vai" dưới mã chỉ có ở bản demo.
 - **Mã QR đóng quỹ:** cố ý **không** theo chuẩn VietQR. Quét mã không chuyển được tiền, dưới mã ghi "Bản demo: mã này không chuyển tiền được."
 - **Quyền theo vai:** máy chủ kiểm tra ở mọi API (`../server/src/access.ts`). Giao diện chỉ ẩn hay khóa nút cho dễ hiểu.
@@ -163,15 +175,19 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - "Cần bạn xử lý": số việc đứng riêng một ô chữ lớn bên trái, nên câu bỏ số ở đầu: "Đơn xin vào CLB đang chờ duyệt", "Khoản chi chờ duyệt · 650.000 ₫", "Giao dịch trong sao kê chưa khớp". Dòng dự trù thiếu tiền có biểu tượng cảnh báo thay cho số.
 - "Sự kiện sắp tới": ô ngày thành tờ lịch nhỏ; buổi diễn ra hôm nay có tờ lịch đỏ, dòng dưới ghi "hôm nay".
 - Đợt thu: bỏ nhãn "Đợt thu đang mở" phía trên tên đợt thu (tên đợt thu là tiêu đề). Hạn đóng là tờ lịch "còn 7 ngày" (đỏ khi còn từ 3 ngày trở xuống hoặc đã quá hạn, ghi "quá hạn N ngày"). Nút "Xem ai chưa đóng" chuyển từ góc trên xuống hàng nút dưới cùng, cạnh nút sao chép link.
-- Sidebar: vai chỉ ghi trong ô CLB; dưới tên người là "Đổi vai (bản demo)" (chỉ ở chế độ demo) và "Đăng xuất". Số đếm trên menu nền xám, không đỏ.
+- Sidebar: vai chỉ ghi trong ô CLB; dưới tên người là "Đăng xuất" (link "Đổi vai (bản demo)" đã bỏ ngày 05/10/2026 cùng trang chọn vai). Số đếm trên menu nền xám, không đỏ.
 - TV-DongQuy: số tiền cỡ lớn, cạnh đó tờ lịch hạn đóng; nội dung chuyển khoản và nút sao chép nằm cùng một hàng; dòng phụ dưới số tiền ghi "Hạn đóng …", đóng một phần thì "Số tiền còn thiếu · bạn đã đóng …". Avatar trên header: chế độ demo mở trang chọn vai, bản thật mở "Của tôi".
-- Trang /login (bản vẽ chưa có): tờ lịch hôm nay, tiêu đề "Đăng nhập", nút "Đăng nhập bằng Google" (khi máy chủ có khóa Google), nút "Chọn vai có sẵn (bản demo)" (chế độ demo), lỗi từ Google hiện thành một dòng đỏ. Đã đăng nhập thì hiện tên, nút "Tiếp tục" và "Đăng xuất". Sau khi đăng nhập, người dùng về trang đang mở dở, nếu không thì về trang theo vai (ban điều hành: trang chủ CLB; thành viên: Của tôi; cán bộ trường: Các CLB; chưa vào CLB: Tìm CLB).
+- Trang /login (bản vẽ chưa có; làm lại ngày 05/10/2026 theo mô tả Hiệu duyệt): tờ lịch hôm nay, tiêu đề "Đăng nhập"; ô "Tên tài khoản hoặc email", ô "Mật khẩu", ô "Hiện mật khẩu" (không đánh dấu sẵn), nút "Đăng nhập"; dưới chữ "hoặc" là nút "Đăng nhập bằng Google" và dòng "Quên mật khẩu? Đặt lại bằng Google" (khi máy chủ có khóa Google); chân thẻ có "Chưa có tài khoản? Đăng ký bằng Google"; ở chế độ demo, giữa form và chân thẻ là bảng tài khoản mẫu (xem dưới). Sai tên hay sai mật khẩu đều cùng một câu, ô mật khẩu được xóa; sai 5 lần thì câu báo khóa có giờ thử lại. Lỗi từ Google hiện thành một dòng đỏ. Đã đăng nhập thì hiện tên, nút "Tiếp tục" và "Đăng xuất". Sau khi đăng nhập, người dùng về trang đang mở dở, nếu không thì về trang theo vai (ban điều hành: trang chủ CLB; thành viên: Của tôi; cán bộ trường: Các CLB; chưa vào CLB: Tìm CLB).
+- Thẻ của /login, /register, /account neo phía trên màn (cách đỉnh khoảng 10% chiều cao màn) thay cho canh giữa theo chiều dọc (05/10/2026, sau vòng rà soát): lúc đang tải chưa biết có nút Google không, canh giữa thì cả thẻ bị đẩy lên khi phần dưới hiện ra. Khung xương của /login và /account khớp từng ô với lúc đã tải.
+- Trang /register (bản vẽ chưa có, 05/10/2026): chỉ có nút "Đăng ký bằng Google", kèm câu vì sao dùng Google (email đã được xác minh) và "Nếu CLB đã mời bạn, dùng đúng email trong lời mời." Máy chủ chưa có khóa Google thì ghi "Đăng ký bằng Google chưa mở. Báo ban điều hành CLB."
+- Trang /account "Đặt tên tài khoản và mật khẩu" (bản vẽ chưa có, 05/10/2026): tên hiển thị, email (chỉ xem), tên tài khoản (gợi ý sẵn phần trước @ của email nếu hợp lệ), mật khẩu hiện tại (khi đã có mật khẩu, trừ lúc vừa đặt lại bằng Google), mật khẩu, nhập lại, "Hiện mật khẩu". Luật kiểm tra ngay trên form (`src/lib/account.ts`), lỗi hiện dưới từng ô. Ngay sau lần đầu đăng ký có nút "Để sau"; mở từ Của tôi thì là "Hủy". Đã có mật khẩu thì tiêu đề là "Đổi tên tài khoản và mật khẩu".
+- Của tôi (TV-CuaToi) có thêm mục "Đăng nhập" (05/10/2026, Hiệu duyệt): dòng "Tên tài khoản" (chưa đặt thì ghi "Chưa đặt · đăng nhập bằng Google") và dòng "Đặt tên tài khoản và mật khẩu" / "Đổi tên tài khoản và mật khẩu" mở /account.
+- Trang đầu `/` (bản vẽ chưa có, 05/10/2026): thanh trên dính khi cuộn (Tìm CLB, Đăng nhập, Đăng ký); tờ lịch hôm nay và câu "Cả tuần của CLB, trên một cuốn lịch.", câu giới thiệu, nút "Đăng ký bằng Google" và "Đăng nhập". Bố cục xếp chồng như framer.com (Hiệu chọn): ngay dưới là khối "Thành viên điểm danh, đóng quỹ ngay trên điện thoại." với video điện thoại, cuộn xuống là khối "Ban điều hành lo việc cả nhiệm kỳ trên laptop." với video laptop. Không có nhãn nhỏ phía trên tiêu đề (luật đã chốt); người dùng của khối nằm ngay trong tiêu đề. Mỗi video có 5 bước; bước đang chạy đậm màu kèm thanh tiến độ, bấm một bước thì nhảy tới đoạn đó. Video tự chạy không tiếng khi cuộn tới, cuộn qua thì dừng, có nút dừng; máy bật giảm chuyển động thì đứng yên với nút "Phát video". Khi cuộn xuống, khối tiếp theo (phần đầu trang, hai khối video, dòng "không giữ tiền") trượt 72px từ bên trái vào và rõ dần; khối đã xem trượt sang phải và mờ đi (Hiệu yêu cầu, 05/10/2026, theo framer.com). Hiệu ứng đi theo vị trí cuộn, không theo thời gian, nên không áp luật 150–250 ms. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay; khối chỉ mờ đi khi mép dưới đã lên quá 35% màn hình, nên phần đang đọc không mờ. Trang chặn tràn ngang bằng `overflow-x: clip`. Máy giảm chuyển động thì không có hiệu ứng này. Code: `ScrollFade` trong `src/app/demo-video.tsx`. Cuối trang: dòng "CampusHub không giữ tiền…" và chân trang (nhóm NeedSleep, EXE101; dòng "Bản demo dùng dữ liệu mẫu." chỉ hiện ở chế độ demo). Link "Bản demo: đăng nhập bằng tài khoản mẫu" (tới /login) / "Tìm CLB của trường bạn" giữ chỗ mà chưa hiện tới khi biết máy chủ chạy chế độ nào, để chữ không đổi trước mắt người xem. Nút dừng video luôn hiện. Lỗi đăng nhập Google: máy chủ gửi mã (`?loi=huy`…), trang đăng nhập đổi mã thành câu có sẵn; mã lạ thì hiện "Đăng nhập chưa xong. Bạn thử lại." Video quay từ bản demo bằng `e2e/quay-video.cjs`, bắt đầu từ trang đăng nhập (Hiệu yêu cầu); trong video có con trỏ vẽ thêm và không có phần chỉ có ở bản demo. Khối điểm danh chạy thử trước đó đã bỏ theo góp ý của Hiệu (màn đó chỉ thấy sau khi đăng nhập).
 - Chuyển động (thêm ngày 03/10/2026 theo góp ý của Hiệu: nút và chuyển trang còn thô, chuyển trang chớp):
   - Đang tải hiện khung xương đúng bố cục thay cho chữ "Đang tải…". Dữ liệu tới thì nội dung hiện dần trong 200 ms.
   - Chuyển trang mờ qua bằng View Transitions. Tờ lịch hôm nay dời thẳng từ trang đăng nhập sang trang chủ.
   - Nút lún nhẹ khi bấm. Đang gửi thì hiện vòng xoay mà vẫn giữ màu. Link vừa bấm mà trang chưa mở thì vòng xoay thế chỗ biểu tượng, kể cả mục menu.
   - Báo đã chuyển xong thì nút thu lại và nhãn trạng thái trượt vào. Chép nội dung thì biểu tượng thành dấu tích.
-  - Trang chọn vai có vòng xoay trên vai vừa bấm và tải trước dữ liệu trang chủ.
   - Đăng xuất thì sang trang đăng nhập rồi mới xóa dữ liệu đã lưu tạm, để không chớp trang "Bạn cần đăng nhập".
   - Máy bật giảm chuyển động thì tắt hết, chuyển trang chỉ còn mờ qua nhanh. Chi tiết ở `../DESIGN.md` mục Chuyển động.
 - Nhóm luồng tiền (BDH-DotThu, BDH-DoiSoat, BDH-DuyetChi, BDH-DuTru, chuyển ngày 03/10/2026):
@@ -234,7 +250,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
   - **Tab Quỹ (/me/pay):** lúc tìm đợt thu và chuyển sang màn đóng quỹ, màn hiện đúng khung xương của màn đóng quỹ, nên không đổi hình hai lần.
   - **Lời mời:**
     - Nút "Tham gia CLB" khóa (xám) tới khi chọn đủ hai ô bắt buộc như bản vẽ. Bấm khi còn thiếu thì con trỏ nhảy tới ô bắt buộc còn thiếu, thay vì không có gì xảy ra.
-    - "Đổi" cạnh email: bản demo về trang chọn vai; bản thật đăng xuất rồi đăng nhập lại, xong quay về đúng link mời.
+    - "Đổi" cạnh email: đăng xuất rồi đăng nhập lại, xong quay về đúng link mời (bản demo cũng vậy từ 05/10/2026).
     - Link mời của tài khoản khác: trang chặn "Bạn không xem được trang này" với câu của máy chủ "Lời mời này gửi cho tài khoản khác. Đăng nhập bằng đúng email được mời.", kèm nút "Đăng nhập tài khoản khác" (đăng nhập xong quay lại link mời).
     - "Đọc chính sách dữ liệu (chưa có)": trang chính sách chưa có.
     - Bỏ nhãn nhỏ "Lời mời tham gia" phía trên tiêu đề, vì tiêu đề "… mời bạn tham gia" đã nói đúng điều đó (luật của hệ: không đặt nhãn nhỏ trên tiêu đề).
@@ -312,7 +328,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 
 **Bỏ hệ tím cũ (05/10/2026)** (Hiệu duyệt ngày 05/10/2026, cả ba chỗ nhỏ đổi theo)
 - Xóa `design/ui.css` và bản sao của nó trong `src/app/globals.css` (từ 619 dòng còn khoảng 100), xóa `ConfirmButton`, `ui/alert-dialog`, `ui/tabs`, bỏ hai font Be Vietnam Pro và Montserrat. Biến theme của shadcn/ui nối vào biến của Lịch bloc: thêm component bằng `npx shadcn add` ra đúng màu xanh mực, giấy trắng, nét kẻ 1px, không bóng đổ.
-- Trang chọn vai (`/`, chỉ có ở bản demo): một tờ giấy mở bằng tờ lịch hôm nay; 7 vai là 7 dòng kẻ bấm được (tên vai, người mẫu, việc làm được, mũi tên; vai đang đăng nhập thì mũi tên thành vòng xoay); dưới là 5 bước thử nhanh và nút "Đặt lại dữ liệu mẫu" (hỏi lại trước khi làm). Câu giới thiệu bỏ ý sai "các màn khác vẫn lưu dữ liệu mẫu trong trình duyệt" và "mỗi tab giữ vai riêng": mọi màn đã lấy dữ liệu từ máy chủ, phiên đăng nhập dùng chung giữa các tab.
+- Bảng tài khoản mẫu (chỉ ở bản demo, 05/10/2026, Hiệu yêu cầu, thay trang chọn vai `/demo` đã bỏ): dưới form của /login, một khung nét 1px "Tài khoản mẫu (bản demo)", câu hướng dẫn, 7 dòng bấm được (vai in đậm; tên tài khoản · mật khẩu bằng chữ mã), bấm là điền sẵn hai ô và đưa focus sang nút Đăng nhập; dưới cùng nút "Đặt lại dữ liệu mẫu" (hỏi lại trước khi làm). /register ở bản demo có link "Bản demo: đăng nhập bằng tài khoản mẫu"; link ở trang đầu cũng dẫn tới /login. Các link "Đổi vai (bản demo)" ở thanh bên laptop, trang nhà trường, trang chặn, lời mời đã bỏ; avatar trên điện thoại luôn mở Của tôi. Các luồng thử nhanh chuyển sang `../README.md`.
 - Trang lỗi, trang không tìm thấy, và màn chờ lúc trình duyệt đọc dữ liệu (chỉ còn nền Lịch bloc, không hiện chữ "Đang tải…").
 - Ba chỗ nhỏ trên màn đã duyệt đổi theo, vì trước đây chúng vô tình nhận kiểu từ lớp cũ cùng tên:
   - Của tôi: chữ viết tắt trong ảnh đại diện lớn ("MA") nằm giữa vòng tròn; trước lệch phải khoảng 4px do lớp `.lg` cũ thêm lề hai bên.
@@ -330,12 +346,12 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Link QR khi chưa đăng nhập: đăng nhập xong quay về đúng link, giữ cả `?e=&t=`.
 - Ghi tiền mà người khác vừa ghi trước (máy chủ báo 409): màn tự tải lại để hiện trạng thái mới. Báo đã chuyển khoản xong thì trang Của tôi đổi ngay.
 
-**Chỉ có ở bản demo:** trang chọn vai, link "Đổi vai (bản demo)", ô "thử điểm danh với vai" dưới mã QR, nút đặt lại dữ liệu mẫu.
+**Chỉ có ở bản demo:** bảng tài khoản mẫu ở trang đăng nhập, ô "thử điểm danh với vai" dưới mã QR, nút đặt lại dữ liệu mẫu. (Trang chọn vai và link "Đổi vai (bản demo)" đã bỏ ngày 05/10/2026.)
 
 ## Khi nối máy chủ
 
 - Server và hợp đồng API đã có bản nháp: `../server/` và `../docs/api.md`.
-- Đã nối (03–04/10/2026): trang đầu (đăng nhập nhanh, đặt lại dữ liệu), /login, BDH-TrangChu, TV-DongQuy, nhóm luồng tiền (BDH-DotThu, BDH-DoiSoat, BDH-DuyetChi, BDH-DuTru), nhóm 2 (BDH-ThanhVien, BDH-QR, BDH-BanGiao, TV-DiemDanh gồm /checkin và /me/attendance), rồi nhóm 3 và 4 (TV-CuaToi, tab Quỹ /me/pay, TV-LoiMoi, SV-DanhSach, SV-DonXinVao, NT-TongQuan, NT-ChiTietCLB). Hết màn nào còn đọc dữ liệu trong trình duyệt. Gọi API qua `src/api/client.ts` (lỗi trả về dạng `ApiError`, câu `message` hiện thẳng cho người dùng); truy vấn dùng chung và khóa lưu tạm ở `src/api/queries.ts` (TanStack Query). Chưa đăng nhập thì màn chuyển sang `/login?next=<trang đang mở>`.
+- Đã nối (03–04/10/2026): trang chọn vai (đăng nhập nhanh, đặt lại dữ liệu; đã bỏ ngày 05/10/2026), /login, BDH-TrangChu, TV-DongQuy, nhóm luồng tiền (BDH-DotThu, BDH-DoiSoat, BDH-DuyetChi, BDH-DuTru), nhóm 2 (BDH-ThanhVien, BDH-QR, BDH-BanGiao, TV-DiemDanh gồm /checkin và /me/attendance), rồi nhóm 3 và 4 (TV-CuaToi, tab Quỹ /me/pay, TV-LoiMoi, SV-DanhSach, SV-DonXinVao, NT-TongQuan, NT-ChiTietCLB). Hết màn nào còn đọc dữ liệu trong trình duyệt. Gọi API qua `src/api/client.ts` (lỗi trả về dạng `ApiError`, câu `message` hiện thẳng cho người dùng); truy vấn dùng chung và khóa lưu tạm ở `src/api/queries.ts` (TanStack Query). Chưa đăng nhập thì màn chuyển sang `/login?next=<trang đang mở>`.
 - Hai nguồn dữ liệu đã khớp (04/10/2026): việc làm ở màn nào cũng hiện ở các màn khác, vì mọi màn đọc cùng một máy chủ.
 - Kiểu dữ liệu của từng API nằm ở `../server/src/contract.ts`. Khi nối, web import kiểu bằng `import type`; file này không import gì nên không kéo code của server vào web.
 - Mỗi thao tác trong `src/lib/actions.ts` ứng với một API, ví dụ `approveExpense` ứng với duyệt khoản chi. Máy chủ gọi các thao tác này; trang web gọi API rồi nạp lại dữ liệu (`useClubMutation` trong `src/api/queries.ts`).

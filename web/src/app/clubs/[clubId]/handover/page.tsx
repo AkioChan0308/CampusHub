@@ -282,7 +282,7 @@ function AccountStepForm({ data, canDo }: { data: HandoverRes; canDo: boolean })
       <div className="l-row-actions">
         <LichConfirm className="l-btn2" disabled={!canDo} describedBy={canDo ? undefined : "ho-quyen"} busy={back.isPending} confirm="Quay lại bước 2"
           title="Quay lại bước 2?"
-          description={demo ? "Bản demo chưa làm bước 2 (chốt số dư), nên quay lại rồi thì chưa sang lại bước 3 được. Muốn thử lại bước 3, đặt lại dữ liệu mẫu ở trang chọn vai." : "Bước 2 chốt lại số dư; chốt xong thì bàn giao sang lại bước 3."}
+          description={demo ? "Bản demo chưa làm bước 2 (chốt số dư), nên quay lại rồi thì chưa sang lại bước 3 được. Muốn thử lại bước 3, đặt lại dữ liệu mẫu ở trang đăng nhập." : "Bước 2 chốt lại số dư; chốt xong thì bàn giao sang lại bước 3."}
           onConfirm={() => back.mutate(2)}>Quay lại bước 2</LichConfirm>
         <button type="submit" className="l-btn" disabled={!canDo} aria-describedby={canDo ? undefined : "ho-quyen"} aria-busy={save.isPending || undefined}>Lưu và sang bước 4</button>
       </div>
@@ -305,7 +305,7 @@ function StepNotBuilt({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
       {data.step > 3 && r && (
         <p>Đã lưu tài khoản nhận quỹ mới: <strong>{r.name}</strong> · {r.bank} · •••• {r.accountLast4}{data.transferRef ? ` · mã giao dịch ${data.transferRef}` : ""}.</p>
       )}
-      <p className="l-note">{data.step < 3 ? "Bản demo chưa làm bước này, nên chưa sang được bước 3. Muốn thử lại bước 3, đặt lại dữ liệu mẫu ở trang chọn vai." : "Bản demo chưa làm bước này."}</p>
+      <p className="l-note">{data.step < 3 ? "Bản demo chưa làm bước này, nên chưa sang được bước 3. Muốn thử lại bước 3, đặt lại dữ liệu mẫu ở trang đăng nhập." : "Bản demo chưa làm bước này."}</p>
       {data.step > 3 && (
         <div className="l-row-actions">
           <button type="button" className="l-btn2" disabled={!canDo} aria-busy={back.isPending || undefined} onClick={() => { if (!back.isPending) back.mutate(3); }}>Quay lại bước 3</button>

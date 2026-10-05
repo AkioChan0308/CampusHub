@@ -21,6 +21,8 @@ const PATHS = {
   plus: <path d="M12 5v14M5 12h14" />,
   link: (<><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>),
   user: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6" /></>),
+  play: <path d="M7 4.5v15l12.5-7.5z" />,
+  pause: <path d="M8.5 5v14M15.5 5v14" />,
 };
 
 export type IconName = keyof typeof PATHS;

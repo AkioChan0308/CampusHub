@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import type * as C from "./contract.ts";
-import { FIELDS, ROLE_LABEL, type Role } from "./domain.ts";
+import { FIELDS, PASSWORD_MAX, ROLE_LABEL, type Role } from "./domain.ts";
 
 /** Kiểm tra body; sai thì ném ZodError, app.ts đổi thành lỗi 400 VALIDATION. Request không có body coi như {}. */
 export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
@@ -67,6 +67,21 @@ export const approveBody = z.object({
 }) satisfies z.ZodType<C.ApproveBody>;
 
 export const devLoginBody = z.object({ personId: id }) satisfies z.ZodType<C.DevLoginBody>;
+
+// Mật khẩu không trim: khoảng trắng đầu cuối cũng là một phần của mật khẩu. Luật chi tiết kiểm ở handler (web/src/lib/account.ts).
+const password = z.string({ error: "Cần nhập mật khẩu." }).min(1, { error: "Cần nhập mật khẩu." }).max(PASSWORD_MAX, { error: `Mật khẩu dài tối đa ${PASSWORD_MAX} ký tự.` });
+
+export const passwordLoginBody = z.object({
+  login: text(254, "Cần nhập tên tài khoản hoặc email."),
+  password,
+}) satisfies z.ZodType<C.PasswordLoginBody>;
+
+export const updateAccountBody = z.object({
+  name: z.string({ error: "Cần nhập tên hiển thị." }),
+  username: z.string({ error: "Cần nhập tên tài khoản." }),
+  password,
+  currentPassword: password.optional(),
+}) satisfies z.ZodType<C.UpdateAccountBody>;
 
 export const addBudgetItemBody = z.object({
   name: text(200, "Cần ghi tên hoạt động."),
