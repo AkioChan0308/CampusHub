@@ -3,11 +3,12 @@
 *Cập nhật ngày 05/10/2026. Mỗi khi xong một nhóm việc, sửa file này trước khi báo xong.*
 
 Agent hay người mới nhận việc: đọc file này trước, rồi tới:
-1. `CLAUDE.md`: luật nghiệp vụ, luật giao diện, những gì không được đưa vào repo.
-2. `DESIGN.md`: hệ thiết kế "Lịch bloc".
-3. `web/README.md`: bản đồ web, mục "Chỗ code khác bản vẽ".
-4. `server/README.md`: bản đồ máy chủ, danh sách thay đổi để báo Khoa.
-5. `docs/api.md`: hợp đồng API.
+1. `docs/luong-nguoi-dung.md`: luồng của từng nhóm người dùng, từng bước (viết cho cả người không làm kỹ thuật).
+2. `CLAUDE.md`: luật nghiệp vụ, luật giao diện, những gì không được đưa vào repo.
+3. `DESIGN.md`: hệ thiết kế "Lịch bloc".
+4. `web/README.md`: bản đồ web, mục "Chỗ code khác bản vẽ".
+5. `server/README.md`: bản đồ máy chủ, danh sách thay đổi để báo Khoa.
+6. `docs/api.md`: hợp đồng API.
 
 ---
 

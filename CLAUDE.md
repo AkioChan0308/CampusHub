@@ -12,6 +12,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
   - những quyết định đã duyệt khác bản vẽ;
   - cách làm việc với Hiệu, thế nào là "xong" một nhóm màn.
   Xong mỗi nhóm việc thì cập nhật file đó.
+- Muốn hiểu sản phẩm theo từng nhóm người dùng (ban điều hành, thành viên, sinh viên, nhà trường): `docs/luong-nguoi-dung.md`. Giới thiệu chung cho người xem repo: `README.md`.
 - **Hai skill bắt buộc:** `karpathy-guidelines` (cách viết code) và `impeccable` (thiết kế giao diện). Cách cài ở `docs/tien-do-mvp.md`, mục 8. Không đưa `.claude/` vào commit.
 - Repo: https://github.com/AkioChan0308/CampusHub (nhánh `main` và `develop`). **Chỉ commit và push khi Hiệu bảo.**
 - **Hỏi Hiệu bằng câu trắc nghiệm ngay trong chat.** Màn chưa có bản vẽ thì viết mô tả trước, Hiệu duyệt rồi mới code.

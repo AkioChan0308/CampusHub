@@ -32,7 +32,7 @@ Thứ tự 4 hạng mục:
 1. Luồng theo vai trò: làm trước, vì nó quyết định màn hình và phân quyền.
 2. MVP lõi.
 3. Thanh toán: nằm trong phần sổ quỹ.
-4. Dự báo chi tiêu: làm cuối, vì cần sổ quỹ có dữ liệu thật.
+4. Dự toán chi tiêu: không làm trong code. Đây là sheet chi phí của cả dự án, nộp ở Checkpoint 3, để ở thư mục `../CP3` (ngoài repo). MVP nộp ở Checkpoint 4.
 
 ## Vì sao làm phần lõi được ngay
 
@@ -49,7 +49,7 @@ Dữ liệu thật đầu tiên của Checkpoint 2 (mẫu còn nhỏ, chi tiết
 
 ## Lộ trình 10 tuần
 
-Khớp mốc ở Checkpoint 1: tuần 1–6 làm MVP, tuần 7–10 chạy pilot. Tuần 1 là tuần bắt đầu code; khi chốt hạn nộp Checkpoint 3 thì đổi sang ngày cụ thể.
+Khớp mốc ở Checkpoint 1: tuần 1–6 làm MVP, tuần 7–10 chạy pilot. Tuần 1 là tuần bắt đầu code; khi chốt hạn nộp Checkpoint 4 (nộp MVP) thì đổi sang ngày cụ thể.
 
 | Tuần | Làm gì | Ai làm chính | Xong khi |
 |---|---|---|---|
@@ -72,8 +72,9 @@ Từ tuần 1, Nghĩa và Khang bắt đầu tìm CLB pilot. Đã có hai ngư�
 - Điểm danh sự kiện cấp trường (FPT đã có hệ thống điểm trải nghiệm).
 - App cài đặt.
 
-## 2. Dự báo chi tiêu: trong MVP là "dự trù kinh phí theo kỳ"
+## 2. Dự trù kinh phí theo kỳ (tính năng cho CLB)
 
+- Không nhầm với dự toán chi tiêu của dự án: bảng đó nộp ở Checkpoint 3, để ở `../CP3`, không thuộc code.
 - CLB nhập các hoạt động dự kiến trong kỳ. Mỗi hoạt động có số tiền dự trù và nguồn tiền: quỹ thành viên, trường hỗ trợ hoặc tài trợ.
 - Số dư cuối kỳ dự kiến = số dư hiện tại + tiền thu dự kiến từ các đợt thu đang mở + hỗ trợ dự kiến − phần dự trù chưa chi. Không trừ tổng dự trù: tiền đã chi đã nằm trong số dư hiện tại, trừ tổng là trừ hai lần. Nếu ra số âm thì báo cho ban điều hành.
 - Sau mỗi hoạt động, so số dự trù với số chi thật trong sổ quỹ.
@@ -111,7 +112,7 @@ Từ tuần 1, Nghĩa và Khang bắt đầu tìm CLB pilot. Đã có hai ngư�
 
 ## Chưa chốt
 
-- Hạn nộp Checkpoint 3 và tuần bắt đầu code.
+- Hạn nộp Checkpoint 4 (MVP) và tuần bắt đầu code.
 - Stack phía máy chủ: khung server đã làm bằng Node.js + Express như CP1; còn chốt cơ sở dữ liệu (PostgreSQL theo CP1) và cách đăng nhập. Frontend đã làm bằng Next.js, khớp CP1.
 - Hợp đồng API (`docs/api.md`): duyệt bản nháp v0 rồi đổi thành v1.
 - "Khách hàng, staff, quản lý" có đúng như bảng ở mục 4 không.

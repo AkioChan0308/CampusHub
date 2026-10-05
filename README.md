@@ -1,0 +1,79 @@
+# CampusHub
+
+CampusHub là trang web giúp **ban điều hành CLB sinh viên** quản lý thành viên, điểm danh, quỹ CLB và bàn giao nhiệm kỳ ở một chỗ, thay cho Google Sheets, Google Form và việc dò sao kê ngân hàng bằng tay. Trang web cũng giúp **ban quản lý CLB của trường** nắm tình hình các CLB.
+
+Dự án của nhóm NeedSleep, môn EXE101, Đại học FPT TP.HCM.
+
+> **Trạng thái:** bản MVP chạy trên máy, dùng **dữ liệu mẫu tự đặt** (tên người, số tiền đều là giả). Chưa đưa lên mạng. Tiến độ chi tiết: [docs/tien-do-mvp.md](docs/tien-do-mvp.md).
+
+## Ai dùng CampusHub
+
+| Nhóm người dùng | Cách gọi trong nhóm | Gồm ai | Dùng trên | Việc chính |
+|---|---|---|---|---|
+| **Ban điều hành CLB** | Staff | Chủ nhiệm, phó chủ nhiệm, thủ quỹ, trưởng ban | Laptop | Thêm thành viên, mở điểm danh, thu quỹ, đối soát sao kê, duyệt chi, lập dự trù, bàn giao nhiệm kỳ |
+| **Thành viên CLB** | Khách hàng | Người đã nhận lời mời vào CLB | Điện thoại | Điểm danh bằng mã QR, đóng quỹ, xem và tải dữ liệu của mình |
+| **Sinh viên chưa vào CLB** | Khách hàng | Sinh viên muốn tìm CLB | Điện thoại | Xem các CLB, gửi đơn xin vào |
+| **Ban quản lý CLB của trường** | Quản lý | Cán bộ trường (SRO, PDP), kiêm mentor | Laptop | Xem tình hình các CLB (chỉ số tổng hợp), duyệt khoản chi lớn |
+
+Cách gọi "khách hàng, staff, quản lý" lấy từ [docs/ke-hoach-mvp.md](docs/ke-hoach-mvp.md), mục 4; nhóm còn chờ chốt cách gọi này.
+
+Thành viên và sinh viên không cần cài app: mở link CLB gửi trong nhóm Zalo hoặc Messenger là dùng được.
+
+## Các luồng chính
+
+Mỗi luồng kể từng bước ai làm gì, kèm luật cần nhớ, ở [docs/luong-nguoi-dung.md](docs/luong-nguoi-dung.md).
+
+1. **Lập CLB và đưa thành viên vào:** chủ nhiệm tạo CLB, thêm thành viên từ file Excel, gửi link mời qua Zalo. Thành viên mở link, đồng ý lưu dữ liệu là vào CLB.
+2. **Xin vào CLB:** sinh viên tìm CLB, gửi đơn. Ban điều hành duyệt đơn, sinh viên nhận lời mời.
+3. **Điểm danh:** ban điều hành chiếu mã QR (đổi mã mỗi 30 giây) trong buổi sinh hoạt. Thành viên quét bằng điện thoại. Ai quên điện thoại thì được điểm danh tay.
+4. **Thu quỹ:** thủ quỹ mở đợt thu, gửi link đóng quỹ. Thành viên chuyển khoản theo nội dung riêng của mình, rồi bấm "Mình đã chuyển khoản". Đóng tiền mặt thì thủ quỹ ghi tay.
+5. **Đối soát sao kê:** thủ quỹ tải file sao kê từ app ngân hàng lên. Giao dịch đúng mã, đúng tiền tự khớp; giao dịch lệch (sai cú pháp, chuyển hộ, thiếu tiền) hiện ra để gán tay.
+6. **Đề xuất và duyệt chi:** một người đề xuất, người khác trong ban điều hành duyệt. Khoản trên 2.000.000 ₫ cần mentor của trường duyệt thêm.
+7. **Dự trù kỳ:** ban điều hành lập dự trù theo hoạt động, biết quỹ đủ hay thiếu, gửi cho trường.
+8. **Bàn giao nhiệm kỳ:** chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền quản trị sang ban mới. Bản demo mới làm được bước đổi tài khoản nhận quỹ.
+9. **Dữ liệu cá nhân:** thành viên tự tải dữ liệu của mình, rút đồng ý, gửi yêu cầu xóa dữ liệu.
+10. **Phía nhà trường:** xem các CLB có hoạt động không, dự trù và số đã chi, duyệt khoản chi lớn.
+
+## CampusHub không làm gì
+
+- **Không giữ tiền, không thu hộ.** Tiền đi thẳng vào tài khoản của CLB hoặc thủ quỹ; CampusHub chỉ ghi sổ. Thu hộ phải có giấy phép của Ngân hàng Nhà nước (Nghị định 52/2024).
+- **Không tự đọc tài khoản ngân hàng.** Thủ quỹ tự tải file sao kê lên.
+- **Không lấy vị trí (GPS)** khi điểm danh.
+- **Không thay Zalo:** chỉ gửi link vào nhóm có sẵn.
+
+## Chạy thử trên máy
+
+Cần [Node.js](https://nodejs.org) 22.12 trở lên. Mở hai cửa sổ dòng lệnh:
+
+```bash
+# Cửa sổ 1: máy chủ API, http://localhost:4000/api/v1
+cd server
+npm install
+npm run dev
+
+# Cửa sổ 2: trang web, http://localhost:3000
+cd web
+npm install
+npm run dev
+```
+
+Mở http://localhost:3000. Trang đầu là **trang chọn vai** (chỉ có ở bản demo): bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", để vào ngay bằng tài khoản mẫu. Bên dưới có 5 bước thử nhanh các luồng chính.
+
+Muốn lưu dữ liệu vào PostgreSQL thay vì bộ nhớ: xem [docs/postgresql.md](docs/postgresql.md).
+
+## Thư mục và tài liệu
+
+| Ở đâu | Có gì |
+|---|---|
+| [docs/luong-nguoi-dung.md](docs/luong-nguoi-dung.md) | Luồng của từng nhóm người dùng, từng bước, viết cho cả người không làm kỹ thuật |
+| [docs/tien-do-mvp.md](docs/tien-do-mvp.md) | Đang làm tới đâu, việc tiếp theo, các quyết định đã duyệt. Người mới vào nhóm đọc file này trước |
+| [web/](web/) | Trang web (Next.js). Hướng dẫn: [web/README.md](web/README.md) |
+| [server/](server/) | Máy chủ API (Node.js, Express). Hướng dẫn: [server/README.md](server/README.md) |
+| [docs/api.md](docs/api.md) | Danh sách API giữa trang web và máy chủ |
+| [DESIGN.md](DESIGN.md) | Hệ giao diện "Lịch bloc": màu, chữ, cách bố trí |
+| [design/](design/) | Bản vẽ wireframe ban đầu (16 màn), dùng để tra nội dung và luật của từng màn |
+| [CLAUDE.md](CLAUDE.md) | Luật làm việc của nhóm và các nguyên tắc nghiệp vụ đã chốt |
+
+## Không đưa vào repo
+
+File `.env`, khóa API, mật khẩu, và mọi dữ liệu thật (danh sách thành viên, sao kê ngân hàng, câu trả lời khảo sát). Dữ liệu dùng để thử phải là dữ liệu tự đặt và ghi rõ là dữ liệu mẫu.
