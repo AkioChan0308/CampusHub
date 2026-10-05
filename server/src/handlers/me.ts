@@ -6,7 +6,7 @@ import { conflict, HttpError, invalid, notFound } from "../errors.ts";
 import { hashPassword, verifyPassword } from "../password.ts";
 import { verifyQrToken } from "../qr.ts";
 import { checkinBody, parseBody, updateAccountBody } from "../schemas.ts";
-import { attendanceDto, meRes, myAttendanceRes, myClubRes, myExportRes, myPaymentRes } from "../views.ts";
+import { attendanceDto, meRes, myAttendanceRes, myClubRes, myExportRes, myPaymentRes } from "../responses.ts";
 import { lockedError } from "./auth.ts";
 import type { Handlers } from "./types.ts";
 

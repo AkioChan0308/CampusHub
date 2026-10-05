@@ -4,7 +4,7 @@ import { Barlow, Barlow_Condensed, JetBrains_Mono } from "next/font/google";
 import { MotionProvider } from "@/components/MotionProvider";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
-import { StoreProvider } from "@/lib/store";
+import { StoreProvider } from "@/lib/browser-state";
 import "./globals.css";
 import "./lich.css";
 

@@ -376,7 +376,7 @@ Bảng có độ rộng cột cố định (xem Components). Bảng rộng tối
 
 Mỗi khối của trang đầu là một tờ giấy riêng trên nền xám, đọc lần lượt khi cuộn. Đây không phải bảng làm việc, nên không áp cách chia nét của tờ giấy làm việc.
 
-**Đăng nhập, đăng ký, tài khoản.** Một thẻ giấy trên nền xám, giữa theo chiều ngang, rộng tối đa 440px, neo phía trên (cách đỉnh `clamp(24px, 10vh, 96px)`) chứ không canh giữa theo chiều dọc: nút Google, câu lỗi hiện thêm thì nằm dưới, không đẩy thẻ (Zero Shift). Các phần cách 18px: logo, đầu thẻ (tờ lịch hôm nay cỡ xl cạnh tiêu đề 32px, căn theo đáy), hộp báo lỗi nếu có, form hoặc nút, chân thẻ. `/login`, `/register` (`login/auth-screen.tsx`) và `/account` dùng chung thẻ này. Nút trong thẻ là nút lớn rộng hết hàng, xếp dọc cách 10px, nút chính ở trên.
+**Đăng nhập, đăng ký, tài khoản.** Một thẻ giấy trên nền xám, giữa theo chiều ngang, rộng tối đa 440px, neo phía trên (cách đỉnh `clamp(24px, 10vh, 96px)`) chứ không canh giữa theo chiều dọc: nút Google, câu lỗi hiện thêm thì nằm dưới, không đẩy thẻ (Zero Shift). Các phần cách 18px: logo, đầu thẻ (tờ lịch hôm nay cỡ xl cạnh tiêu đề 32px, căn theo đáy), hộp báo lỗi nếu có, form hoặc nút, chân thẻ. `/login`, `/register` (`(auth)/login/auth-screen.tsx`) và `/account` dùng chung thẻ này. Nút trong thẻ là nút lớn rộng hết hàng, xếp dọc cách 10px, nút chính ở trên.
 
 **The Fold Rule.** Ở khung 390x844, nút chính của màn đóng quỹ ("Mình đã chuyển khoản") phải nằm trọn phía trên thanh tab, không phải cuộn mới thấy.
 
@@ -536,7 +536,7 @@ Thẻ giấy bo 14px, các phần cách 10px. Đổi trạng thái thì thẻ m�
 - **Thao tác chưa làm trong phần** ("Xem đề nghị"): nút phụ nhỏ khóa, cạnh chữ "chưa có", cách 10px.
 
 ### Video demo (trang đầu)
-Video quay từ bản demo thật (`web/e2e/quay-video.cjs`, file ở `web/public/video/`), không có phần chỉ có ở bản demo. Ảnh đầu video giữ chỗ trước khi video tải. Khung: điện thoại viền mực rộng 300px (dưới 640px 260px) hoặc laptop khung nét 1px (xem Shapes).
+Video quay từ bản demo thật (`web/e2e/record-demo-videos.cjs`, file ở `web/public/video/`), không có phần chỉ có ở bản demo. Ảnh đầu video giữ chỗ trước khi video tải. Khung: điện thoại viền mực rộng 300px (dưới 640px 260px) hoặc laptop khung nét 1px (xem Shapes).
 - **Tự chạy:** không tiếng, lặp lại, chỉ khi khung thấy ít nhất 35%; ra khỏi màn hình thì dừng.
 - **Nút dừng luôn hiện** (WCAG 2.2.2): nút tròn nền giấy viền rule ở góc dưới phải video, nhãn đọc "Dừng video" / "Phát video".
 - **Giảm chuyển động:** không tự chạy; giữa video là nút chính "Phát video" có biểu tượng.
@@ -547,7 +547,7 @@ Video quay từ bản demo thật (`web/e2e/quay-video.cjs`, file ở `web/publi
 - **Chữ "hoặc":** 13.5px mực 3, giữa hai nét kẻ mờ 1px kéo hết hai bên, cách 12px. Ngăn form mật khẩu với nút Google (nút phụ lớn).
 - **Dòng trợ giúp:** 14.5px mực 2, căn giữa, link đậm 600 ("Quên mật khẩu? Đặt lại bằng Google").
 - **Chân thẻ:** nét kẻ mờ ở trên, lề trên 16px, các dòng xếp dọc cách 8px, chữ 14.5px mực 2, link đậm 600.
-- **Lỗi từ Google:** máy chủ gửi mã (`?loi=…`); trang đổi mã thành câu có sẵn trong hộp báo lỗi, mã lạ thì câu chung "Đăng nhập chưa xong. Bạn thử lại." Không hiện chữ lấy từ đường dẫn.
+- **Lỗi từ Google:** máy chủ gửi mã (`?error=…`); trang đổi mã thành câu có sẵn trong hộp báo lỗi, mã lạ thì câu chung "Đăng nhập chưa xong. Bạn thử lại." Không hiện chữ lấy từ đường dẫn.
 - **Khung xương:** nhãn ô cố định là chữ thật; nhãn chỉ có khi biết dữ liệu (ô "Mật khẩu hiện tại") là thanh giữ chỗ.
 
 ### Tờ lịch (Leaf) — thành phần đặc trưng
@@ -571,7 +571,7 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 
 **The Time Indicator Exemption.** Ba thứ chỉ báo thời gian không theo luật 150–250ms: vòng xoay (700ms một vòng), nhấp nháy của khung xương (1,1s), và thanh đếm giờ của mã QR (`transform 1s linear`, mỗi giây rút một nấc). Chúng đo thời gian, không phải hiệu ứng đổi trạng thái. Không dùng ngoại lệ này cho thứ khác.
 
-**The Scroll Position Exemption.** Ở trang đầu, khối trượt theo vị trí cuộn chứ không theo thời gian, nên không có thời lượng và không theo luật 150–250ms (Hiệu duyệt 05/10/2026; `ScrollFade` trong `web/src/app/demo-video.tsx`). Khối tiếp theo trượt 72px từ trái vào và rõ dần, rõ hẳn khi mép trên lên tới 70% màn hình (khối nhỏ cuối trang: khi nằm trọn trong màn hình). Khối đã xem trượt sang phải và mờ đi, bắt đầu khi mép dưới lên quá 35% màn hình, nên phần đang đọc không mờ. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay. Trang cắt tràn ngang bằng `overflow-x: clip` (giữ được thanh trên dính); khi in, mọi khối hiện rõ. Giảm chuyển động thì tắt hẳn. Chỉ dùng ở trang đầu, không dùng trong màn làm việc.
+**The Scroll Position Exemption.** Ở trang đầu, khối trượt theo vị trí cuộn chứ không theo thời gian, nên không có thời lượng và không theo luật 150–250ms (Hiệu duyệt 05/10/2026; `ScrollFade` trong `web/src/app/(landing)/demo-video.tsx`). Khối tiếp theo trượt 72px từ trái vào và rõ dần, rõ hẳn khi mép trên lên tới 70% màn hình (khối nhỏ cuối trang: khi nằm trọn trong màn hình). Khối đã xem trượt sang phải và mờ đi, bắt đầu khi mép dưới lên quá 35% màn hình, nên phần đang đọc không mờ. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay. Trang cắt tràn ngang bằng `overflow-x: clip` (giữ được thanh trên dính); khi in, mọi khối hiện rõ. Giảm chuyển động thì tắt hẳn. Chỉ dùng ở trang đầu, không dùng trong màn làm việc.
 
 - **Đang tải: khung xương, không chữ "Đang tải…".** Khung xương có đúng bố cục màn. Chữ không phụ thuộc dữ liệu (tiêu đề trang và phần, nhãn ô số, tiêu đề cột, tên bộ lọc, mục menu, tab, tờ lịch hôm nay) hiện thật ngay. Chỉ số liệu là thanh giữ chỗ `.l-skel`: màu rule-soft, nhấp nháy chậm 1,1s, không dùng dải màu chuyển. Trình đọc màn hình nghe "Đang tải…".
 - **The Zero Shift Rule.** Khung xương phải khớp màn đã tải theo cả chiều ngang và chiều dọc; dữ liệu tới thì không gì nhảy. Cách làm:

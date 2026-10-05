@@ -111,7 +111,7 @@ test("đổi mật khẩu: cần mật khẩu hiện tại; mật khẩu cũ h�
 
 test("đăng ký bằng Google: lần đầu sang màn đặt tài khoản; quên mật khẩu thì đăng nhập Google rồi đặt lại không cần mật khẩu cũ", async () => {
   const first = await googleLogin("ma-ban.moi@example.com", "/explore");
-  assert.equal(first.back.location, `http://localhost:3000/account?moi=1&next=${encodeURIComponent("/explore")}`);
+  assert.equal(first.back.location, `http://localhost:3000/account?new=1&next=${encodeURIComponent("/explore")}`);
   const me = (await srv.call("GET", "/me", { cookie: first.cookie })).body;
   assert.deepEqual(me.account, { hasPassword: false });
   assert.equal((await srv.call("PUT", "/me/account", { cookie: first.cookie, body: { name: "Bạn Mới", username: "ban_moi", password: PASSWORD } })).status, 200);

@@ -8,7 +8,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { schoolRows } from "@/api/exports";
+import { schoolRows } from "@/api/excel-rows";
 import { useMe, useSchoolClubs } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { downloadCsv } from "@/lib/csv";
@@ -43,8 +43,8 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
           <nav aria-label="Menu nhà trường" className="l-navlist">
             {/* Trang chi tiết một CLB nằm trong mục "Các CLB", nên mục này luôn sáng. */}
             <Link className="l-nav on" href="/school" aria-current={active === "clubs" ? "page" : undefined}><LinkIcon name="users" />Các CLB</Link>
-            <button type="button" className="l-nav" aria-disabled="true" aria-describedby="du-tru-bao-cao-chua-co" onClick={() => toast(NOT_IN_MVP)}>
-              <Icon name="calendar" />Dự trù và báo cáo<span id="du-tru-bao-cao-chua-co" className="l-nav-note">chưa có</span>
+            <button type="button" className="l-nav" aria-disabled="true" aria-describedby="budget-report-unavailable" onClick={() => toast(NOT_IN_MVP)}>
+              <Icon name="calendar" />Dự trù và báo cáo<span id="budget-report-unavailable" className="l-nav-note">chưa có</span>
             </button>
             {data ? (
               <Link className="l-nav" href={firstWaiting ? `/school/clubs/${firstWaiting.id}` : "/school"}>

@@ -8,7 +8,7 @@ import {
 import { conflict, HttpError, invalid, notFound } from "../errors.ts";
 import { QR_STEP_MS, qrStep, qrToken } from "../qr.ts";
 import { manualCheckinBody, parseBody, setReceiverBody, setStepBody } from "../schemas.ts";
-import { applicationDto, attendanceDto, boardRes, dashboardRes, eventDetailRes, eventDto, eventsRes, handoverRes, ledgerRes, membersRes } from "../views.ts";
+import { applicationDto, attendanceDto, boardRes, dashboardRes, eventDetailRes, eventDto, eventsRes, handoverRes, ledgerRes, membersRes } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys =

@@ -74,7 +74,7 @@ test("Google: email đã ghép trong LOGIN_AS vào đúng người, về lại t
   assert.equal(auth.searchParams.get("redirect_uri"), `${WEB}/api/v1/auth/google/callback`);
   assert.equal(back.status, 302);
   // Lần đầu đăng nhập Google: sang màn đặt tên tài khoản và mật khẩu, kèm trang cần mở lại. Lần sau về thẳng trang đó.
-  assert.equal(back.location, `${WEB}/account?moi=1&next=${encodeURIComponent("/clubs/cau-long-san-nha")}`);
+  assert.equal(back.location, `${WEB}/account?new=1&next=${encodeURIComponent("/clubs/cau-long-san-nha")}`);
   assert.equal((await google.call("GET", "/me", { cookie: session })).body.person.id, "a001");
   assert.equal((await googleLogin(google, "ma-hieu@example.com", "/clubs/cau-long-san-nha")).back.location, `${WEB}/clubs/cau-long-san-nha`);
 });
@@ -95,7 +95,7 @@ test("Google: state không khớp cookie thì không cấp phiên (chặn trang 
   const state = new URL(start.location!).searchParams.get("state")!;
   const back = await google.call("GET", `/auth/google/callback?code=ma-hieu@example.com&state=${state}`, { cookie: "ch_oauth=cookie-cua-trang-khac" });
   assert.equal(back.status, 302);
-  assert.equal(back.location, `${WEB}/login?loi=het-han`);
+  assert.equal(back.location, `${WEB}/login?error=expired`);
   assert.equal(back.cookies.find((c) => c.startsWith("ch_session=") && c !== "ch_session="), undefined);
 });
 
@@ -106,12 +106,12 @@ test("Google: không cho chuyển ra trang ngoài sau khi đăng nhập", async 
 
 test("Google: email chưa xác nhận, hoặc người dùng hủy, thì về trang đăng nhập kèm lý do", async () => {
   const unverified = await googleLogin(google, "chua-xac-nhan");
-  assert.equal(unverified.back.location, `${WEB}/login?loi=email-chua-xac-minh`);
+  assert.equal(unverified.back.location, `${WEB}/login?error=email-unverified`);
   assert.equal(unverified.session, undefined);
   const start = await google.call("GET", "/auth/google/start");
   const state = new URL(start.location!).searchParams.get("state")!;
   const cancelled = await google.call("GET", `/auth/google/callback?error=access_denied&state=${state}`, { cookie: start.cookies[0] });
-  assert.equal(cancelled.location, `${WEB}/login?loi=huy`);
+  assert.equal(cancelled.location, `${WEB}/login?error=cancelled`);
 });
 
 test("Google chưa có khóa: nút bắt đầu đưa về trang đăng nhập kèm lý do", async () => {
@@ -119,7 +119,7 @@ test("Google chưa có khóa: nút bắt đầu đưa về trang đăng nhập k
   try {
     const r = await bare.call("GET", "/auth/google/start");
     assert.equal(r.status, 302);
-    assert.equal(r.location, `${WEB}/login?loi=google-chua-bat`);
+    assert.equal(r.location, `${WEB}/login?error=google-disabled`);
   } finally {
     await bare.close();
   }

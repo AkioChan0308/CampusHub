@@ -13,6 +13,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
   - cách làm việc với Hiệu, thế nào là "xong" một nhóm màn.
   Xong mỗi nhóm việc thì cập nhật file đó.
 - Muốn hiểu sản phẩm theo từng nhóm người dùng (ban điều hành, thành viên, sinh viên, nhà trường): `docs/luong-nguoi-dung.md`. Giới thiệu chung cho người xem repo: `README.md`.
+- **Cây thư mục:** `docs/cay-thu-muc.md`: thư mục nào làm gì, cho ai, trang web nào nằm ở đâu, muốn sửa gì thì mở file nào. Thêm hay đổi thư mục thì sửa file đó.
 - **Hai skill bắt buộc:** `karpathy-guidelines` (cách viết code) và `impeccable` (thiết kế giao diện). Cách cài ở `docs/tien-do-mvp.md`, mục 8. Không đưa `.claude/` vào commit.
 - Repo: https://github.com/AkioChan0308/CampusHub (nhánh `main` và `develop`). **Chỉ commit và push khi Hiệu bảo.**
 - **Hỏi Hiệu bằng câu trắc nghiệm ngay trong chat.** Màn chưa có bản vẽ thì viết mô tả trước, Hiệu duyệt rồi mới code.
@@ -23,6 +24,11 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - Không tự đặt số liệu. Số nào không có nguồn thì để trống và ghi "chưa có".
 - Tiến độ hiện tại và việc tiếp theo: `docs/tien-do-mvp.md`. Kế hoạch 10 tuần ban đầu: `docs/ke-hoach-mvp.md`.
 - Chuẩn code (đặt tên, cấu trúc thư mục, quy ước commit) do Khoa (Tech Lead) chốt. Chuẩn nào đã chốt thì ghi thêm vào file này.
+- **Luật đặt tên** (Hiệu chốt ngày 05/10/2026, chờ Khoa xem; chi tiết ở `docs/cay-thu-muc.md`, mục 2):
+  - Mọi thứ thuộc code đặt tên tiếng Anh, rõ nghĩa: thư mục, file, hàm, biến, component, URL, tên script bấm thử. Chỉ phần mô tả cho người đọc (tài liệu, README, chú thích, chữ trên giao diện) viết tiếng Việt.
+  - Tên nói nội dung, không đặt theo đợt làm việc ("nhóm 2").
+  - Trang web gom theo người dùng bằng route group: `(landing)`, `(auth)`, `(club-admin)`, `(member)`, `(student)`, `(school-staff)`; URL không đổi.
+  - Migration đã chạy giữ tên cũ (máy chủ nhớ theo tên file); migration mới đặt tên tiếng Anh.
 
 ## Giao diện
 
@@ -45,7 +51,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
   - Nút đang gửi dùng `aria-busy`, không dùng `disabled`.
   - Thời lượng 150–250 ms; tắt khi máy bật giảm chuyển động.
 - Tên người và số tiền trong bản vẽ là dữ liệu mẫu.
-- Không sửa tay `design/screens/`: các file này được tạo lại bằng `design/tools/chuyen-doi.py`.
+- Không sửa tay `design/screens/`: các file này được tạo lại bằng `design/tools/convert-screens.py`.
 
 ## Stack
 
@@ -54,7 +60,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - **Cơ sở dữ liệu:** PostgreSQL (từ 04/10/2026), bật bằng `DATABASE_URL` trong `server/.env`; không có thì dữ liệu mẫu nằm trong bộ nhớ. Cách chạy (có và không có Docker): `docs/postgresql.md`. Mỗi thao tác ghi trong một transaction; sổ quỹ chỉ được thêm, cơ sở dữ liệu tự chặn sửa và xóa. Đổi lược đồ: thêm file mới trong `server/db/migrations/`, sửa `server/src/db/tables.ts`, chạy `npm test` và `npm run test:db`.
 - **Đăng nhập** bằng Google (luồng mã có PKCE), phiên bằng cookie httpOnly. Khóa Google để trong `server/.env`, không đưa vào repo. Chế độ demo (`AUTH_MODE=demo`) có tài khoản mẫu cho 7 vai (chủ nhiệm `quocbao`, thủ quỹ `thuha`, trưởng ban `giahuy`, thành viên `minhanh`, thành viên mới được mời `hoangnam`, sinh viên chưa vào CLB `baochau`, ban quản lý CLB của trường `thutrang`), mật khẩu chung `CauLong#2026`: máy chủ tự tạo, trang `/login` liệt kê dưới ô đăng nhập, bấm một dòng là điền sẵn (`web/src/lib/demo-accounts.ts`). Trang chọn vai `/demo` đã bỏ ngày 05/10/2026 (Hiệu chọn). Phần này không mang sang bản thật.
 - **Tên tài khoản và mật khẩu** (Hiệu duyệt ngày 05/10/2026): đăng ký chỉ bằng Google; lần đầu xong thì hỏi đặt tên tài khoản và mật khẩu (có "Để sau"), sau đó đăng nhập được bằng tên tài khoản hoặc email kèm mật khẩu. Tên tài khoản khác tên hiển thị và khác email. Mật khẩu băm bằng scrypt kèm salt riêng, không bao giờ trả ra ngoài. Sai 5 lần thì khóa 15 phút. Quên mật khẩu thì đăng nhập Google rồi đặt mật khẩu mới. Luật ở `web/src/lib/account.ts`.
-- **Trang đầu `/`** là trang giới thiệu cho người chưa đăng nhập, có hai video quay từ bản demo (`web/e2e/quay-video.cjs`); người đã đăng nhập mở `/` thì về thẳng trang của mình (`web/src/proxy.ts`).
+- **Trang đầu `/`** là trang giới thiệu cho người chưa đăng nhập, có hai video quay từ bản demo (`web/e2e/record-demo-videos.cjs`); người đã đăng nhập mở `/` thì về thẳng trang của mình (`web/src/proxy.ts`).
 
 ## Hợp đồng API giữa web và server
 
@@ -69,7 +75,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - Đọc `server/README.md` trước khi sửa: cấu trúc thư mục, cách đổi một API, những gì chưa có.
 - Server dùng lại luật trong `web/src/lib` qua `server/src/domain.ts`. Không chép luật sang server thành bản thứ hai; sửa luật thì sửa ở `web/src/lib` và chạy test của cả hai bên.
 - Kiểm tra quyền phải làm ở server (`server/src/access.ts`), không tin giao diện.
-- Phía trường chỉ được nhận số tổng hợp; số tài khoản ngân hàng chỉ trả 4 số cuối. `server/src/views.ts` là chỗ quyết định ai thấy trường nào.
+- Phía trường chỉ được nhận số tổng hợp; số tài khoản ngân hàng chỉ trả 4 số cuối. `server/src/responses.ts` là chỗ quyết định ai thấy trường nào.
 
 ## Bản demo trong `web/`
 
@@ -77,7 +83,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - Bấm thử cả luồng bằng Playwright: `npm run e2e` trong `web/`, khi web và máy chủ đang chạy. Script ở `web/e2e/`, hướng dẫn ở `web/e2e/README.md`.
 - Đọc `web/README.md` trước khi sửa: cấu trúc thư mục, màn nào ở đường dẫn nào, phần chỉ có ở bản demo, định dạng file sao kê, những chỗ code thêm ngoài bản vẽ.
 - Dữ liệu là dữ liệu mẫu trong `web/src/lib/seed.ts`; máy chủ nạp vào bộ nhớ, hoặc vào PostgreSQL khi cơ sở dữ liệu còn trống. Số trong dữ liệu mẫu phải khớp `design/README.md` mục 8; đổi số thì sửa cả hai chỗ.
-- Luật nghiệp vụ nằm trong `web/src/lib/` (selectors, actions, reconcile). Server dùng các file types, selectors, actions, reconcile, seed, format, text; các file này không được dùng API của trình duyệt (`document`, `window`, `localStorage`). Phần chỉ chạy trên trình duyệt để ở `store.tsx`, `csv.ts`. Sửa luật thì chạy `npm test` ở cả `web/` và `server/`, và thêm test cho luật mới.
+- Luật nghiệp vụ nằm trong `web/src/lib/` (selectors, actions, reconcile). Server dùng các file types, selectors, actions, reconcile, seed, format, text; các file này không được dùng API của trình duyệt (`document`, `window`, `localStorage`). Phần chỉ chạy trên trình duyệt để ở `browser-state.tsx`, `csv.ts`. Sửa luật thì chạy `npm test` ở cả `web/` và `server/`, và thêm test cho luật mới.
 - Thêm trạng thái hay màn mà bản vẽ chưa có thì ghi vào mục "Chỗ code khác bản vẽ" của `web/README.md` để Hiệu duyệt.
 - Mã QR đóng quỹ trong bản demo cố ý không phải mã VietQR thật và phải giữ dòng "Bản demo: mã này không chuyển tiền được". Không đưa số tài khoản thật vào dữ liệu mẫu.
 - Phần chỉ có ở bản demo (bảng tài khoản mẫu ở trang đăng nhập, API đăng nhập nhanh `POST /auth/dev-login` cho script bấm thử, header `X-Demo-User`, ô "thử điểm danh với vai", nút đặt lại dữ liệu mẫu) không được mang sang bản thật.

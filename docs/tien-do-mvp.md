@@ -3,12 +3,13 @@
 *Cập nhật ngày 05/10/2026. Mỗi khi xong một nhóm việc, sửa file này trước khi báo xong.*
 
 Agent hay người mới nhận việc: đọc file này trước, rồi tới:
-1. `docs/luong-nguoi-dung.md`: luồng của từng nhóm người dùng, từng bước (viết cho cả người không làm kỹ thuật).
-2. `CLAUDE.md`: luật nghiệp vụ, luật giao diện, những gì không được đưa vào repo.
-3. `DESIGN.md`: hệ thiết kế "Lịch bloc".
-4. `web/README.md`: bản đồ web, mục "Chỗ code khác bản vẽ".
-5. `server/README.md`: bản đồ máy chủ, danh sách thay đổi để báo Khoa.
-6. `docs/api.md`: hợp đồng API.
+1. `docs/cay-thu-muc.md`: cây thư mục, trang nào nằm ở đâu, muốn sửa gì thì mở file nào.
+2. `docs/luong-nguoi-dung.md`: luồng của từng nhóm người dùng, từng bước (viết cho cả người không làm kỹ thuật).
+3. `CLAUDE.md`: luật nghiệp vụ, luật giao diện, những gì không được đưa vào repo.
+4. `DESIGN.md`: hệ thiết kế "Lịch bloc".
+5. `web/README.md`: bản đồ web, mục "Chỗ code khác bản vẽ".
+6. `server/README.md`: bản đồ máy chủ, danh sách thay đổi để báo Khoa.
+7. `docs/api.md`: hợp đồng API.
 
 ---
 
@@ -28,7 +29,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 
 **Mục tiêu trước mắt** (Hiệu chốt ngày 05/10/2026): MVP chạy trọn các luồng bằng dữ liệu giả, trên máy này.
 - Đã xong: nhóm "tạo dữ liệu từ đầu"; script bấm thử vào repo (`web/e2e/`); bỏ hệ tím cũ, trang chọn vai sang Lịch bloc; `.gitignore` chặn skill và file có thể chứa dữ liệu thật. Hiệu duyệt tất cả ngày 05/10/2026.
-- Đã xong và Hiệu duyệt ngày 05/10/2026: trang đầu (hai video demo, hiệu ứng trượt trái vào, phải ra khi cuộn), đăng nhập bằng mật khẩu, đăng ký bằng Google, đặt tên tài khoản và mật khẩu. Chưa commit.
+- Đã xong và Hiệu duyệt ngày 05/10/2026: trang đầu (hai video demo, hiệu ứng trượt trái vào, phải ra khi cuộn), đăng nhập bằng mật khẩu, đăng ký bằng Google, đặt tên tài khoản và mật khẩu. Đã đưa lên nhánh `develop` (commit 108aa6f).
 - Cũng ngày 05/10/2026 (Hiệu yêu cầu): bỏ trang chọn vai `/demo`. Thay bằng bảng tài khoản mẫu của 7 vai dưới ô đăng nhập (bấm là điền sẵn) và nút đặt lại dữ liệu mẫu; máy chủ chế độ demo tự tạo các tài khoản này. Link "Đổi vai" trong app đã bỏ, đổi vai bằng Đăng xuất.
 - Việc tiếp theo: nhóm 2 "luật còn thiếu" (mục 6). Phiên sau bắt đầu bằng việc viết mô tả các màn của nhóm 2 rồi hỏi Hiệu duyệt bằng trắc nghiệm; chưa code gì cho nhóm này.
 
@@ -130,7 +131,7 @@ Danh sách đầy đủ, kèm lý do: `web/README.md`, mục "Chỗ code khác b
 - Lỗi khi quét QR: 7 trường hợp.
 - Hộp hỏi lại trước mọi thao tác khó hoàn lại.
 - Lịch sử điểm danh của thành viên.
-- Trang đầu, đăng ký, đăng nhập bằng mật khẩu, đặt tên tài khoản và mật khẩu (05/10). Hai video của trang đầu quay bằng `web/e2e/quay-video.cjs`; giao diện đổi thì chạy lại (cách chạy ở `web/e2e/README.md`).
+- Trang đầu, đăng ký, đăng nhập bằng mật khẩu, đặt tên tài khoản và mật khẩu (05/10). Hai video của trang đầu quay bằng `web/e2e/record-demo-videos.cjs`; giao diện đổi thì chạy lại (cách chạy ở `web/e2e/README.md`).
 - 5 màn tạo dữ liệu ở mục 3. Kèm theo:
   - trang chủ của CLB mới nhắc 3 việc: thêm thành viên, tạo buổi, tạo đợt thu;
   - cột "Thao tác" ở màn Thành viên: link mời, sửa vai;
@@ -152,10 +153,10 @@ Gần như mọi màn dưới đây **chưa có bản vẽ**. Làm theo quy trì
 - Đổi CLB khi một người ở nhiều CLB. Hiện các màn thành viên (Điểm danh, Quỹ, Của tôi) lấy CLB đầu tiên mà người đó đã nhận lời mời.
 
 Chỗ bắt đầu trong code cho nhóm 2:
-- Hoàn tiền: tiền thừa đang ghi là "đóng thừa" (hàm `addMoney`, `confirmPayment` và phần đối soát trong `web/src/lib/actions.ts`; màn `web/src/app/clubs/[clubId]/reconcile/page.tsx`). Sổ quỹ chỉ được thêm, nên hoàn tiền là một bút toán chi mới.
-- Bàn giao: `web/src/app/clubs/[clubId]/handover/page.tsx`. Bước 3 (đổi tài khoản nhận quỹ) đã làm; các bước khác đang hiện dòng "Màn của bước này chưa có trong bản vẽ".
+- Hoàn tiền: tiền thừa đang ghi là "đóng thừa" (hàm `addMoney`, `confirmPayment` và phần đối soát trong `web/src/lib/actions.ts`; màn `web/src/app/(club-admin)/clubs/[clubId]/reconcile/page.tsx`). Sổ quỹ chỉ được thêm, nên hoàn tiền là một bút toán chi mới.
+- Bàn giao: `web/src/app/(club-admin)/clubs/[clubId]/handover/page.tsx`. Bước 3 (đổi tài khoản nhận quỹ) đã làm; các bước khác đang hiện dòng "Màn của bước này chưa có trong bản vẽ".
 - Xử lý yêu cầu xóa: thành viên gửi yêu cầu bằng `requestDeletion` (`web/src/lib/actions.ts`, lưu `deletionRequestedAt`); phía ban điều hành chưa có màn xử lý.
-- Tự sửa thông tin, sổ quỹ chỉ đọc: hai dòng "chưa có" trong `web/src/app/me/page.tsx`. Sổ quỹ của ban điều hành hiện chỉ có 3 giao dịch gần nhất ở trang chủ CLB.
+- Tự sửa thông tin, sổ quỹ chỉ đọc: hai dòng "chưa có" trong `web/src/app/(member)/me/page.tsx`. Sổ quỹ của ban điều hành hiện chỉ có 3 giao dịch gần nhất ở trang chủ CLB.
 - Đổi CLB: `web/src/components/lich/BoardFrame.tsx` (sidebar) và `PhoneFrame.tsx` (header) chưa có nút đổi CLB như bản vẽ.
 
 Mỗi API mới làm theo mục 9, bước 3. Luật gốc: `CLAUDE.md`, mục "Nguyên tắc nghiệp vụ đã chốt"; chi tiết ở `../Phuong an nghiep vu.md` (ngoài repo).
@@ -184,7 +185,7 @@ Mỗi API mới làm theo mục 9, bước 3. Luật gốc: `CLAUDE.md`, mục "
   - duyệt hợp đồng API (bản nháp v0) và các thay đổi trong `server/README.md`;
   - chốt chuẩn code, cấu trúc thư mục, quy ước commit.
 - **Commit, đưa lên GitHub:** chỉ khi Hiệu bảo. `.gitignore` đã chặn `.claude/`, `.impeccable/`, `.env`, file khóa Google, bảng tính và sao kê (trừ thư mục `mau/`). Trước khi commit lần đầu, chạy `git status` xem lại danh sách file.
-- **Dọn code:** gọn `web/src/lib/store.tsx`. Trang chọn vai đã bỏ (05/10/2026); hiện chỉ còn mã thiết bị (điểm danh), vai đang chọn và nút đặt lại dữ liệu mẫu dùng.
+- **Dọn code:** gọn `web/src/lib/browser-state.tsx`. Trang chọn vai đã bỏ (05/10/2026); hiện chỉ còn mã thiết bị (điểm danh), vai đang chọn và nút đặt lại dữ liệu mẫu dùng.
 
 ## 7. Cách làm việc với Hiệu (bắt buộc)
 
@@ -224,7 +225,7 @@ Ghi chú gốc của hai skill nằm ở thư mục cha (không thuộc repo): `
 
 **Script bấm thử (Playwright)** nằm ở `web/e2e/` (chuyển vào repo ngày 05/10/2026). Hướng dẫn: `web/e2e/README.md`.
 - `npm run e2e`: mọi luồng.
-- `npm run e2e:khung-xuong`: đo khung xương. Chỉ cần vị trí dọc (`y`) lúc tải và lúc đã tải bằng nhau; khác chiều rộng là bình thường.
+- `npm run e2e:skeleton`: đo khung xương. Chỉ cần vị trí dọc (`y`) lúc tải và lúc đã tải bằng nhau; khác chiều rộng là bình thường.
 - Máy chủ chạy bằng `npm start` khi bấm thử. Bản `npm run dev` có lúc tự khởi động lại trên Windows, làm mất phiên đăng nhập giữa chừng.
 - Nhóm màn mới thì thêm kiểm tra vào script của nhóm, hoặc tạo script mới.
 
@@ -237,10 +238,10 @@ Ghi chú gốc của hai skill nằm ở thư mục cha (không thuộc repo): `
 | Màn web | `web/src/app/` (mỗi thư mục là một đường dẫn) |
 | Thành phần Lịch bloc dùng chung | `web/src/components/lich/` |
 | Màu, chữ, nút của Lịch bloc | `web/src/app/lich.css` |
-| Gọi API từ web | `web/src/api/` (`client.ts`, `queries.ts`, `exports.ts`) |
+| Gọi API từ web | `web/src/api/` (`client.ts`, `queries.ts`, `excel-rows.ts`) |
 | Hợp đồng API | `server/src/contract.ts`, `docs/api.md` |
 | Kiểm tra quyền | `server/src/access.ts` |
-| Ai thấy trường dữ liệu nào | `server/src/views.ts` |
+| Ai thấy trường dữ liệu nào | `server/src/responses.ts` |
 | Lưu PostgreSQL | `server/src/db/`, `server/db/migrations/`, `server/docker-compose.yml` |
 | Bản vẽ gốc (không sửa tay) | `design/screens/`, mô tả ở `design/README.md` |
 | Kế hoạch 10 tuần ban đầu | `docs/ke-hoach-mvp.md` |

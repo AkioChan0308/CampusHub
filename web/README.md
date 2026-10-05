@@ -36,7 +36,7 @@ CLB mẫu có mã `cau-long-san-nha`.
 | BDH-DuTru | `/clubs/cau-long-san-nha/budget` |
 | BDH-BanGiao | `/clubs/cau-long-san-nha/handover` |
 | TV-LoiMoi | `/invite/moi-a022` |
-| TV-DiemDanh | `/checkin?e=<buổi>&t=<mã 30 giây>` (link trong mã QR); điểm danh xong chuyển sang `/me/attendance?vua=1` |
+| TV-DiemDanh | `/checkin?e=<buổi>&t=<mã 30 giây>` (link trong mã QR); điểm danh xong chuyển sang `/me/attendance?checkedIn=1` |
 | TV-DongQuy | `/me/pay/quy-fall-2026` |
 | TV-CuaToi | `/me` |
 | SV-DanhSach | `/explore` |
@@ -61,43 +61,50 @@ Màn chưa có bản vẽ, mô tả được Hiệu duyệt ngày 05/10/2026:
 | Trang đầu (giới thiệu, hai video demo) | `/` |
 | Đăng nhập (tên tài khoản hoặc email và mật khẩu, hoặc Google) | `/login` |
 | Đăng ký (chỉ bằng Google) | `/register` |
-| Đặt tên tài khoản và mật khẩu | `/account` (`?moi=1` ngay sau lần đầu đăng ký, `?datlai=1` sau "Quên mật khẩu") |
+| Đặt tên tài khoản và mật khẩu | `/account` (`?new=1` ngay sau lần đầu đăng ký, `?reset=1` sau "Quên mật khẩu") |
 
 Mở thẳng đường dẫn mà chưa đăng nhập thì trang chuyển sang `/login?next=<đường dẫn>`, đăng nhập xong quay lại đúng trang đó. Sai vai (ví dụ thành viên mở trang ban điều hành, sinh viên mở trang nhà trường) thì máy chủ trả 403 và trang hiện trang chặn.
 
 ## Cấu trúc thư mục
 
+Bản đầy đủ, kèm "muốn sửa gì thì mở file nào": `../docs/cay-thu-muc.md`.
+
+Trang web nằm trong `src/app`, chia theo người dùng bằng thư mục trong ngoặc (route group của Next.js). Thư mục trong ngoặc không có trong đường dẫn web: `src/app/(member)/me/page.tsx` vẫn là trang `/me`.
+
 ```
-src/app/                 mỗi thư mục là một đường dẫn (Next.js App Router)
-  page.tsx               trang đầu (giới thiệu); demo-video.tsx: video demo và các bước; video-buoc.json: giây bắt đầu từng bước (script quay ghi)
-  login/  register/  account/  đăng nhập, đăng ký, đặt tên tài khoản và mật khẩu; login/auth-screen.tsx: khung chung của đăng nhập và đăng ký
+src/app/
+  layout.tsx, error.tsx, not-found.tsx   khung chung của mọi trang, trang lỗi, trang không tìm thấy
   lich.css               hệ thiết kế "Lịch bloc": màu, chữ, nút, khung xương, chuyển động (biến màu ở :root, kiểu của màn dưới lớp .lich)
   globals.css            nạp Tailwind v4; quy tắc nền cho thẻ HTML; biến theme của shadcn/ui nối vào biến của lich.css
-  error.tsx, not-found.tsx  trang lỗi và trang không tìm thấy (trang chặn của Lịch bloc)
-  clubs/new/             tạo CLB mới (ai đã đăng nhập cũng tạo được)
-  clubs/[clubId]/        ban điều hành, dùng laptop; collections/parts.tsx: khung xương, dải chọn đợt thu, hộp sửa đợt thu
-  me/  invite/  checkin/ thành viên, dùng điện thoại; me/pay/pay-skeleton.tsx: khung xương dùng chung của tab Quỹ
-  explore/               sinh viên chưa vào CLB, dùng điện thoại; status.tsx: nhãn quan hệ của sinh viên với một CLB
-  school/                ban quản lý CLB của trường, dùng laptop
+  (landing)/             trang đầu / cho người chưa đăng nhập; demo-video.tsx: video demo và các bước; video-steps.json: giây bắt đầu từng bước
+  (auth)/                đăng nhập /login, đăng ký /register, đặt tên tài khoản và mật khẩu /account; login/auth-screen.tsx: khung chung của đăng nhập và đăng ký
+  (club-admin)/          ban điều hành CLB, dùng laptop: /clubs/[clubId]/... (trang chủ, thành viên, buổi, chiếu QR, đợt thu, đối soát, duyệt chi, dự trù, bàn giao);
+                         collections/collection-shared.tsx: khung xương, dải chọn đợt thu, hộp sửa đợt thu
+  (member)/              thành viên, dùng điện thoại: /me (Của tôi, tab Điểm danh, tab Quỹ), /invite/[code] (lời mời), /checkin (quét mã điểm danh);
+                         me/pay/pay-skeleton.tsx: khung xương dùng chung của tab Quỹ
+  (student)/             sinh viên chưa vào CLB, dùng điện thoại: /explore (tìm CLB, gửi đơn), /clubs/new (tạo CLB mới, ai đã đăng nhập cũng tạo được);
+                         explore/application-status.tsx: nhãn quan hệ của sinh viên với một CLB
+  (school-staff)/        ban quản lý CLB của trường, dùng laptop: /school
+src/proxy.ts             chạy trước khi vẽ trang: ai đã có cookie phiên mà mở / thì chuyển về trang của mình
 src/api/                 gọi máy chủ: client.ts (fetch, ApiError, vai riêng theo tab của bản demo), queries.ts (truy vấn và khóa lưu tạm),
-                         exports.ts (các bảng xuất Excel), home.ts (trang mở đầu theo vai)
+                         excel-rows.ts (các bảng xuất Excel), after-login.ts (trang mở sau khi đăng nhập, theo vai)
 src/components/lich/     thành phần của Lịch bloc: tờ lịch (Leaf), khung laptop (BoardFrame, SchoolFrame), khung điện thoại (PhoneFrame),
                          trang chặn và lỗi API (Gate, NoClub), đầu trang và bảng (PageTop), hộp hỏi lại (Confirm), nhãn đóng quỹ (PayTag),
                          chuyển động và khung xương (motion.tsx)
 src/components/          icon, mã QR, nút sao chép, appUrl (url.ts), MotionProvider (chuyển động dùng chung),
                          money-input.ts (đọc số tiền gõ tay)
-e2e/                     script bấm thử bằng Playwright (npm run e2e), xem e2e/README.md
-src/proxy.ts             chạy trước khi vẽ trang: ai đã có cookie phiên mà mở / thì chuyển về trang của mình
-public/video/            hai video demo của trang đầu và ảnh đầu video, quay bằng e2e/quay-video.cjs
 src/components/ui/       component của shadcn/ui: sonner (thông báo ngắn). Thêm bằng npx shadcn add thì ra màu Lịch bloc
-src/lib/                 dữ liệu và luật nghiệp vụ, không dính tới giao diện
+src/lib/                 dữ liệu và luật nghiệp vụ, không dính tới giao diện (máy chủ dùng lại qua server/src/domain.ts)
   types.ts               kiểu dữ liệu
   seed.ts                dữ liệu mẫu, số khớp design/README.md mục 8
   selectors.ts           tính số (số dư, đợt thu, dự trù) và quyền theo vai
   actions.ts             thao tác đổi dữ liệu: duyệt đơn, điểm danh, ghi tiền, duyệt chi...
   reconcile.ts           luật đối soát sao kê, đọc ngày và số tiền trong file sao kê
-  store.tsx              phần chỉ chạy trên trình duyệt của bản demo: vai đang chọn, mã thiết bị (điểm danh), nút đặt lại dữ liệu mẫu
+  account.ts             luật tên tài khoản và mật khẩu; demo-accounts.ts: tài khoản mẫu của bản demo
+  browser-state.tsx      phần chỉ chạy trên trình duyệt: vai đang chọn, mã thiết bị (điểm danh), đặt lại dữ liệu mẫu
   *.test.ts              test, chạy bằng npm test
+public/video/            hai video demo của trang đầu và ảnh đầu video, quay bằng e2e/record-demo-videos.cjs
+e2e/                     script bấm thử bằng Playwright (npm run e2e), xem e2e/README.md
 ```
 
 Chữ trên giao diện viết thẳng trong từng trang, không qua file dịch.
@@ -182,7 +189,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Trang /register (bản vẽ chưa có, 05/10/2026): chỉ có nút "Đăng ký bằng Google", kèm câu vì sao dùng Google (email đã được xác minh) và "Nếu CLB đã mời bạn, dùng đúng email trong lời mời." Máy chủ chưa có khóa Google thì ghi "Đăng ký bằng Google chưa mở. Báo ban điều hành CLB."
 - Trang /account "Đặt tên tài khoản và mật khẩu" (bản vẽ chưa có, 05/10/2026): tên hiển thị, email (chỉ xem), tên tài khoản (gợi ý sẵn phần trước @ của email nếu hợp lệ), mật khẩu hiện tại (khi đã có mật khẩu, trừ lúc vừa đặt lại bằng Google), mật khẩu, nhập lại, "Hiện mật khẩu". Luật kiểm tra ngay trên form (`src/lib/account.ts`), lỗi hiện dưới từng ô. Ngay sau lần đầu đăng ký có nút "Để sau"; mở từ Của tôi thì là "Hủy". Đã có mật khẩu thì tiêu đề là "Đổi tên tài khoản và mật khẩu".
 - Của tôi (TV-CuaToi) có thêm mục "Đăng nhập" (05/10/2026, Hiệu duyệt): dòng "Tên tài khoản" (chưa đặt thì ghi "Chưa đặt · đăng nhập bằng Google") và dòng "Đặt tên tài khoản và mật khẩu" / "Đổi tên tài khoản và mật khẩu" mở /account.
-- Trang đầu `/` (bản vẽ chưa có, 05/10/2026): thanh trên dính khi cuộn (Tìm CLB, Đăng nhập, Đăng ký); tờ lịch hôm nay và câu "Cả tuần của CLB, trên một cuốn lịch.", câu giới thiệu, nút "Đăng ký bằng Google" và "Đăng nhập". Bố cục xếp chồng như framer.com (Hiệu chọn): ngay dưới là khối "Thành viên điểm danh, đóng quỹ ngay trên điện thoại." với video điện thoại, cuộn xuống là khối "Ban điều hành lo việc cả nhiệm kỳ trên laptop." với video laptop. Không có nhãn nhỏ phía trên tiêu đề (luật đã chốt); người dùng của khối nằm ngay trong tiêu đề. Mỗi video có 5 bước; bước đang chạy đậm màu kèm thanh tiến độ, bấm một bước thì nhảy tới đoạn đó. Video tự chạy không tiếng khi cuộn tới, cuộn qua thì dừng, có nút dừng; máy bật giảm chuyển động thì đứng yên với nút "Phát video". Khi cuộn xuống, khối tiếp theo (phần đầu trang, hai khối video, dòng "không giữ tiền") trượt 72px từ bên trái vào và rõ dần; khối đã xem trượt sang phải và mờ đi (Hiệu yêu cầu, 05/10/2026, theo framer.com). Hiệu ứng đi theo vị trí cuộn, không theo thời gian, nên không áp luật 150–250 ms. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay; khối chỉ mờ đi khi mép dưới đã lên quá 35% màn hình, nên phần đang đọc không mờ. Trang chặn tràn ngang bằng `overflow-x: clip`. Máy giảm chuyển động thì không có hiệu ứng này. Code: `ScrollFade` trong `src/app/demo-video.tsx`. Cuối trang: dòng "CampusHub không giữ tiền…" và chân trang (nhóm NeedSleep, EXE101; dòng "Bản demo dùng dữ liệu mẫu." chỉ hiện ở chế độ demo). Link "Bản demo: đăng nhập bằng tài khoản mẫu" (tới /login) / "Tìm CLB của trường bạn" giữ chỗ mà chưa hiện tới khi biết máy chủ chạy chế độ nào, để chữ không đổi trước mắt người xem. Nút dừng video luôn hiện. Lỗi đăng nhập Google: máy chủ gửi mã (`?loi=huy`…), trang đăng nhập đổi mã thành câu có sẵn; mã lạ thì hiện "Đăng nhập chưa xong. Bạn thử lại." Video quay từ bản demo bằng `e2e/quay-video.cjs`, bắt đầu từ trang đăng nhập (Hiệu yêu cầu); trong video có con trỏ vẽ thêm và không có phần chỉ có ở bản demo. Khối điểm danh chạy thử trước đó đã bỏ theo góp ý của Hiệu (màn đó chỉ thấy sau khi đăng nhập).
+- Trang đầu `/` (bản vẽ chưa có, 05/10/2026): thanh trên dính khi cuộn (Tìm CLB, Đăng nhập, Đăng ký); tờ lịch hôm nay và câu "Cả tuần của CLB, trên một cuốn lịch.", câu giới thiệu, nút "Đăng ký bằng Google" và "Đăng nhập". Bố cục xếp chồng như framer.com (Hiệu chọn): ngay dưới là khối "Thành viên điểm danh, đóng quỹ ngay trên điện thoại." với video điện thoại, cuộn xuống là khối "Ban điều hành lo việc cả nhiệm kỳ trên laptop." với video laptop. Không có nhãn nhỏ phía trên tiêu đề (luật đã chốt); người dùng của khối nằm ngay trong tiêu đề. Mỗi video có 5 bước; bước đang chạy đậm màu kèm thanh tiến độ, bấm một bước thì nhảy tới đoạn đó. Video tự chạy không tiếng khi cuộn tới, cuộn qua thì dừng, có nút dừng; máy bật giảm chuyển động thì đứng yên với nút "Phát video". Khi cuộn xuống, khối tiếp theo (phần đầu trang, hai khối video, dòng "không giữ tiền") trượt 72px từ bên trái vào và rõ dần; khối đã xem trượt sang phải và mờ đi (Hiệu yêu cầu, 05/10/2026, theo framer.com). Hiệu ứng đi theo vị trí cuộn, không theo thời gian, nên không áp luật 150–250 ms. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay; khối chỉ mờ đi khi mép dưới đã lên quá 35% màn hình, nên phần đang đọc không mờ. Trang chặn tràn ngang bằng `overflow-x: clip`. Máy giảm chuyển động thì không có hiệu ứng này. Code: `ScrollFade` trong `src/app/(landing)/demo-video.tsx`. Cuối trang: dòng "CampusHub không giữ tiền…" và chân trang (nhóm NeedSleep, EXE101; dòng "Bản demo dùng dữ liệu mẫu." chỉ hiện ở chế độ demo). Link "Bản demo: đăng nhập bằng tài khoản mẫu" (tới /login) / "Tìm CLB của trường bạn" giữ chỗ mà chưa hiện tới khi biết máy chủ chạy chế độ nào, để chữ không đổi trước mắt người xem. Nút dừng video luôn hiện. Lỗi đăng nhập Google: máy chủ gửi mã (`?error=huy`…), trang đăng nhập đổi mã thành câu có sẵn; mã lạ thì hiện "Đăng nhập chưa xong. Bạn thử lại." Video quay từ bản demo bằng `e2e/record-demo-videos.cjs`, bắt đầu từ trang đăng nhập (Hiệu yêu cầu); trong video có con trỏ vẽ thêm và không có phần chỉ có ở bản demo. Khối điểm danh chạy thử trước đó đã bỏ theo góp ý của Hiệu (màn đó chỉ thấy sau khi đăng nhập).
 - Chuyển động (thêm ngày 03/10/2026 theo góp ý của Hiệu: nút và chuyển trang còn thô, chuyển trang chớp):
   - Đang tải hiện khung xương đúng bố cục thay cho chữ "Đang tải…". Dữ liệu tới thì nội dung hiện dần trong 200 ms.
   - Chuyển trang mờ qua bằng View Transitions. Tờ lịch hôm nay dời thẳng từ trang đăng nhập sang trang chủ.
@@ -299,7 +306,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
     - Form tạo, sửa buổi mở ngay trên tờ giấy:
       - các ô: tên, loại (sinh hoạt có điểm danh / sự kiện mở), ngày, giờ bắt đầu, giờ kết thúc, điểm danh mở tới, nơi;
       - giờ đóng điểm danh tự đi theo giờ kết thúc cho tới khi người dùng tự sửa;
-      - mở từ trang chủ (`?tao=1`) thì form mở sẵn.
+      - mở từ trang chủ (`?create=1`) thì form mở sẵn.
   - **Đợt thu:**
     - Đầu tờ giấy có dải chọn đợt thu: mỗi đợt một thẻ, đợt tạo gần nhất trước. Cuối dải là "Tạo đợt thu" cho thủ quỹ và chủ nhiệm.
     - Đợt tạo gần nhất là đợt đang dùng ở trang chủ, màn đóng quỹ của thành viên và màn đối soát.
@@ -340,7 +347,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Đối soát:
   - Nút "Ghi nhận", "Ghi nhận cả hai" và "Ghi nhận" sau khi chọn tay đều hỏi lại trước khi ghi vào sổ, như màn Đợt thu. Hộp hỏi ghi số tiền, người chuyển, người được gán; người đã đóng thì báo phần tiền đó ghi là đóng thừa; người đã được ghi nhận tay thì báo chỉ phần chênh được ghi thêm.
   - Mọi người được gợi ý đều đã đóng (theo trạng thái máy chủ lúc mở màn) thì dòng chuyển sang chọn tay. Còn người chưa đóng thì vẫn ghi nhận theo gợi ý, phần của người đã đóng ghi là đóng thừa (như luồng đã duyệt).
-  - Đợt thu: nút "Đối soát sao kê" ở màn Đợt thu mở đúng đợt đó (`/reconcile?dot=<mã đợt>`); menu bên trái mở đợt tạo gần nhất. Chưa có dải chọn đợt ngay trên màn đối soát.
+  - Đợt thu: nút "Đối soát sao kê" ở màn Đợt thu mở đúng đợt đó (`/reconcile?collection=<mã đợt>`); menu bên trái mở đợt tạo gần nhất. Chưa có dải chọn đợt ngay trên màn đối soát.
   - Lý do mới trong cột "Vì sao chưa khớp": "Không ghi mã đợt thu" (CLB có nhiều đợt), "Đã ghi nhận tay 100.000 ₫, sao kê 150.000 ₫". Dòng ghi mã của đợt khác tính vào ô "Không thuộc đợt thu".
 - Dự trù: kỳ có nhiều đợt thu thì dòng dưới "Thu dự kiến" ghi "N khoản chưa xác nhận, từ M đợt thu".
 - Link QR khi chưa đăng nhập: đăng nhập xong quay về đúng link, giữ cả `?e=&t=`.
@@ -362,18 +369,18 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 ## Đã kiểm tra
 
 - Sửa 8 lỗi tiền và web (05/10/2026), mỗi lỗi có test tái hiện viết trước khi sửa và đã thấy hỏng:
-  - Luật tiền: `src/lib/loi-tien.test.ts` (5 test) và một test xếp loại sao kê khi có nhiều đợt thu; server thêm test mentor tự duyệt (403) và bước ghi nhận tay trong test khởi động lại với PostgreSQL.
-  - Web: `e2e/sua-loi.cjs` (12 kiểm tra). Lỗi 409 và lỗi 8 còn được thử ngược: bỏ phần sửa thì kiểm tra hỏng.
+  - Luật tiền: `src/lib/money-regressions.test.ts` (5 test) và một test xếp loại sao kê khi có nhiều đợt thu; server thêm test mentor tự duyệt (403) và bước ghi nhận tay trong test khởi động lại với PostgreSQL.
+  - Web: `e2e/regressions.cjs` (12 kiểm tra). Lỗi 409 và lỗi 8 còn được thử ngược: bỏ phần sửa thì kiểm tra hỏng.
   - Kết quả: web 31/31, server 63/63, `npm run test:db` 63/63, typecheck và build không lỗi; `npm run e2e` đạt cả 6 script (smoke 40/40, nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27, sửa lỗi 12/12). Hai script cũ thêm bước bấm qua hộp hỏi ở màn đối soát.
 
 - Bỏ hệ tím cũ (05/10/2026):
   - `npm test` 25/25, typecheck và build không lỗi. Bộ dò của Impeccable không báo gì.
-  - `npm run e2e`: smoke 40/40 (sửa cách chọn vai theo lớp mới), nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27; không có lỗi trên trang. `npm run e2e:khung-xuong`: không khối nào lệch theo chiều dọc.
+  - `npm run e2e`: smoke 40/40 (sửa cách chọn vai theo lớp mới), nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27; không có lỗi trên trang. `npm run e2e:skeleton`: không khối nào lệch theo chiều dọc.
   - So điểm ảnh 25 màn (laptop và điện thoại, cùng dữ liệu mẫu) giữa bản build trước khi sửa và bản sau: 19 màn giống hệt, kể cả đăng nhập và hộp sửa thành viên. Khác ở trang chọn vai, trang không tìm thấy (cố ý) và ba chỗ nhỏ ghi ở mục "Bỏ hệ tím cũ".
   - Agent duyệt thiết kế: trang chọn vai, trang 404 và globals.css đạt luật Lịch bloc. Sửa một điểm: nút "Tải lại trang" ở trang lỗi gọi `retry` của Next 16 (tải lại dữ liệu rồi vẽ lại) thay cho `reset` (chỉ vẽ lại, lỗi do dữ liệu sẽ hiện lại y như cũ).
 
 - Đưa script bấm thử vào repo (05/10/2026):
-  - Các script trước đây nằm ngoài repo giờ ở `e2e/`, chạy bằng `npm run e2e` (cách chạy: `e2e/README.md`). Tên cũ trong các dòng bên dưới ứng với: `smoke.js` → `smoke.cjs`, `group1.js` → `nhom-tien.cjs`, `group2.js` → `nhom-2.cjs`, `group34.js` → `nhom-3-4.cjs`, `tao-du-lieu.js` → `tao-du-lieu.cjs`, các script đo khung xương → `khung-xuong-*.cjs`.
+  - Các script trước đây nằm ngoài repo giờ ở `e2e/`, chạy bằng `npm run e2e` (cách chạy: `e2e/README.md`). Tên cũ trong các dòng bên dưới ứng với: `smoke.js` → `smoke.cjs`, `group1.js` → `money-flows.cjs`, `group2.js` → `members-qr-handover.cjs`, `group34.js` → `member-student-school.cjs`, `tao-du-lieu.js` → `club-setup.cjs`, các script đo khung xương → `skeleton-*.cjs`.
   - Kết quả: smoke 40/40, nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27; không có lỗi trên trang.
   - Đo khung xương ở cả 5 script: không khối nào lệch theo chiều dọc. Ở Duyệt chi, bộ chọn cũ đo nhầm ghi chú "Vẫn ghi sổ được…" thay vì ghi chú cuối trang; đã sửa bộ chọn.
 

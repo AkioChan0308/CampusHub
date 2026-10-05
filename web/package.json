@@ -10,8 +10,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test src/lib/*.test.ts",
-    "e2e": "node e2e/chay-tat-ca.cjs",
-    "e2e:khung-xuong": "node e2e/chay-tat-ca.cjs --khung-xuong",
+    "e2e": "node e2e/run-all.cjs",
+    "e2e:skeleton": "node e2e/run-all.cjs --skeleton",
     "e2e:smoke": "node e2e/smoke.cjs"
   },
   "dependencies": {

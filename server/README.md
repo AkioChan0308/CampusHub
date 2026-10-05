@@ -33,13 +33,17 @@ Cấu hình đọc từ file `.env` (chép từ `.env.example`): cổng, chế �
 
 ## Cấu trúc thư mục
 
+Bản đầy đủ cho cả repo: `../docs/cay-thu-muc.md`.
+
 ```
 src/
   contract.ts     hợp đồng API: bảng ENDPOINTS và kiểu dữ liệu gửi lên, trả về
   app.ts          dựng Express từ bảng ENDPOINTS; đăng nhập, CORS, trả lỗi
   index.ts        chạy máy chủ
-  handlers/       mỗi API một hàm, chia theo nhóm (me, explore, board, money, school, system)
-  views.ts        đổi dữ liệu nội bộ thành đúng dạng trả về; quyết định ai thấy trường nào
+  handlers/       mỗi API một hàm, chia theo người gọi: auth (đăng nhập), me (thành viên), explore (sinh viên tìm CLB),
+                  board (ban điều hành: thành viên, buổi, QR, bàn giao), setup (tạo CLB, thêm thành viên, buổi, đợt thu),
+                  money (đợt thu, đối soát, chi), school (nhà trường), system (health, đặt lại dữ liệu mẫu)
+  responses.ts    đổi dữ liệu nội bộ thành đúng dạng trả về; quyết định ai thấy trường nào
   access.ts       kiểm tra quyền: ban điều hành, vai trò, thành viên, cán bộ của trường
   schemas.ts      kiểm tra dữ liệu gửi lên (zod), báo lỗi tiếng Việt
   qr.ts           ký và kiểm tra mã QR điểm danh (HMAC-SHA256, đổi mỗi 30 giây)
@@ -50,6 +54,7 @@ src/
   google.ts       đăng nhập Google: link sang Google, đổi mã lấy email
   accounts.ts     tên tài khoản, mã băm mật khẩu, số lần sai và giờ hết khóa (bản trong bộ nhớ); tách khỏi AppState như phiên đăng nhập
   password.ts     băm và kiểm tra mật khẩu (scrypt, salt riêng cho mỗi người)
+  demo-accounts.ts  chế độ demo: tạo tài khoản mẫu của 7 vai
   db/             lưu bằng PostgreSQL (khi có DATABASE_URL)
     client.ts     kết nối (thư viện pg), transaction
     migrate.ts    chạy các file trong db/migrations chưa chạy
@@ -58,7 +63,8 @@ src/
     store.ts      kho dữ liệu lưu PostgreSQL (giữ một bản trong bộ nhớ để đọc nhanh)
     sessions.ts   phiên đăng nhập lưu PostgreSQL (chỉ lưu mã băm của cookie)
     accounts.ts   tài khoản đăng nhập bằng mật khẩu lưu PostgreSQL (bảng accounts)
-db/migrations/    lược đồ SQL: 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ), 002_tien_cho_sao_ke.sql, 003_tai_khoan.sql (bảng accounts)
+db/migrations/    lược đồ SQL: 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ), 002_tien_cho_sao_ke.sql, 003_tai_khoan.sql (bảng accounts).
+                  Tên file đã chạy không đổi được (máy chủ ghi tên vào bảng schema_migrations); file mới đặt tên tiếng Anh, ví dụ 004_refunds.sql
 docker-compose.yml  PostgreSQL 17 cho máy phát triển
 test/             test gọi API qua HTTP với đồng hồ cố định 07:40 ngày 03/10/2026; pglite.ts: PostgreSQL chạy trong Node cho test
 ```
@@ -141,7 +147,7 @@ Khi nối web với server, Hiệu cho sửa server và ghi lại ở đây đ�
     - `npm run test:db` chạy cả 57 test trên PGlite.
   - Đã thử với thư viện `pg` qua TCP: máy chủ bị tắt hẳn rồi bật lại, dữ liệu và phiên còn nguyên. Chưa thử với PostgreSQL chạy bằng Docker, vì máy làm chưa bật Docker Desktop.
 - **Học kỳ và khoản chờ mentor (04/10/2026):** `GET /clubs` và `GET /school/clubs` trả thêm `term` (học kỳ đang xem; bản demo lấy học kỳ của CLB đầu tiên, vì mọi CLB cùng một học kỳ). Mỗi dòng của `GET /school/clubs` (và `club` của `GET /school/clubs/:clubId`) có thêm `waitingMentor`: số khoản của CLB đó đang chờ mentor duyệt. Màn danh sách CLB và màn nhà trường cần học kỳ cho dòng phụ; mục "Khoản chờ duyệt" trên thanh bên của trường mở thẳng CLB có khoản chờ. Khi có dữ liệu thật thì `term` nên là học kỳ hiện tại của trường.
-- **Sửa lỗi tiền (05/10/2026):** luật nằm trong `web/src/lib`, test tái hiện ở `web/src/lib/loi-tien.test.ts`.
+- **Sửa lỗi tiền (05/10/2026):** luật nằm trong `web/src/lib`, test tái hiện ở `web/src/lib/money-regressions.test.ts`.
   - **Nhiều đợt thu:** xếp loại sao kê xét mã đợt (`codePrefix`). Dòng ghi mã của đợt khác thì "Thuộc đợt thu khác: …", không vào đợt đang đối soát. CLB có nhiều đợt mà dòng không ghi mã đợt thì phải gán tay ("Không ghi mã đợt thu"). Dòng trùng chỉ xét trong cùng đợt; dòng đã ghi vào sổ ở đợt khác thì "Đã ghi ở đợt thu khác: …". API không đổi: màn đối soát gửi đúng `collectionId`.
   - **Ghi nhận tay rồi sao kê về khác số tiền:** `Payment` có thêm `awaitingStatement` (tiền chuyển khoản đã ghi nhận tay, chưa thấy trong sao kê). Gán tay dòng sao kê cho người đó thì phần này chỉ nối, chỉ phần chênh được ghi vào sổ quỹ. Lý do của dòng: "Đã ghi nhận tay …, sao kê …". Lược đồ: `db/migrations/002_tien_cho_sao_ke.sql` thêm cột `payments.awaiting_statement`.
   - **Dự trù:** "còn phải thu" cộng mọi đợt thu của kỳ. `GET /clubs/:clubId/budget` trả thêm `forecast.collections` (số đợt thu của kỳ); `forecast.fee` là mức thu khi kỳ chỉ có một đợt, nhiều đợt thì 0.
@@ -149,7 +155,7 @@ Khi nối web với server, Hiệu cho sửa server và ghi lại ở đây đ�
   - **Thành viên mới:** duyệt đơn và thêm thành viên chỉ tạo khoản phải đóng ở đợt thu của kỳ hiện tại mà chưa quá hạn (`openCollections`), không tạo ở đợt cũ. `addMembers` nhận thêm thời điểm.
   - Test: server 63 (thêm 1 test mentor), `db.test.ts` có thêm bước ghi nhận tay để kiểm tra cột mới còn sau khi khởi động lại.
 - **Đăng nhập bằng tên tài khoản và mật khẩu (05/10/2026, Hiệu duyệt mô tả):**
-  - Đăng ký chỉ bằng Google (email đã được Google xác minh). Lần đầu đăng nhập Google, `GET /auth/google/callback` chuyển về `/account?moi=1&next=<trang cần mở>` để web hỏi đặt tên tài khoản và mật khẩu (web có nút "Để sau").
+  - Đăng ký chỉ bằng Google (email đã được Google xác minh). Lần đầu đăng nhập Google, `GET /auth/google/callback` chuyển về `/account?new=1&next=<trang cần mở>` để web hỏi đặt tên tài khoản và mật khẩu (web có nút "Để sau").
   - 2 API mới:
     - `POST /auth/login`: `login` (tên tài khoản hoặc email) và `password`. Đúng thì cấp phiên như đăng nhập Google, trả về giống `GET /me`. Sai tên hay sai mật khẩu đều 401 cùng một câu. Người chưa có tài khoản cũng chạy một lần băm giả, để thời gian trả lời không lộ tên tài khoản nào có thật.
     - `PUT /me/account`: `name` (tên hiển thị), `username`, `password`, và `currentPassword` khi đã có mật khẩu. Lỗi từng ô ở `details.fields`; tên tài khoản đã có người dùng thì 409.
@@ -161,7 +167,7 @@ Khi nối web với server, Hiệu cho sửa server và ghi lại ở đây đ�
   - Lưu: `src/accounts.ts` (trong bộ nhớ), `src/db/accounts.ts` (PostgreSQL, ghi lần lượt; `app.ts` chờ phần ghi của chính yêu cầu như kho dữ liệu). Bảng `accounts` ở `db/migrations/003_tai_khoan.sql`, không nối khóa ngoại sang `persons`. `POST /demo/reset` xóa cả tài khoản.
   - **Tài khoản mẫu (05/10/2026, Hiệu yêu cầu, thay trang chọn vai):** ở chế độ demo, máy chủ tạo tài khoản cho 7 người mẫu (danh sách và mật khẩu chung ở `web/src/lib/demo-accounts.ts`, xuất qua `domain.ts`): lúc khởi động thì chỉ tạo người chưa có tài khoản (`src/index.ts`), `POST /demo/reset` thì xóa hết rồi tạo lại (`src/handlers/system.ts`). Code ở `src/demo-accounts.ts`; mật khẩu mẫu chỉ băm một lần. `POST /auth/dev-login` vẫn còn cho script bấm thử.
   - Test: `test/account.test.ts` (8 test; người thử là a018 vì a017 có tài khoản mẫu; thêm kiểm tra đặt lại dữ liệu thì tạo lại đủ 7 tài khoản mẫu); `auth.test.ts` sửa theo đường chuyển mới sau lần đầu đăng nhập Google; `db.test.ts` kiểm tra tài khoản còn sau khi khởi động lại. Cả bộ: 71/71, `npm run test:db` 71/71.
-  - **Lỗi đăng nhập Google gửi mã, không gửi câu:** `GET /auth/google/start` và `/callback` chuyển về `/login?loi=<mã>` (`LoginErrorCode` trong `contract.ts`: `google-chua-bat`, `huy`, `het-han`, `google-loi`, `email-chua-xac-minh`). Trước đây gửi nguyên câu tiếng Việt và web hiện thẳng câu đó, nên ai cũng gửi được link kèm câu báo giả trong khung đỏ của trang đăng nhập. Web đổi mã thành câu có sẵn; mã lạ thì hiện một câu chung.
+  - **Lỗi đăng nhập Google gửi mã, không gửi câu:** `GET /auth/google/start` và `/callback` chuyển về `/login?error=<mã>` (`LoginErrorCode` trong `contract.ts`: `google-disabled`, `cancelled`, `expired`, `google-failed`, `email-unverified`). Trước đây gửi nguyên câu tiếng Việt và web hiện thẳng câu đó, nên ai cũng gửi được link kèm câu báo giả trong khung đỏ của trang đăng nhập. Web đổi mã thành câu có sẵn; mã lạ thì hiện một câu chung.
 
 ## Chưa có
 

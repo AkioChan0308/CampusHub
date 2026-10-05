@@ -25,15 +25,15 @@ data-that/
 *.csv
 *.xlsx
 *.xls
-!**/mau/*.csv
-!**/mau/*.xlsx
-!**/mau/*.xls
+!**/samples/*.csv
+!**/samples/*.xlsx
+!**/samples/*.xls
 # File sao lưu PostgreSQL (pg_dump) có dữ liệu thành viên
 sao-luu*.sql
 *.dump
 
 # Ảnh chụp và file tạm của các script bấm thử (web/e2e)
-web/e2e/anh/
+web/e2e/screenshots/
 
 # Skill và cấu hình Claude Code (karpathy-guidelines, Impeccable): mỗi người tự cài theo docs/tien-do-mvp.md, không commit.
 .claude/

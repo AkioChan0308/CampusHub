@@ -40,10 +40,10 @@ export type ErrorCode =
   | "INTERNAL"; // 500
 
 /**
- * Lý do đăng nhập Google không xong, máy chủ gửi về web bằng `/login?loi=<mã>`. Web đổi mã thành câu có sẵn
- * (web/src/app/login/auth-screen.tsx); mã lạ thì hiện một câu chung, để không ai gửi được link kèm câu báo giả.
+ * Lý do đăng nhập Google không xong, máy chủ gửi về web bằng `/login?error=<mã>`. Web đổi mã thành câu có sẵn
+ * (web/src/app/(auth)/login/auth-screen.tsx); mã lạ thì hiện một câu chung, để không ai gửi được link kèm câu báo giả.
  */
-export type LoginErrorCode = "google-chua-bat" | "huy" | "het-han" | "google-loi" | "email-chua-xac-minh";
+export type LoginErrorCode = "google-disabled" | "cancelled" | "expired" | "google-failed" | "email-unverified";
 
 /** Mọi lỗi đều trả về dạng này. `message` là câu tiếng Việt hiện được cho người dùng. */
 export interface ApiErrorBody {
@@ -749,7 +749,7 @@ export interface Api {
 
   /** ?next=/duong-dan: trang web mở lại sau khi đăng nhập xong. */
   googleLogin: { params: {}; body: NoBody; res: RedirectRes };
-  /** Google gửi ?code, ?state (hoặc ?error). Xong thì về trang `next`; lỗi thì về /login?loi=<LoginErrorCode> */
+  /** Google gửi ?code, ?state (hoặc ?error). Xong thì về trang `next`; lỗi thì về /login?error=<LoginErrorCode> */
   googleCallback: { params: {}; body: NoBody; res: RedirectRes };
   devLogin: { params: {}; body: DevLoginBody; res: MeRes };
   passwordLogin: { params: {}; body: PasswordLoginBody; res: MeRes };

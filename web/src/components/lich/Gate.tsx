@@ -9,7 +9,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { ApiError, apiPost, setTabDemoUser } from "@/api/client";
 import { keys, useHealth } from "@/api/queries";
-import { useStore } from "@/lib/store";
+import { useStore } from "@/lib/browser-state";
 import { TodayLeaf } from "./Leaf";
 import { Loading, Skel } from "./motion";
 

@@ -857,7 +857,7 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 .l-hold { visibility: hidden; } /* giữ chỗ cho chữ chưa biết, không hiện */
 .l-land-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; padding: 20px 40px 28px; background: var(--l-paper); border-top: 1px solid var(--l-rule); font-size: 14px; color: var(--l-ink-3); }
 
-/* Khối video: một tờ giấy, đầu khối là người dùng và một câu; video quay từ bản demo (e2e/quay-video.cjs). */
+/* Khối video: một tờ giấy, đầu khối là người dùng và một câu; video quay từ bản demo (e2e/record-demo-videos.cjs). */
 .l-vid { display: grid; gap: 28px; padding: 40px; background: var(--l-paper); border: 1px solid var(--l-rule); border-radius: var(--l-r-lg); }
 .l-vid-head { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
 .l-vid-head h2 { font-size: clamp(28px, 3.2vw, 44px); line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; }

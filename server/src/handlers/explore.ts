@@ -4,7 +4,7 @@ import { findClub } from "../access.ts";
 import { acceptInvite, membershipOf, submitApplication, uid } from "../domain.ts";
 import { conflict, forbidden, notFound } from "../errors.ts";
 import { acceptInviteBody, applyBody, parseBody } from "../schemas.ts";
-import { applicationDto, clubCardDto, clubRef, CONSENT_VERSION, membershipDto, personRef } from "../views.ts";
+import { applicationDto, clubCardDto, clubRef, CONSENT_VERSION, membershipDto, personRef } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys = "listClubs" | "getClub" | "applyToClub" | "getInvite" | "acceptInvite";

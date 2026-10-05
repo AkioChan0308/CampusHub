@@ -25,8 +25,8 @@ Mọi tên người, tên CLB, số tiền và ngày trong bản vẽ là **dữ
 |---|---|
 | `design/README.md` | File này: đặc tả từng màn, luật nghiệp vụ, những gì chưa vẽ |
 | `design/screens/` | 16 màn ở dạng HTML thường và `index.html` để xem cả bộ |
-| `design/nguon-claude-design/` | Bản gốc tải từ Claude Design (`canvas.json` và `*.dc.html`) |
-| `design/tools/chuyen-doi.py` | Chuyển bản gốc sang `design/screens/` |
+| `design/claude-design-source/` | Bản gốc tải từ Claude Design (`canvas.json` và `*.dc.html`) |
+| `design/tools/convert-screens.py` | Chuyển bản gốc sang `design/screens/` |
 
 ## 2. Hình thức
 
@@ -233,8 +233,8 @@ Các số giữa các màn khớp nhau, nên dùng lại được làm dữ li�
 ## 10. Khi bản vẽ thay đổi
 
 1. Vinh hoặc Hiệu sửa bản gốc trên claude.ai (link ở đầu file).
-2. Lấy bản mới về repo. Agent Claude Code của người tạo bản vẽ đọc được link bằng Artifact tool, action `read`: đọc `project/canvas.json` và từng `project/*.dc.html`, rồi chép vào `design/nguon-claude-design/`.
-3. Chạy `python design/tools/chuyen-doi.py` để tạo lại `design/screens/`.
+2. Lấy bản mới về repo. Agent Claude Code của người tạo bản vẽ đọc được link bằng Artifact tool, action `read`: đọc `project/canvas.json` và từng `project/*.dc.html`, rồi chép vào `design/claude-design-source/`.
+3. Chạy `python design/tools/convert-screens.py` để tạo lại `design/screens/`.
 4. Cập nhật file này nếu có màn mới hay luật mới. Ghi ngày sửa ở dòng đầu file.
 
 Tool chuyển đổi chỉ xử lý được màn tĩnh. Nếu bản vẽ có thêm phần động (`{{ }}`, `<sc-for>`, `<dc-import>`), tool sẽ dừng và báo tên file.

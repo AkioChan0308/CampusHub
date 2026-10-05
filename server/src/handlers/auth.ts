@@ -9,7 +9,7 @@ import { googleAuthUrl, type GoogleProfile } from "../google.ts";
 import { dummyHash, verifyPassword } from "../password.ts";
 import { devLoginBody, parseBody, passwordLoginBody } from "../schemas.ts";
 import { OAUTH_COOKIE, OAUTH_SECONDS, randomToken } from "../sessions.ts";
-import { meRes } from "../views.ts";
+import { meRes } from "../responses.ts";
 import type { Ctx, Handlers } from "./types.ts";
 
 type Keys = "googleLogin" | "googleCallback" | "devLogin" | "passwordLogin" | "logout";
@@ -22,7 +22,7 @@ function safeNext(value: unknown): string {
 /** Google gọi lại qua web (Next.js chuyển tiếp /api/v1 sang máy chủ), nên cookie phiên thuộc về địa chỉ của web. */
 const redirectUri = (ctx: Ctx<Keys>) => `${ctx.config.webOrigin}${API_PREFIX}/auth/google/callback`;
 /** Về trang đăng nhập kèm mã lý do (không kèm câu: web tự có câu cho từng mã). */
-const toLogin = (ctx: Ctx<Keys>, code: LoginErrorCode): RedirectRes => ({ location: `${ctx.config.webOrigin}/login?loi=${code}` });
+const toLogin = (ctx: Ctx<Keys>, code: LoginErrorCode): RedirectRes => ({ location: `${ctx.config.webOrigin}/login?error=${code}` });
 
 /** Không nói rõ sai tên hay sai mật khẩu, để không ai dò được tên tài khoản nào có thật. */
 const wrongLogin = () => unauthenticated("Tên tài khoản, email hoặc mật khẩu không đúng.");
@@ -35,7 +35,7 @@ export const lockedError = (until: number) => tooManyAttempts(
 
 export const authHandlers: Pick<Handlers, Keys> = {
   googleLogin: (ctx) => {
-    if (!ctx.config.googleClientId || !ctx.config.googleClientSecret) return toLogin(ctx, "google-chua-bat");
+    if (!ctx.config.googleClientId || !ctx.config.googleClientSecret) return toLogin(ctx, "google-disabled");
     const state = randomToken();
     const verifier = randomToken();
     ctx.auth.sessions.savePending(state, { verifier, next: safeNext(ctx.query.next) });
@@ -48,21 +48,21 @@ export const authHandlers: Pick<Handlers, Keys> = {
     // state phải khớp cookie của chính trình duyệt này: trang khác không dụ được trình duyệt mở link gọi lại.
     const pending = state && state === ctx.auth.cookie(OAUTH_COOKIE) ? ctx.auth.sessions.takePending(state) : undefined;
     ctx.auth.clearCookie(OAUTH_COOKIE);
-    if (ctx.query.error) return toLogin(ctx, "huy");
-    if (!pending || typeof ctx.query.code !== "string") return toLogin(ctx, "het-han");
+    if (ctx.query.error) return toLogin(ctx, "cancelled");
+    if (!pending || typeof ctx.query.code !== "string") return toLogin(ctx, "expired");
     let profile: GoogleProfile;
     try {
       profile = await ctx.auth.exchangeGoogleCode(ctx.query.code, pending.verifier, redirectUri(ctx));
     } catch {
-      return toLogin(ctx, "google-loi");
+      return toLogin(ctx, "google-failed");
     }
-    if (!profile.email || !profile.emailVerified) return toLogin(ctx, "email-chua-xac-minh");
+    if (!profile.email || !profile.emailVerified) return toLogin(ctx, "email-unverified");
     const person = findOrCreatePerson(ctx, profile);
     ctx.auth.startSession(person.id);
     // Vừa đăng nhập Google: trong ít phút tới đổi mật khẩu không cần mật khẩu cũ (cách lấy lại khi quên).
     ctx.auth.accounts.markGoogleLogin(person.id, ctx.now());
     // Lần đầu đăng nhập Google: hỏi đặt tên tài khoản và mật khẩu (web có nút "Để sau"), xong mới về trang `next`.
-    if (ctx.auth.accounts.ensure(person.id)) return { location: `${ctx.config.webOrigin}/account?moi=1&next=${encodeURIComponent(pending.next)}` };
+    if (ctx.auth.accounts.ensure(person.id)) return { location: `${ctx.config.webOrigin}/account?new=1&next=${encodeURIComponent(pending.next)}` };
     return { location: `${ctx.config.webOrigin}${pending.next}` };
   },
 

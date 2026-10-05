@@ -151,7 +151,7 @@ Tiền **không** đi qua CampusHub: thành viên chuyển thẳng vào tài kho
 
 **Chưa có trong bản demo:** hoàn tiền khi thành viên chuyển nhầm; nút "Nhắn hỏi" người đã báo chuyển.
 
-*Màn trong bản demo:* Đối soát `/clubs/<mã CLB>/reconcile` (thêm `?dot=<mã đợt>` để chọn đợt)
+*Màn trong bản demo:* Đối soát `/clubs/<mã CLB>/reconcile` (thêm `?collection=<mã đợt>` để chọn đợt)
 
 ## 6. Đề xuất và duyệt chi
 
