@@ -89,13 +89,13 @@ async function tall(page, file, w = 1440, h0 = 900) {
   await p.goto(`${C}/handover`);
   await p.getByRole("heading", { name: "Đổi tài khoản nhận quỹ" }).waitFor();
   await tall(p, "10-handover.png");
-  await p.getByRole("button", { name: "Lưu và sang bước 4" }).click();
+  await p.getByRole("button", { name: "Lưu và sang bước 5" }).click();
   ok((await p.locator("body").innerText()).includes("Cần ghi ngân hàng."), "Bàn giao: thiếu ngân hàng thì báo lỗi");
   await p.fill("#handover-bank", "[Ngân hàng thử]");
   await p.fill("#handover-account-number", "0123456789");
-  await p.getByRole("button", { name: "Lưu và sang bước 4" }).click();
-  ok(await waitText(p, /Bước 4 \/ 6/), "Bàn giao: sang bước 4");
-  await tall(p, "11-handover-step-4.png");
+  await p.getByRole("button", { name: "Lưu và sang bước 5" }).click();
+  ok(await waitText(p, /Bước 5 \/ 7/), "Bàn giao: sang bước 5");
+  await tall(p, "11-handover-step-5.png");
 
   await browser.close();
   console.log(results.join("\n"));

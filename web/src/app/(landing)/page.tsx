@@ -50,7 +50,7 @@ export default function Landing() {
             </div>
             <div className="l-land-sub">
               <div className="l-land-copy">
-                <p className="l-land-lead">Điểm danh bằng mã QR, thu quỹ và đối soát sao kê, duyệt chi, bàn giao nhiệm kỳ. Thành viên chỉ cần mở link CLB gửi trong nhóm Zalo, không cài app.</p>
+                <p className="l-land-lead">Bộ bàn giao cho ban điều hành CLB, dùng cạnh Google Sheets: biểu mẫu, cách làm và tài khoản của CLB nằm một chỗ, việc cần làm có người phụ trách, nhiệm kỳ sau không phải gọi hỏi nhiệm kỳ trước. Điểm danh bằng mã QR và ghi sổ quỹ đi kèm. Thành viên chỉ cần mở link CLB gửi trong nhóm Zalo, không cài app.</p>
                 <div className="l-land-actions">
                   <Link className="l-btn" href="/register">Đăng ký bằng Google</Link>
                   <Link className="l-btn2" href="/login">Đăng nhập</Link>

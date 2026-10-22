@@ -1,6 +1,6 @@
 "use client";
 
-// Ban điều hành · Việc cần làm (design/screens/BDH-TrangChu.html), thế giới "Lịch bloc".
+// Ban điều hành · Trang chủ (design/screens/BDH-TrangChu.html; bản vẽ đặt tên "Việc cần làm", đổi thành "Trang chủ" từ 22/10/2026 vì trùng tên với mục Việc cần làm mới), thế giới "Lịch bloc".
 // Dữ liệu từ GET /clubs/:clubId/board (khung) và GET /clubs/:clubId/dashboard. Quyền kiểm tra ở máy chủ;
 // ở đây chỉ ẩn những việc vai đang xem không làm được.
 
@@ -9,14 +9,13 @@ import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 import type { DashboardRes, Role } from "@contract";
 import { useDashboard } from "@/api/queries";
-import { CopyButton } from "@/components/CopyButton";
 import { Icon, type IconName } from "@/components/Icon";
 import { BoardFrame, useFrameSawPending, useLichBoard } from "@/components/lich/BoardFrame";
 import { ErrorGate } from "@/components/lich/Gate";
-import { daysLeft, dueLabel, isUrgent, Leaf, TodayLeaf } from "@/components/lich/Leaf";
-import { LeafSkel, LichPage, LinkIcon, Loading, Reveal, Skel, useSawPending } from "@/components/lich/motion";
-import { appUrl } from "@/components/url";
+import { daysLeft, Leaf, TodayLeaf } from "@/components/lich/Leaf";
+import { LeafSkel, LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { agoLabel, dm, dmy, hm, money } from "@/lib/format";
+import { HANDOVER_STEPS } from "@/lib/handover-steps";
 import { can } from "@/lib/selectors";
 
 export default function Page() {
@@ -37,7 +36,7 @@ function Top({ sub, actions }: { sub: ReactNode; actions?: ReactNode }) {
     <header className="l-top">
       <TodayLeaf />
       <div className="l-top-text">
-        <h1>Việc cần làm</h1>
+        <h1>Trang chủ</h1>
         <div className="l-top-sub">{sub}</div>
       </div>
       <div className="l-top-actions">{actions}</div>
@@ -45,22 +44,28 @@ function Top({ sub, actions }: { sub: ReactNode; actions?: ReactNode }) {
   );
 }
 
-/** Khung xương của tờ giấy làm việc: tiêu đề các khối hiện ngay, số liệu là thanh giữ chỗ. */
+/** Khung xương của tờ giấy làm việc: tiêu đề các khối hiện ngay, số liệu là thanh giữ chỗ. Mỗi khối cao bằng khối thật. */
 function SheetSkeleton() {
   return (
     <Loading className="l-split">
       <div className="l-stack">
         <section className="l-panel">
-          <div className="l-panel-head"><h2>Cần bạn xử lý</h2></div>
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="l-todo">
-              <span className="l-todo-n"><Skel w={26} h={30} /></span>
-              <span className="l-todo-text"><Skel w="58%" h={16} /><Skel w="82%" h={13} /></span>
+          <div className="l-panel-head"><h2>Việc cần làm</h2><Skel w={104} h={34} /></div>
+          <p className="l-note l-panel-sub"><SkelLine w={150} /></p>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="l-event">
+              <LeafSkel sub="còn 7 ngày" />
+              <span className="l-event-text"><Skel w="52%" h={16} /><Skel w="38%" h={13} /></span>
             </div>
           ))}
+          <p className="l-note l-panel-sub"><SkelLine w={100} /></p>
         </section>
         <section className="l-panel">
-          <div className="l-panel-head"><h2>Sự kiện sắp tới</h2></div>
+          <div className="l-panel-head"><h2>Bàn giao</h2><Skel w={150} h={34} /></div>
+          <div className="l-panel-body"><Skel w="86%" h={16} /><Skel w="100%" h={8} /><Skel w="64%" h={28} /></div>
+        </section>
+        <section className="l-panel">
+          <div className="l-panel-head"><h2>Sự kiện sắp tới</h2><Skel w={118} h={34} /></div>
           {[0, 1].map((i) => (
             <div key={i} className="l-event">
               <LeafSkel sub="Thứ Bảy" />
@@ -71,19 +76,20 @@ function SheetSkeleton() {
       </div>
       <div className="l-stack">
         <section className="l-panel">
-          <div className="l-panel-body l-collect">
-            <div className="l-collect-head">
-              <span className="l-collect-title"><Skel w="62%" h={22} /><Skel w="46%" h={13} /></span>
-              <LeafSkel />
+          <div className="l-panel-head"><h2>Cần bạn xử lý</h2></div>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="l-todo">
+              <span className="l-todo-n"><Skel w={26} h={30} /></span>
+              <span className="l-todo-text"><Skel w="58%" h={16} /><Skel w="82%" h={13} /><Skel w="40%" h={16} /></span>
             </div>
-            <Skel w={150} h={40} />
-            <Skel w="100%" h={8} />
-            <Skel w="100%" h={64} />
-          </div>
+          ))}
         </section>
         <section className="l-panel">
-          <div className="l-panel-head"><h2>Quỹ hiện có</h2></div>
-          <div className="l-panel-body"><Skel w={210} h={40} /><Skel w="100%" h={96} /></div>
+          <div className="l-panel-head"><h2>Thống kê tham gia</h2><Skel w={150} h={26} /></div>
+          <div className="l-panel-body"><Skel w="100%" h={64} /><Skel w="90%" h={13} /><Skel w={160} h={34} /></div>
+        </section>
+        <section className="l-panel">
+          <div className="l-panel-body l-fundline"><h2 className="l-subhead">Quỹ</h2><Skel w="52%" h={16} /><Skel w={90} h={34} /></div>
         </section>
       </div>
     </Loading>
@@ -171,25 +177,58 @@ function Home() {
   if (query.isError) return <>{top}<ErrorGate inline error={query.error} onRetry={() => query.refetch()} /></>;
   const d = query.data;
   const c = d.collection;
+  const canCheckinTop = !!nextSessionId && canCheckin; // đầu trang đã có nút "Mở QR điểm danh" đặc, dòng buổi dùng nút viền
+
+  const stepName = d.handover ? HANDOVER_STEPS[d.handover.step - 1] : undefined;
+  const taskSub = (due: string, overdue: boolean) => { const n = daysLeft(due); return overdue ? `quá ${-n} ngày` : n === 0 ? "hôm nay" : `còn ${n} ngày`; };
 
   return (
     <>
       {top}
       <Reveal from={saw} className="l-split">
         <div className="l-stack">
-          <section className="l-panel" aria-labelledby="todo-h">
-            <div className="l-panel-head"><h2 id="todo-h">Cần bạn xử lý</h2></div>
-            {todo.length === 0 && <p className="l-empty">Không có việc nào đang chờ.</p>}
-            {todo.map((t) => (
-              <Link key={t.href} className="l-todo" href={t.href}>
-                <span className="l-todo-n">{t.n ?? <Icon name={t.icon ?? "alert"} size={26} />}</span>
-                <span className="l-todo-text">
-                  <span className="l-todo-title">{t.title}</span>
-                  <span className="l-todo-sub">{t.sub}</span>
+          <section className="l-panel" aria-labelledby="tasks-h">
+            <div className="l-panel-head">
+              <h2 id="tasks-h">Việc cần làm</h2>
+              <Link className="l-btn2 l-sm" href={`${base}/tasks`}><LinkIcon name="check" size={16} />Tất cả việc</Link>
+            </div>
+            <p className="l-note l-panel-sub">{d.tasks.open} việc chưa xong · {d.tasks.overdue} quá hạn</p>
+            {d.tasks.items.length === 0 && <p className="l-empty">Không còn việc nào chưa xong.</p>}
+            {d.tasks.items.map((t) => (
+              <Link key={t.id} className="l-event l-task-mini" href={`${base}/tasks`}>
+                <Leaf date={t.due} sub={taskSub(t.due, t.overdue)} tone={t.overdue || daysLeft(t.due) <= 3 ? "urgent" : undefined} label={`Hạn ${dmy(t.due)}, ${taskSub(t.due, t.overdue)}`} />
+                <span className="l-event-text">
+                  <span className="l-event-title">{t.title}</span>
+                  <span className="l-event-sub">{t.assignee.name} · {t.status === "doing" ? "đang làm" : "chưa làm"}</span>
                 </span>
                 <LinkIcon name="chevronRight" className="l-todo-arrow" />
               </Link>
             ))}
+            {d.tasks.open > d.tasks.items.length && <p className="l-note l-panel-sub">Còn {d.tasks.open - d.tasks.items.length} việc nữa.</p>}
+          </section>
+
+          <section className="l-panel" aria-labelledby="handover-h">
+            <div className="l-panel-head">
+              <h2 id="handover-h">Bàn giao</h2>
+              <Link className="l-btn2 l-sm" href={`${base}/handover-kit`}><LinkIcon name="doc" size={16} />Mở kho bàn giao</Link>
+            </div>
+            <div className="l-panel-body">
+              <p>
+                Kho bàn giao: {d.kit.documents} biểu mẫu, {d.kit.processes} quy trình, {d.kit.accounts} tài khoản ·{" "}
+                {d.kit.missing > 0 ? <span className="l-attn">{d.kit.missing} mục thiếu</span> : "không thiếu mục nào"}
+              </p>
+              {d.handover ? (
+                <>
+                  <div className="l-bar" role="progressbar" aria-valuemin={0} aria-valuemax={HANDOVER_STEPS.length} aria-valuenow={d.handover.accepted ? HANDOVER_STEPS.length : d.handover.step - 1} aria-label="Tiến độ bàn giao">
+                    <span style={{ width: `${((d.handover.accepted ? HANDOVER_STEPS.length : d.handover.step - 1) / HANDOVER_STEPS.length) * 100}%` }} />
+                  </div>
+                  <p>
+                    {d.handover.accepted ? `Bàn giao sang ban ${d.handover.toTerm} đã xong.` : <>Bàn giao sang ban {d.handover.toTerm}: bước {d.handover.step} / {HANDOVER_STEPS.length}, {stepName?.toLowerCase()}.</>}{" "}
+                    <Link className="l-linkbtn" href={`${base}/handover`}>{d.handover.accepted ? "Xem biên bản" : "Tiếp tục bàn giao"}</Link>
+                  </p>
+                </>
+              ) : <p className="l-note">CLB chưa bắt đầu bàn giao.</p>}
+            </div>
           </section>
 
           <section className="l-panel" aria-labelledby="events-h">
@@ -211,7 +250,7 @@ function Home() {
                   </span>
                 </div>
                 {e.kind === "session" && canCheckin
-                  ? <Link className={`${e.id === nextSessionId ? "l-btn" : "l-btn2"} l-sm`} href={`${base}/events/${e.id}/qr`}><LinkIcon name="qr" size={16} />Mở QR</Link>
+                  ? <Link className={`${e.id === nextSessionId && !canCheckinTop ? "l-btn" : "l-btn2"} l-sm`} href={`${base}/events/${e.id}/qr`}><LinkIcon name="qr" size={16} />Mở QR</Link>
                   : <Link className="l-btn2 l-sm" href={`${base}/events`}>Xem</Link>}
               </div>
             ))}
@@ -219,60 +258,45 @@ function Home() {
         </div>
 
         <div className="l-stack">
-          {c && (
-            <section className="l-panel" aria-labelledby="collect-h">
-              <div className="l-panel-body l-collect">
-                <div className="l-collect-head">
-                  <div className="l-collect-title">
-                    <h2 id="collect-h">{c.name}</h2>
-                    <span className="l-meta">{money(c.amount)}/người · hạn {dmy(c.dueDate)}</span>
-                  </div>
-                  <Leaf date={c.dueDate} sub={dueLabel(c.dueDate)} tone={isUrgent(c.dueDate) ? "urgent" : undefined} label={`Hạn đóng ${dmy(c.dueDate)}, ${dueLabel(c.dueDate)}`} />
-                </div>
-                <div className="l-count">
-                  <span className="l-count-n">{c.stats.paid}</span>
-                  <span className="l-count-of">/{c.stats.total}</span>
-                  <span className="l-count-label">người đã đóng</span>
-                </div>
-                <div className="l-bar" role="progressbar" aria-valuemin={0} aria-valuemax={c.stats.total} aria-valuenow={c.stats.paid} aria-label="Số người đã đóng">
-                  <span style={{ width: `${c.stats.total > 0 ? Math.min(100, (c.stats.paid / c.stats.total) * 100) : 0}%` }} />
-                </div>
-                <dl className="l-facts">
-                  <div><dt>Chuyển khoản</dt><dd>{c.stats.transfer}</dd></div>
-                  <div><dt>Tiền mặt</dt><dd>{c.stats.cash}</dd></div>
-                  <div><dt>Báo đã chuyển, chờ đối soát</dt><dd>{c.stats.reported}</dd></div>
-                  <div><dt>Chưa đóng</dt><dd>{c.stats.unpaid}</dd></div>
-                </dl>
-                <div className="l-row-actions">
-                  <Link className="l-btn2 l-sm" href={`${base}/collections/${c.id}`}><LinkIcon name="users" size={16} />Xem ai chưa đóng</Link>
-                  <CopyButton className="l-btn2 l-sm" icon="link" text={appUrl(`/me/pay/${c.id}`)} label="Sao chép link đóng quỹ để gửi vào nhóm Zalo" notice="Đã sao chép link đóng quỹ. Dán vào nhóm Zalo của CLB." />
-                </div>
-              </div>
-            </section>
-          )}
+          <section className="l-panel" aria-labelledby="todo-h">
+            <div className="l-panel-head"><h2 id="todo-h">Cần bạn xử lý</h2></div>
+            {todo.length === 0 && <p className="l-empty">Không có việc nào đang chờ.</p>}
+            {todo.map((t) => (
+              <Link key={t.href} className="l-todo" href={t.href}>
+                <span className="l-todo-n">{t.n ?? <Icon name={t.icon ?? "alert"} size={26} />}</span>
+                <span className="l-todo-text">
+                  <span className="l-todo-title">{t.title}</span>
+                  <span className="l-todo-sub">{t.sub}</span>
+                </span>
+                <LinkIcon name="chevronRight" className="l-todo-arrow" />
+              </Link>
+            ))}
+          </section>
 
-          <section className="l-panel" aria-labelledby="fund-h">
-            <div className="l-panel-head"><h2 id="fund-h">Quỹ hiện có</h2></div>
+          {/* Khung khóa của bản trả phí (giả thuyết, chưa có giá, chưa có thanh toán): chỉ cho thấy loại thông tin. Số bị làm mờ. */}
+          <section className="l-panel" aria-labelledby="stats-h">
+            <div className="l-panel-head"><h2 id="stats-h">Thống kê tham gia</h2><span className="l-tag wait">Có trong bản trả phí</span></div>
             <div className="l-panel-body">
-              <div>
-                <span className="l-money-big">{money(d.balance)}</span>
-                {d.reconcile.reconciledTo && <p className="l-meta">Theo sổ quỹ, đã đối soát sao kê đến {dmy(d.reconcile.reconciledTo)}.</p>}
-              </div>
-              {d.recentLedger.length === 0 ? <p className="l-note">Sổ quỹ chưa có giao dịch nào.</p> : (
-                <div className="l-ledger">
-                  {d.recentLedger.map((r) => (
-                    <div key={`${r.date}-${r.direction}-${r.label}`} className="l-ledger-row">
-                      <span className="l-ledger-date">{dm(r.date)}</span>
-                      <span>{r.direction === "in" ? "Thu" : "Chi"} · {r.label}{r.count > 1 ? ` (${r.count} khoản)` : ""}</span>
-                      <span className={r.direction === "in" ? "l-in" : "l-out"}>{r.direction === "in" ? "+" : "−"}{money(r.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p className="l-note">Sổ quỹ chỉ thêm, không sửa hay xóa được. Thành viên xem sổ quỹ ở chế độ chỉ đọc.</p>
+              {/* Chỉ làm mờ số, nhãn vẫn đọc được. Số thật vẫn có trong dữ liệu trang: đây là khung demo, không phải khóa thật. */}
+              <dl className="l-facts l-locked" aria-hidden="true">
+                <div><dt>Có mặt {d.participation.sessions} buổi gần đây</dt><dd>{d.participation.rate ?? "–"}%</dd></div>
+                <div><dt>Vắng liền {d.participation.sessions} buổi</dt><dd>{d.participation.absentRuns} người</dd></div>
+              </dl>
+              <p className="l-note">Phân tích tự động từ dữ liệu điểm danh (phép đếm, không phải AI). Số liệu đang khóa trong bản miễn phí.</p>
+              <div className="l-row-actions"><Link className="l-btn2 l-sm" href={`${base}/paid-plan`}>Tìm hiểu bản trả phí</Link></div>
             </div>
           </section>
+
         </div>
+      </Reveal>
+      <Reveal from={saw} className="l-split-foot">
+        <section className="l-panel" aria-labelledby="fund-h">
+          <div className="l-panel-body l-fundline">
+            <h2 id="fund-h" className="l-subhead">Quỹ</h2>
+            <span className="l-fundline-text"><strong>{money(d.balance)}</strong> · {d.pendingExpenses.count} khoản chờ duyệt</span>
+            <Link className="l-btn2 l-sm" href={c ? `${base}/collections/${c.id}` : `${base}/collections`}>Mở quỹ</Link>
+          </div>
+        </section>
       </Reveal>
     </>
   );

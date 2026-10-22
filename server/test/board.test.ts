@@ -33,8 +33,9 @@ test("trang chủ ra đúng số của bản vẽ (design/README.md mục 8)", a
 });
 
 test("thành viên thường không vào được các API của ban điều hành", async () => {
-  for (const path of ["/board", "/dashboard", "/members", "/applications", "/expenses", "/budget", "/ledger", "/handover"]) {
-    const r = await srv.call("GET", `${C}${path}`, { as: "a017" });
+  // a018 là thành viên thường. a017 được chọn làm chủ nhiệm mới nên riêng /board và /handover mở cho a017 (xem handover-steps.test.ts).
+  for (const path of ["/board", "/dashboard", "/members", "/applications", "/expenses", "/budget", "/ledger", "/handover", "/tasks"]) {
+    const r = await srv.call("GET", `${C}${path}`, { as: "a018" });
     assert.equal(r.status, 403, path);
     assert.equal(r.body.error.code, "FORBIDDEN");
   }
@@ -125,13 +126,13 @@ test("bàn giao: chỉ chủ nhiệm đổi tài khoản nhận quỹ; máy ch�
 
   const r = await srv.call("PUT", `${C}/handover/receiver`, { as: "a001", body });
   assert.equal(r.status, 200);
-  assert.equal(r.body.step, 4);
+  assert.equal(r.body.step, 5);
   assert.equal(r.body.newReceiver.accountLast4, "6789");
   assert.ok(!JSON.stringify(r.body).includes("0123456789"));
-  assert.equal((await srv.call("PUT", `${C}/handover/receiver`, { as: "a001", body })).status, 409); // đã qua bước 3
+  assert.equal((await srv.call("PUT", `${C}/handover/receiver`, { as: "a001", body })).status, 409); // đã qua bước 4
 
-  assert.equal((await srv.call("PUT", `${C}/handover/step`, { as: "a001", body: { step: 3 } })).body.step, 3);
-  assert.equal((await srv.call("PUT", `${C}/handover/step`, { as: "a001", body: { step: 5 } })).status, 409);
+  assert.equal((await srv.call("PUT", `${C}/handover/step`, { as: "a001", body: { step: 4 } })).body.step, 4);
+  assert.equal((await srv.call("PUT", `${C}/handover/step`, { as: "a001", body: { step: 6 } })).status, 409);
 });
 
 test("sổ quỹ: số dư bằng tổng các bút toán", async () => {

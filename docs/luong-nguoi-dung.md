@@ -1,6 +1,8 @@
 # Luồng người dùng của CampusHub
 
-*Cập nhật ngày 05/10/2026, theo bản MVP dùng dữ liệu mẫu. Viết cho cả nhóm, kể cả người không làm kỹ thuật.*
+*Cập nhật ngày 23/10/2026, theo bản MVP dùng dữ liệu mẫu. Viết cho cả nhóm, kể cả người không làm kỹ thuật.*
+
+File này có hai phần: **kể các luồng** (ngay dưới đây, mục 1 đến 10) và **kiểm thử bằng tay các luồng** (cuối file, mục K0 đến K11, có ô đánh dấu để người thử ghi kết quả).
 
 File này kể **ai làm gì, theo thứ tự nào** trong CampusHub. Mỗi luồng có: ai làm, các bước, luật cần nhớ, và phần bản demo chưa có. Cuối mỗi luồng có tên màn và đường dẫn trong bản demo, cho người cần mở thử hoặc sửa code.
 
@@ -190,21 +192,40 @@ Tiền **không** đi qua CampusHub: thành viên chuyển thẳng vào tài kho
 
 ## 8. Bàn giao nhiệm kỳ
 
-**Ai làm:** chủ nhiệm khóa cũ, ban mới, mentor.
+**Ai làm:** chủ nhiệm khóa cũ, chủ nhiệm mới, ban điều hành.
 
-Bàn giao có 6 bước:
-1. chọn ban mới;
-2. chốt số dư;
-3. đổi tài khoản nhận quỹ (thủ quỹ mới không dùng tiếp tài khoản của thủ quỹ cũ);
-4. chuyển quyền quản trị khỏi email trường của chủ nhiệm cũ, vì email này bị thu hồi khi tốt nghiệp;
-5. ban mới xác nhận;
-6. biên bản bàn giao.
+**Kho bàn giao** là một chỗ lưu những thứ ban cũ hay mang đi, ban điều hành cùng sửa (chủ nhiệm, phó chủ nhiệm, trưởng ban sửa; thủ quỹ xem):
+- **Biểu mẫu:** tên, nhóm (xin phép trường, tài chính, truyền thông, khác), đường link, người giữ. Bản demo chỉ lưu đường link, không lưu file.
+- **Quy trình:** cách làm một việc, các bước đánh số, ai làm, thường phải xong trước bao nhiêu ngày, biểu mẫu đi kèm.
+- **Tài khoản và quyền truy cập:** fanpage, nhóm Zalo, Drive, email CLB, tài khoản nhận quỹ: ai đang giữ quyền quản trị, đứng tên CLB hay cá nhân, có bắt buộc chuyển khi bàn giao không. **Kho không lưu mật khẩu**: đổi quyền ở chính dịch vụ đó.
 
-Theo thiết kế, ban cũ được xem thêm 30 ngày rồi thành thành viên cũ. Nút "Xuất toàn bộ dữ liệu (Excel)" ở màn Bàn giao dùng được bất cứ lúc nào.
+Bàn giao có **7 bước**:
+1. **Chọn ban mới:** chủ nhiệm mới, phó, thủ quỹ, trưởng ban; chỉ chọn người đã nhận lời mời. Chủ nhiệm cũ chọn lại chính mình thì phải xác nhận.
+2. **Chốt số dư:** lấy từ sổ quỹ lúc bấm, kèm các việc còn dở (chưa đóng quỹ, khoản chi chờ duyệt, giao dịch chưa khớp). Muốn chốt lại thì quay lại bước này. Sổ quỹ không bị sửa.
+3. **Kiểm tra Kho bàn giao:** xem còn thiếu gì và còn bao nhiêu việc dở. Thiếu thì chỉ cảnh báo, không chặn.
+4. **Đổi tài khoản nhận quỹ:** thủ quỹ mới không dùng tiếp tài khoản của thủ quỹ cũ.
+5. **Chuyển quyền quản trị:** từng tài khoản trong kho chuyển sang người nhận mới, vì email trường của chủ nhiệm cũ bị thu hồi khi tốt nghiệp. Chỉ sang bước sau khi mọi tài khoản "bắt buộc chuyển" đã chuyển.
+6. **Ban mới xác nhận:** chỉ chủ nhiệm mới bấm "Tôi đã nhận bàn giao". Người này mở được trang Bàn giao dù chưa có vai ban điều hành.
+7. **Biên bản bàn giao:** chỉ đọc, ghi từng bước đã làm (lúc nào, ai), số dư chốt, ban mới, tài khoản nhận quỹ, bản tóm tắt nếu có. In được, xuất CSV được. Ban mới đã xác nhận thì biên bản không sửa được nữa.
 
-**Chưa có trong bản demo:** mới làm được bước 3 (lưu tài khoản nhận quỹ mới, mã giao dịch chuyển số dư). Các bước 1, 2, 4, 5, 6 đang hiện dòng "Màn của bước này chưa có trong bản vẽ". Giới hạn 30 ngày của ban cũ mới là ghi chú trên màn, chưa có code thực hiện.
+Quay lại bước trước được (có hỏi lại, biên bản ghi lại việc quay lại), trừ khi ban mới đã xác nhận. Nút "Xuất toàn bộ dữ liệu (Excel)" ở màn Bàn giao dùng được bất cứ lúc nào (ban điều hành).
 
-*Màn trong bản demo:* Bàn giao `/clubs/<mã CLB>/handover`
+**Trợ lý bàn giao (bản mẫu).** Không phải chatbot chung: chỉ hai việc.
+- **Tóm tắt cho ban mới:** một bản nháp gồm việc còn dở, hạn sắp tới, kho còn thiếu, tài khoản chưa chuyển, ai hỏi lại. Ban điều hành sửa rồi mới lưu vào biên bản; trợ lý không tự gửi cho ai và không tự đổi dữ liệu.
+- **Hỏi đáp trong Kho bàn giao:** chỉ trả lời từ nội dung kho mà người hỏi được thấy, luôn kèm mục nguồn; không có trong kho thì nói thẳng "Không tìm thấy trong kho bàn giao"; không trả lời về tiền, sổ quỹ, mật khẩu, dữ liệu cá nhân. Thành viên thường không nhận gì từ phần tài khoản.
+- **Bản demo tính từ dữ liệu của CLB, chưa dùng AI thật**, và màn ghi rõ điều đó. Bản miễn phí giới hạn lượt hỏi theo kỳ; mức giới hạn chưa có nên chỉ đếm lượt.
+
+**Chưa có trong bản demo:** bàn giao xong chưa tự đổi vai trò (chủ nhiệm mới chưa thành chủ nhiệm, chủ nhiệm cũ chưa thành thành viên); mentor chưa có thao tác xác nhận biên bản ở phía trường (biên bản chỉ ghi tên mentor); giới hạn 30 ngày của ban cũ mới là ghi chú trên màn.
+
+*Màn trong bản demo:* Bàn giao `/clubs/<mã CLB>/handover`, Kho bàn giao `/clubs/<mã CLB>/handover-kit`
+
+## 8b. Việc cần làm
+
+**Ai làm:** ban điều hành tạo và giao việc (chủ nhiệm, phó, thủ quỹ, trưởng ban); thành viên được giao đổi trạng thái việc của mình.
+
+Mỗi việc có tên, người phụ trách, hạn (tờ lịch đỏ khi quá hạn hoặc còn từ 3 ngày), trạng thái Chưa làm, Đang làm, Xong, và có thể gắn với một buổi hay một quy trình. Giao lại cho người khác bằng cách sửa việc. Mọi đổi trạng thái lưu lịch sử. Việc còn dở hiện ở trang chủ ban điều hành và ở bước 2, 3 của bàn giao. Không có thông báo hay nhắc việc tự động.
+
+*Màn trong bản demo:* Việc cần làm `/clubs/<mã CLB>/tasks`, Việc của tôi (thành viên) `/me/tasks`
 
 ## 9. Dữ liệu cá nhân của thành viên
 
@@ -268,3 +289,269 @@ Ngoài CLB:
 - **Quên mật khẩu:** đăng nhập bằng Google, rồi đặt mật khẩu mới trong 15 phút sau đó, không cần mật khẩu cũ.
 - Đổi tên tài khoản hay mật khẩu: trang "Của tôi", mục "Đăng nhập".
 - Bản demo: dưới ô đăng nhập có bảng tài khoản mẫu cho 7 vai, mật khẩu chung `CauLong#2026`; bấm một vai là điền sẵn. Phần này không có trong bản thật.
+
+---
+
+# Kiểm thử bằng tay các luồng (sau CP2)
+
+*Ngày 22/10/2026. Dành cho người bấm thử bản demo, không cần biết code. Mỗi luồng có các bước, kết quả đúng, và ô để đánh dấu. Dữ liệu là dữ liệu mẫu tự đặt.*
+
+Bấm thử bằng tay bổ sung cho test tự động (`npm test`, `npm run e2e`), không thay thế. Ghi kết quả vào mục "Kết quả" ở cuối file.
+
+## K0. Chuẩn bị
+
+**Quan trọng: đừng để máy chủ ghi vào cơ sở dữ liệu thật.** `server/.env` có thể đang trỏ vào PostgreSQL trên máy bạn. Khi thử, bật máy chủ với `DATABASE_URL` rỗng để dữ liệu chỉ nằm trong bộ nhớ.
+
+Mở **Git Bash** (không dùng PowerShell: ở đó đặt biến rỗng sẽ xóa biến, rồi `.env` được nạp lại):
+
+```bash
+cd server && DATABASE_URL="" AUTH_MODE=demo npm start
+```
+
+Dòng đầu của log phải có `dữ liệu: mẫu, trong bộ nhớ`. Nếu không thấy dòng này thì **dừng lại**, đừng thử tiếp.
+
+Mở cửa sổ thứ hai:
+
+```bash
+cd web && npm run dev
+```
+
+Mở http://localhost:3000/login. Nên dùng cửa sổ ẩn danh, và mỗi vai một cửa sổ ẩn danh khác nhau nếu muốn thử nhiều vai cùng lúc (cookie dùng chung giữa các tab).
+
+**Tài khoản mẫu** (mật khẩu chung `CauLong#2026`; bấm một dòng ở bảng dưới ô đăng nhập là điền sẵn):
+
+| Vai | Tên tài khoản | Ghi chú |
+|---|---|---|
+| Chủ nhiệm | `quocbao` | Phạm Quốc Bảo, chủ nhiệm hiện tại |
+| Thủ quỹ | `thuha` | Lê Thu Hà |
+| Trưởng ban | `giahuy` | Trần Gia Huy |
+| Thành viên | `minhanh` | Nguyễn Minh Anh. **Cũng là chủ nhiệm mới được chọn trong bàn giao mẫu** |
+| Thành viên mới được mời | `hoangnam` | Chưa nhận lời mời |
+| Sinh viên chưa vào CLB | `baochau` | |
+| Ban quản lý CLB của trường | `thutrang` | |
+
+**Đặt lại dữ liệu mẫu** bất cứ lúc nào: trang đăng nhập, nút "Đặt lại dữ liệu mẫu" (hoặc tắt rồi bật lại máy chủ). Làm vậy trước mỗi luồng cần số liệu gốc.
+
+**Số liệu gốc của CLB Cầu lông Sân Nhà** (để đối chiếu): 42 thành viên; số dư 3.120.000 ₫; 5 biểu mẫu, 3 quy trình, 5 tài khoản trong kho, 1 mục thiếu; 6 việc cần làm; bàn giao đang ở bước 4.
+
+> Vài con số phụ thuộc ngày hôm nay (việc quá hạn, "CLB không hoạt động 30 ngày"). Nếu lệch so với file này, xem lại ngày trên máy trước khi báo lỗi.
+
+---
+
+## K1. Đăng xuất của thành viên
+
+Đăng nhập `minhanh`.
+
+- [ ] Mở tab **Của tôi** (`/me`). Mục "Đăng nhập" có dòng **Đăng xuất** dưới "Đổi tên tài khoản và mật khẩu".
+- [ ] Bấm **Đăng xuất**: về trang đăng nhập, có bảng tài khoản mẫu.
+- [ ] Mở lại `/me` khi chưa đăng nhập: bị chuyển về trang đăng nhập, không thấy dữ liệu của `minhanh`.
+
+## K2. Kho bàn giao (chủ nhiệm)
+
+Đăng nhập `quocbao`, menu **Kho bàn giao** (nhóm Nhiệm kỳ).
+
+**K2.1 Xem**
+- [ ] Dòng phụ đầu trang: "5 biểu mẫu · 3 quy trình · 5 tài khoản · 1 mục thiếu".
+- [ ] Ba nút: Biểu mẫu, Quy trình, Tài khoản và quyền truy cập. Bấm từng nút đổi phần hiển thị.
+- [ ] Phần Biểu mẫu có dòng "Không tải lên file có danh sách thành viên thật".
+- [ ] Phần Tài khoản có dòng **"CampusHub không lưu mật khẩu. Đổi quyền quản trị ở chính dịch vụ đó."**
+- [ ] Email của CLB có nhãn "Chưa có người giữ"; Fanpage, Drive, Tài khoản ngân hàng có nhãn "Đứng tên cá nhân: nên chuyển sang tài khoản CLB".
+- [ ] Phần Quy trình: các bước đánh số, có người làm; có dòng "thường phải xong trước N ngày"; có biểu mẫu đi kèm.
+
+**K2.2 Biểu mẫu: thêm, tìm, sửa, xóa**
+- [ ] Bấm **Thêm biểu mẫu**, bấm gửi khi để trống: báo lỗi dưới từng ô (tên, người giữ, link); con trỏ nhảy vào ô lỗi đầu tiên.
+- [ ] Nhập link `javascript:alert(1)`: báo "Đường link phải bắt đầu bằng http:// hoặc https://".
+- [ ] Điền đúng (link dạng `https://example.com/thu`): báo "Đã thêm", số đếm thành 6 biểu mẫu.
+- [ ] Gõ `dung cu` (không dấu) vào ô tìm, nếu tên biểu mẫu có "dụng cụ": ra đúng biểu mẫu đó.
+- [ ] Bấm **Sửa** một biểu mẫu, đổi tên, lưu: tên đổi, ngày cập nhật là hôm nay.
+- [ ] Bấm **Xóa**: có hộp hỏi lại; bấm Hủy thì không xóa; bấm xác nhận thì số đếm giảm.
+- [ ] Xóa "Mẫu xin phép tổ chức sự kiện", rồi xem phần Quy trình: quy trình "Xin phép tổ chức sự kiện" không còn biểu mẫu đó.
+
+**K2.3 Tài khoản và quy trình**
+- [ ] Sửa "Email của CLB", chọn người giữ, lưu: dòng phụ đổi thành "không thiếu mục nào", nhãn vàng biến mất.
+- [ ] Sửa lại, chọn "Chưa có người giữ", lưu: lại thấy "1 mục thiếu".
+- [ ] Thêm quy trình mới: để trống bước thì báo "Cần ít nhất một bước"; thêm 3 bước, dùng nút **Lên**, **Xuống** đổi thứ tự, lưu: thứ tự đúng như đã sắp.
+- [ ] Không có chỗ nào cho phép nhập mật khẩu.
+
+## K3. Kho bàn giao theo vai
+
+- [ ] Đăng nhập `thuha` (thủ quỹ), mở Kho bàn giao: xem được, **không có** nút Thêm, Sửa, Xóa; có dòng "Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban sửa kho bàn giao."
+- [ ] Đăng nhập `giahuy` (trưởng ban): thêm, sửa được.
+- [ ] Đăng nhập `minhanh` (thành viên thường, nhưng đã được chọn làm chủ nhiệm mới ở bước 1): mở được Kho bàn giao và Bàn giao, không có nút Thêm, Sửa, Xóa, không có nút Tóm tắt. Mở thẳng `/clubs/cau-long-san-nha/members` hoặc `/tasks`: bị chặn.
+- [ ] `hoangnam` (chưa nhận lời mời) hoặc `baochau` (chưa vào CLB) mở thẳng `/clubs/cau-long-san-nha/handover-kit`: thấy trang chặn, không thấy dữ liệu.
+
+## K4. Bàn giao 7 bước
+
+Đặt lại dữ liệu mẫu, đăng nhập `quocbao`, menu **Bàn giao**.
+
+**K4.1 Màn bước 4 (dữ liệu mẫu)**
+- [ ] Dải 7 bước nằm gọn trong một hàng; bước 1 đến 3 có dấu tích, bước 4 nổi bật.
+- [ ] Cột phải có "Ban mới Spring 2027": chủ nhiệm Nguyễn Minh Anh, phó Đinh Công Minh, thủ quỹ Võ Ngọc Lan, trưởng ban Trần Gia Huy và Lương Khánh Linh.
+- [ ] Số dư cần chuyển hiện 3.120.000 ₫.
+
+**K4.2 Bước 4, đổi tài khoản nhận quỹ**
+- [ ] Bấm "Lưu và sang bước 5" khi để trống: báo lỗi thiếu ngân hàng, số tài khoản.
+- [ ] Số tài khoản `12ab`: báo lỗi chỉ gồm chữ số.
+- [ ] Điền ngân hàng thử, số tài khoản `0123456789`, lưu: sang bước 5.
+- [ ] Ở bước sau, tài khoản mới chỉ hiện **4 số cuối** (•••• 6789), không hiện đủ số.
+
+**K4.3 Bước 5, chuyển quyền quản trị**
+- [ ] Bảng có 5 tài khoản; 4 cái có nhãn "Bắt buộc". Nút **Tiếp tục bị khóa**, dòng cảnh báo "Còn 4 tài khoản bắt buộc chưa chuyển".
+- [ ] Mỗi dòng có ô "Người nhận mới", mặc định là chủ nhiệm mới.
+- [ ] Bấm **Ghi đã chuyển** từng tài khoản bắt buộc: số "còn N" giảm; dòng đó có nhãn xanh "Đã chuyển". Sau khi chuyển, quay sang Kho bàn giao: người giữ của tài khoản đó đã đổi.
+- [ ] Hết 4 tài khoản bắt buộc thì **Tiếp tục** mở khóa; bấm: sang bước 6.
+
+**K4.4 Bước 6, chủ nhiệm cũ**
+- [ ] Có tóm tắt (số dư, tài khoản nhận quỹ, kho, quyền đã chuyển 4/5, việc còn dở).
+- [ ] **Không có** nút "Tôi đã nhận bàn giao"; có dòng "Chờ Nguyễn Minh Anh xác nhận. Chỉ người này bấm được."
+
+**K4.5 Bước 6, chủ nhiệm mới (thành viên thường)**
+Đăng xuất, đăng nhập `minhanh`, mở `/clubs/cau-long-san-nha/handover`.
+- [ ] Mở được trang Bàn giao dù đang là thành viên thường.
+- [ ] Menu chỉ có hai mục: **Bàn giao** và **Kho bàn giao**.
+- [ ] Không có nút "Xuất toàn bộ dữ liệu (Excel)".
+- [ ] Mở thẳng `/clubs/cau-long-san-nha/members`: bị chặn.
+- [ ] Bấm **Tôi đã nhận bàn giao**: có hộp hỏi lại; xác nhận thì sang bước 7.
+
+**K4.6 Bước 7, biên bản**
+- [ ] Cả 7 bước có dấu tích.
+- [ ] Biên bản có: CLB, nhiệm kỳ, chủ nhiệm cũ, ban mới, số dư đã chốt, tài khoản nhận quỹ mới, mentor, "Ban mới xác nhận" kèm tên và giờ.
+- [ ] Danh sách "Các bước đã làm" có từng dòng với giờ và người làm; dòng cuối: "Nguyễn Minh Anh xác nhận đã nhận bàn giao".
+- [ ] **Không còn** nút "Quay lại bước…".
+- [ ] Đăng nhập `quocbao`: biên bản vẫn chỉ đọc, không quay lại được.
+- [ ] Bấm **Xuất biên bản**: tải được file CSV, mở bằng Excel thấy tiếng Việt đúng dấu.
+- [ ] Bấm **In biên bản**: bản xem trước khi in không có thanh bên và dải bước.
+
+**K4.7 Quay lại bước trước** (đặt lại dữ liệu, đăng nhập `quocbao`)
+- [ ] Ở bước 4 bấm "Quay lại bước 3": có hộp hỏi lại; xác nhận: về bước 3. Làm tiếp tới bước 1.
+- [ ] Bước 1: chọn chủ nhiệm mới là chính **Phạm Quốc Bảo**, bấm lưu: báo "Bạn đang chọn lại chính mình…", hiện ô xác nhận. Không tích ô thì không đi tiếp được.
+- [ ] Chọn một người đã nhận lời mời khác: sang bước 2.
+- [ ] Bước 2 hiện: 11 người chưa đóng quỹ, 2 người chờ xác nhận, 2 khoản chi chờ duyệt (650.000 ₫), 4 giao dịch chưa khớp. Bấm **Chốt số dư**: sang bước 3.
+- [ ] Bước 3: số biểu mẫu, quy trình, tài khoản; dòng cam "1 mục còn thiếu"; "Còn N việc chưa xong" có link sang Việc cần làm. Bấm Tiếp tục: sang bước 4.
+- [ ] Mở Kho bàn giao rồi quay lại: bàn giao vẫn ở đúng bước.
+- [ ] Biên bản (xem ở bước 7 sau này) có dòng "quay lại bước n".
+
+## K5. Việc cần làm
+
+**K5.1 Ban điều hành** (đặt lại dữ liệu, đăng nhập `quocbao`, menu **Việc cần làm**)
+- [ ] Ba cột: Chưa làm, Đang làm, Xong. Mỗi việc có tờ lịch hạn; việc quá hạn có tờ lịch **đỏ**; việc xong không đỏ.
+- [ ] Dòng phụ đầu trang: "5 việc chưa xong · N quá hạn".
+- [ ] Bấm **Thêm việc** rồi gửi trống: báo lỗi ở tên việc, người phụ trách, hạn.
+- [ ] Điền đủ (người phụ trách: Nguyễn Hải Đăng, hạn một ngày sắp tới, gắn một buổi): việc xuất hiện ở cột Chưa làm, có nhãn "Buổi: …".
+- [ ] Bấm **Bắt đầu**: việc sang Đang làm, có thông báo ngắn. Bấm **Xong**: sang Xong. Bấm **Mở lại**: về Đang làm.
+- [ ] Bấm **Sửa**, đổi người phụ trách: việc đổi tên người (giao lại).
+- [ ] Bộ lọc **Quá hạn**: chỉ còn việc quá hạn; **Việc của tôi**: chỉ việc giao cho Phạm Quốc Bảo; ô "Mọi người" lọc theo người.
+- [ ] Đăng nhập `thuha`: thêm việc được (thủ quỹ thuộc ban điều hành).
+
+**K5.2 Thành viên** (đăng nhập `minhanh`, điện thoại hoặc thu hẹp cửa sổ cỡ 390px)
+- [ ] `/me` có dòng "Việc được giao cho tôi", bấm vào ra `/me/tasks`.
+- [ ] Thấy việc "Mua nước uống cho giải nội bộ" với tờ lịch đỏ (quá hạn); không thấy việc của người khác.
+- [ ] Bấm **Xong**: việc xuống mục "Đã xong". Bấm "Mở lại": lên lại.
+- [ ] Nút bấm đủ lớn để chạm bằng ngón tay.
+
+## K6. Trợ lý bàn giao (bản mẫu)
+
+Đăng nhập `quocbao`, Kho bàn giao, khối "Hỏi về bàn giao" ở đầu trang.
+
+**K6.1 Hỏi đáp**
+- [ ] Hỏi: `Mẫu xin phép sự kiện ở đâu?`. Câu trả lời có link biểu mẫu, người giữ; dưới có "Nguồn:" kèm các nút.
+- [ ] Bấm một nút nguồn (ví dụ "Quy trình: Xin phép tổ chức sự kiện"): chuyển sang đúng phần, mục đó được tô nền xanh nhạt và con trỏ nhảy tới.
+- [ ] Dưới ô hỏi có chữ **"Bản mẫu: câu trả lời lấy từ dữ liệu mẫu, chưa dùng AI thật."**, số lượt đã hỏi, và "mức giới hạn: chưa có".
+- [ ] Hỏi: `Ai giữ quyền fanpage?`: ra tài khoản Fanpage Facebook và người giữ.
+- [ ] Hỏi: `Quy định về xe đạp điện là gì?`: "Không tìm thấy trong kho bàn giao." (không bịa).
+- [ ] Hỏi: `Số dư quỹ bây giờ là bao nhiêu?`: bị từ chối, nói không trả lời về tiền, sổ quỹ, mật khẩu, dữ liệu cá nhân.
+- [ ] Hỏi `ab`: báo câu hỏi quá ngắn.
+- [ ] Số lượt tăng sau mỗi lần hỏi.
+
+**K6.2 Tóm tắt**
+- [ ] Bấm **Tóm tắt**: hiện bản nháp, có nhãn **"Bản mẫu, chưa dùng AI thật"** (và **không** có nhãn "AI viết, cần kiểm tra" trong bản mẫu).
+- [ ] Nội dung khớp dữ liệu: số việc chưa xong, kho còn thiếu Email của CLB, các tài khoản đứng tên cá nhân, tài khoản bắt buộc chưa chuyển, chủ nhiệm Phạm Quốc Bảo và thủ quỹ Lê Thu Hà để hỏi lại.
+- [ ] Sửa chữ trong ô văn bản được.
+- [ ] Bấm **Đóng, không lưu**: bản nháp mất; kiểm tra biên bản sau này không có bản tóm tắt này; con trỏ về nút Tóm tắt.
+- [ ] Đưa bàn giao tới bước 6 (xem K4.2, K4.3). Ở bước 6 bấm **Tóm tắt**, sửa, bấm **Lưu vào biên bản**: có thông báo; hiện khối "Bản tóm tắt cho ban mới" kèm "Lưu bởi Phạm Quốc Bảo, giờ ngày… · Bản mẫu, chưa dùng AI thật".
+- [ ] Đăng nhập `minhanh`, bấm xác nhận nhận bàn giao: biên bản bước 7 có bản tóm tắt và dòng "lưu bản tóm tắt cho ban mới vào biên bản (bản mẫu…)".
+- [ ] `minhanh` **không có** nút Tóm tắt.
+
+## K7. Trang chủ ban điều hành và menu
+
+Đặt lại dữ liệu, đăng nhập `quocbao`, menu **Trang chủ**.
+
+- [ ] Tiêu đề trang là **"Trang chủ"** (không còn "Việc cần làm").
+- [ ] Thứ tự khối bên trái: Việc cần làm, Bàn giao, Sự kiện sắp tới. Bên phải: Cần bạn xử lý, Thống kê tham gia. **Quỹ là một hàng ở cuối trang**: "Quỹ  3.120.000 ₫ · 2 khoản chờ duyệt" và nút "Mở quỹ".
+- [ ] Khối Việc cần làm tối đa 4 việc, quá hạn trước; có dòng "Còn N việc nữa" khi nhiều hơn.
+- [ ] Khối Bàn giao có thanh tiến độ, dòng "bước 4 / 7, đổi tài khoản nhận quỹ", link "Tiếp tục bàn giao"; ghi "1 mục thiếu" của kho.
+- [ ] Ở buổi sinh hoạt kế tiếp, nút "Mở QR" là nút viền (vì đầu trang đã có nút "Mở QR điểm danh" đặc).
+- [ ] Menu: thứ tự Trang chủ, Thành viên, Điểm danh, Việc cần làm, [Nhiệm kỳ] Bàn giao, Kho bàn giao, rồi **Quỹ** ở dưới cùng.
+- [ ] Nhóm **Quỹ đóng**, có số 6 bên phải (tổng việc chờ). Bấm "Quỹ": mở ra Đợt thu, Đối soát sao kê, Đề xuất và duyệt chi, Dự trù kỳ; bấm lần nữa: đóng.
+- [ ] Mở thẳng một trang của quỹ (ví dụ Đối soát): nhóm Quỹ tự mở. Bấm nút Quỹ ở đó: đóng được.
+- [ ] Các trang tiền (Đợt thu, Đối soát, Duyệt chi, Dự trù) vẫn hoạt động như trước.
+
+**K7.1 Thẻ khóa và bản trả phí**
+- [ ] Thẻ "Thống kê tham gia" có nhãn **"Có trong bản trả phí"**; hai nhãn số đọc được, phần số bị làm mờ; có dòng "phép đếm, không phải AI".
+- [ ] Bấm "Tìm hiểu bản trả phí": trang chỉ có chữ; có "Chưa có giá", "Không khóa phần cốt lõi", bảng Miễn phí và Trả phí; **không có nút mua hay thanh toán**.
+
+## K8. Khung quảng cáo mẫu
+
+Đăng nhập `minhanh`, thu hẹp cửa sổ cỡ 390px.
+
+- [ ] `/me`: có khung viền 1px, nhãn "Được tài trợ", chữ "Chỗ đặt quảng cáo (ví dụ)". Khung nhỏ (dưới 30% chiều cao màn hình), không che nội dung, không nhấp nháy, không tự phát gì.
+- [ ] Bấm **Ẩn quảng cáo này**: khung biến mất. Chuyển trang rồi quay lại trong cùng phiên: vẫn ẩn. Đóng tab mở lại: hiện lại.
+- [ ] Đăng nhập `baochau`, mở **Tìm CLB** (`/explore`): có khung xen giữa danh sách, sau hai CLB.
+- [ ] **Không có** khung này ở: màn đóng quỹ (`/me/pay/quy-fall-2026`), màn bàn giao, màn quét QR điểm danh.
+
+## K9. Trang đầu
+
+Mở cửa sổ ẩn danh, vào http://localhost:3000.
+- [ ] Câu mở đầu nói **"Bộ bàn giao cho ban điều hành CLB, dùng cạnh Google Sheets"**; điểm danh QR và ghi sổ quỹ "đi kèm".
+- [ ] Hai video demo vẫn chạy. *Lưu ý: video là bản cũ, chưa có Kho bàn giao, chưa quay lại.*
+
+## K10. Quyền theo vai (kiểm tra ở máy chủ)
+
+Giao diện có thể ẩn nút, nhưng máy chủ mới là chỗ chặn thật. Mở cửa sổ dòng lệnh, chạy (máy chủ ở chế độ demo):
+
+```bash
+# Thành viên thường xem kho: chỉ có biểu mẫu và quy trình, KHÔNG có "accounts"
+curl -s http://localhost:4000/api/v1/clubs/cau-long-san-nha/handover-kit -H "X-Demo-User: a018"
+
+# Thành viên thường hỏi trợ lý về fanpage: found=false, không lộ tên người giữ
+curl -s -X POST http://localhost:4000/api/v1/clubs/cau-long-san-nha/ai/ask -H "X-Demo-User: a018" -H "Content-Type: application/json" -d '{"question":"Ai giữ quyền fanpage?"}'
+
+# Thành viên thường tạo việc: phải bị 403
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:4000/api/v1/clubs/cau-long-san-nha/tasks -H "X-Demo-User: a018" -H "Content-Type: application/json" -d '{"title":"x","assigneeId":"a018","due":"2026-10-30T23:59:00+07:00"}'
+
+# Thủ quỹ thêm biểu mẫu: phải bị 403
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:4000/api/v1/clubs/cau-long-san-nha/handover-kit/documents -H "X-Demo-User: a002" -H "Content-Type: application/json" -d '{"name":"x","category":"other","link":"https://example.com","holderId":"a003"}'
+```
+
+- [ ] Lệnh 1: kết quả **không** có trường `accounts` và `holders`.
+- [ ] Lệnh 2: `"found":false`, không có tên "Phạm Quốc Bảo".
+- [ ] Lệnh 3 và 4: in `403`.
+- [ ] Chủ nhiệm cũ gọi xác nhận nhận bàn giao khi đang ở bước 6 (`POST .../handover/accept` với `X-Demo-User: a001`): `403`.
+
+## K11. Lỗi và trường hợp biên
+
+- [ ] Mở một đường dẫn không có (ví dụ `/clubs/cau-long-san-nha/khong-co`): trang "Không tìm thấy", có tiếng Việt, có đường về.
+- [ ] Tắt máy chủ, tải lại một trang ban điều hành: hiện trang lỗi có nút thử lại, không phải trang trắng.
+- [ ] Mở trang nặng rồi bấm nhanh qua lại các mục menu: không nhấp nháy trắng, không thấy chữ "Đang tải…" (phải là khung xương đúng bố cục).
+- [ ] Bật "giảm chuyển động" trong hệ điều hành: không còn chuyển động nhảy.
+- [ ] Mở trong trình duyệt của Zalo hoặc Messenger (cần đưa lên mạng nên **chưa thử được** ở bản demo trên máy).
+
+---
+
+## Kết quả
+
+Ghi mỗi lần thử vào bảng. Lỗi thì ghi rõ số mục, vai đang dùng, điều thấy và điều mong đợi.
+
+| Ngày | Người thử | Mục | Đạt / Lỗi | Ghi chú |
+|---|---|---|---|---|
+| | | | | |
+
+## Phần chưa có trong bản demo (không phải lỗi)
+
+- Bàn giao xong chưa tự đổi vai trò (chủ nhiệm mới chưa thành chủ nhiệm, chủ nhiệm cũ chưa thành thành viên).
+- Mentor chưa có thao tác xác nhận biên bản ở phía trường; biên bản chỉ ghi tên mentor.
+- Chưa có màn xem Kho bàn giao hay hỏi trợ lý cho thành viên thường (API đã chặn đúng vai).
+- Trợ lý chưa dùng AI thật; bản miễn phí chưa có mức giới hạn lượt hỏi.
+- Dữ liệu mẫu "Sự kiện sắp tới" vẫn theo ngày 03/10 và 18/10/2026.
+- Hai video demo ở trang đầu chưa quay lại.
+- Chưa có hồ sơ hoạt động của thành viên, chưa có ảnh buổi sinh hoạt.

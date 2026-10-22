@@ -10,5 +10,5 @@ export * from "../../web/src/lib/reconcile.ts";
 export * from "../../web/src/lib/account.ts";
 export * from "../../web/src/lib/demo-accounts.ts";
 export { createSeed, DEMO_CLUB_ID, DEMO_COLLECTION_ID, DEMO_TERM, STATE_VERSION } from "../../web/src/lib/seed.ts";
-export { daysAgo, money, nowIso } from "../../web/src/lib/format.ts";
+export { daysAgo, dm, dmy, money, nowIso } from "../../web/src/lib/format.ts";
 export { matchesSearch, slugify, toAsciiUpper } from "../../web/src/lib/text.ts";

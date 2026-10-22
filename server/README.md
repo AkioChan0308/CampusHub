@@ -14,7 +14,7 @@ Cần Node.js 22.12 trở lên. Node chạy thẳng file TypeScript nên không 
 cd server
 npm install
 npm run dev          # http://localhost:4000/api/v1, tự chạy lại khi sửa code
-npm test             # 62 test: gọi từng API qua HTTP (dữ liệu trong bộ nhớ), kèm test phần lưu PostgreSQL (PGlite)
+npm test             # 96 test: gọi từng API qua HTTP (dữ liệu trong bộ nhớ), kèm test phần lưu PostgreSQL (PGlite)
 npm run test:db      # cũng các test đó, nhưng dữ liệu và phiên lưu trong PostgreSQL (PGlite, không cần cài gì)
 npm run typecheck
 ```
@@ -41,7 +41,7 @@ src/
   app.ts          dựng Express từ bảng ENDPOINTS; đăng nhập, CORS, trả lỗi
   index.ts        chạy máy chủ
   handlers/       mỗi API một hàm, chia theo người gọi: auth (đăng nhập), me (thành viên), explore (sinh viên tìm CLB),
-                  board (ban điều hành: thành viên, buổi, QR, bàn giao), setup (tạo CLB, thêm thành viên, buổi, đợt thu),
+                  board (ban điều hành: thành viên, buổi, QR, bàn giao 7 bước), kit (kho bàn giao), tasks (việc cần làm), ai (trợ lý bàn giao), setup (tạo CLB, thêm thành viên, buổi, đợt thu),
                   money (đợt thu, đối soát, chi), school (nhà trường), system (health, đặt lại dữ liệu mẫu)
   responses.ts    đổi dữ liệu nội bộ thành đúng dạng trả về; quyết định ai thấy trường nào
   access.ts       kiểm tra quyền: ban điều hành, vai trò, thành viên, cán bộ của trường
@@ -63,7 +63,7 @@ src/
     store.ts      kho dữ liệu lưu PostgreSQL (giữ một bản trong bộ nhớ để đọc nhanh)
     sessions.ts   phiên đăng nhập lưu PostgreSQL (chỉ lưu mã băm của cookie)
     accounts.ts   tài khoản đăng nhập bằng mật khẩu lưu PostgreSQL (bảng accounts)
-db/migrations/    lược đồ SQL: 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ), 002_tien_cho_sao_ke.sql, 003_tai_khoan.sql (bảng accounts).
+db/migrations/    lược đồ SQL: 004_handover_kit.sql (kho bàn giao), 005_handover_steps.sql (bàn giao 7 bước, việc cần làm), 006_ai_assistant.sql (trợ lý bàn giao), 001_khoi_tao.sql (bảng, luật chỉ-được-thêm của sổ quỹ), 002_tien_cho_sao_ke.sql, 003_tai_khoan.sql (bảng accounts).
                   Tên file đã chạy không đổi được (máy chủ ghi tên vào bảng schema_migrations); file mới đặt tên tiếng Anh, ví dụ 004_refunds.sql
 docker-compose.yml  PostgreSQL 17 cho máy phát triển
 test/             test gọi API qua HTTP với đồng hồ cố định 07:40 ngày 03/10/2026; pglite.ts: PostgreSQL chạy trong Node cho test
@@ -168,6 +168,41 @@ Khi nối web với server, Hiệu cho sửa server và ghi lại ở đây đ�
   - **Tài khoản mẫu (05/10/2026, Hiệu yêu cầu, thay trang chọn vai):** ở chế độ demo, máy chủ tạo tài khoản cho 7 người mẫu (danh sách và mật khẩu chung ở `web/src/lib/demo-accounts.ts`, xuất qua `domain.ts`): lúc khởi động thì chỉ tạo người chưa có tài khoản (`src/index.ts`), `POST /demo/reset` thì xóa hết rồi tạo lại (`src/handlers/system.ts`). Code ở `src/demo-accounts.ts`; mật khẩu mẫu chỉ băm một lần. `POST /auth/dev-login` vẫn còn cho script bấm thử.
   - Test: `test/account.test.ts` (8 test; người thử là a018 vì a017 có tài khoản mẫu; thêm kiểm tra đặt lại dữ liệu thì tạo lại đủ 7 tài khoản mẫu); `auth.test.ts` sửa theo đường chuyển mới sau lần đầu đăng nhập Google; `db.test.ts` kiểm tra tài khoản còn sau khi khởi động lại. Cả bộ: 71/71, `npm run test:db` 71/71.
   - **Lỗi đăng nhập Google gửi mã, không gửi câu:** `GET /auth/google/start` và `/callback` chuyển về `/login?error=<mã>` (`LoginErrorCode` trong `contract.ts`: `google-disabled`, `cancelled`, `expired`, `google-failed`, `email-unverified`). Trước đây gửi nguyên câu tiếng Việt và web hiện thẳng câu đó, nên ai cũng gửi được link kèm câu báo giả trong khung đỏ của trang đăng nhập. Web đổi mã thành câu có sẵn; mã lạ thì hiện một câu chung.
+
+## Đã đổi ngày 22/10/2026 (báo Khoa)
+
+Theo `../docs/tien-do-mvp.md` (phần B) (Hiệu giao). Hợp đồng API mới chờ Khoa xem sau, như Hiệu đã chọn.
+- **Kho bàn giao** (nhóm A): 10 API `/clubs/:clubId/handover-kit...` (đọc; thêm, sửa, xóa biểu mẫu, quy trình, tài khoản). Code ở `src/handlers/kit.ts`.
+  - Quyền sửa mới `kit` (chủ nhiệm, phó chủ nhiệm, trưởng ban) trong `web/src/lib/selectors.ts`.
+  - **Kho không lưu mật khẩu.** Link biểu mẫu chỉ nhận `http(s)://`.
+  - `GET` mở cho thành viên đã nhận lời mời; `src/responses.ts` (`kitRes`) quyết định thành viên thường chỉ nhận biểu mẫu và quy trình, không nhận tài khoản, người giữ, số mục thiếu.
+  - Lược đồ: `db/migrations/004_handover_kit.sql` (bảng `kit_documents`, `kit_processes`, `kit_accounts`; các bước và biểu mẫu đi kèm của quy trình lưu dạng jsonb).
+- **Bàn giao 7 bước** (nhóm B): thêm bước "Kiểm tra kho bàn giao" vào vị trí 3, bước cũ 3 trở đi dời xuống một bước.
+  - 6 API mới: `PUT /handover/board`, `POST /handover/lock-balance`, `/handover/kit-review`, `/handover/accounts/:itemId/transfer`, `/handover/transfer-done`, `/handover/accept`. `PUT /handover/receiver` nay là bước 4 và `PUT /handover/step` nhận 1 đến 7.
+  - Mỗi thao tác chỉ làm được khi bàn giao đang đúng ở bước của nó (409), rồi sang bước kế và ghi một dòng vào biên bản (`history`). Quay lại bước trước bị chặn khi ban mới đã xác nhận.
+  - `GET /clubs/:clubId/board` và `GET /handover` mở thêm cho người được chọn làm chủ nhiệm mới ở bước 1 (đã nhận lời mời), kể cả khi họ đang là thành viên thường (Hiệu chọn 22/10/2026): `requireBoardOrIncoming` trong `src/access.ts`. Các API ban điều hành khác vẫn chặn họ; `POST /handover/accept` chỉ người đó gọi được.
+  - Luật ở `web/src/lib/actions.ts` (`saveHandoverBoard`, `lockHandoverBalance`, `reviewHandoverKit`, `saveHandoverAccount`, `transferHandoverAccount`, `finishHandoverTransfer`, `acceptHandover`, `setHandoverStep`). `saveHandoverAccount` và `setHandoverStep` đổi chữ ký (thêm người làm và thời điểm).
+  - `GET /handover` trả thêm ban mới, việc còn dở, tóm tắt kho, tài khoản của kho, biên bản, `canAccept`.
+  - Dữ liệu cũ trong PostgreSQL: migration `005_handover_steps.sql` dời bước từ 3 trở đi xuống một bước, nên bàn giao đang ở bước 3 cũ thành bước 4 mới. Dữ liệu cũ chưa có ban mới (`newBoard`) nên bước 6 chưa xác nhận được cho tới khi quay lại bước 1 chọn ban mới.
+  - Chưa làm: áp dụng vai trò mới khi bàn giao xong.
+- **Việc cần làm** (nhóm B): 5 API `/clubs/:clubId/tasks...` và `GET /me/tasks`. Code ở `src/handlers/tasks.ts`.
+  - Quyền mới `task` (ban điều hành, kể cả thủ quỹ) tạo, giao, sửa việc; người được giao đổi trạng thái việc của mình (`POST .../status` mở cho thành viên đã nhận lời mời, kiểm tra người giao ở handler). Mọi thay đổi lưu lịch sử.
+  - Lược đồ: `db/migrations/005_handover_steps.sql` (bảng `tasks`, `task_history`; `event_id` và `process_id` không có khóa ngoại để xóa buổi hay quy trình không bị chặn).
+- `STATE_VERSION` của dữ liệu mẫu lên 4 (có `kitDocuments`, `kitProcesses`, `kitAccounts`, `tasks`).
+- Test: `test/handover-kit.test.ts` (10), `test/handover-steps.test.ts` (6); `db.test.ts` thêm các thao tác mới để kiểm tra lưu và khởi động lại. `board.test.ts` sửa theo bước mới và theo việc a017 là chủ nhiệm mới trong dữ liệu mẫu. Cả bộ 87/87, `npm run test:db` 87/87.
+
+## Đã đổi ngày 22/10/2026, nhóm C (báo Khoa)
+
+- **Trợ lý bàn giao (bản mẫu)**: 4 API: `GET /clubs/:clubId/ai`, `POST .../ai/summary`, `POST .../ai/ask`, `PUT /clubs/:clubId/handover/summary`. Code ở `src/ai.ts` (tầng trợ lý) và `src/handlers/ai.ts`.
+  - Cấu hình mới `AI_MODE=mock|real` (mặc định `mock`) và `AI_FREE_ASKS_PER_TERM` (trống hoặc 0 là không giới hạn) trong `.env.example`. `real` chưa nối nên API trả 501 `NOT_IMPLEMENTED` (mã lỗi mới). Chưa chọn nhà cung cấp AI, chưa có khóa; khi làm không gửi tên hay email thành viên ra ngoài, chỉ gửi vai trò.
+  - Giao diện `Assistant` (tóm tắt, hỏi đáp) dùng chung cho bản mẫu và bản thật. Bản mẫu **tính từ dữ liệu của CLB**: đếm việc quá hạn, mục thiếu, tài khoản chưa chuyển; hỏi đáp tìm từ khóa trong nội dung kho, trả về mục khớp nhất kèm nguồn.
+  - Quyền theo vai: ban điều hành hỏi được cả phần tài khoản; thành viên thường chỉ hỏi được biểu mẫu và quy trình (tài khoản không có trong tập tìm kiếm, nên không lộ cả việc tài khoản có tồn tại). Câu hỏi về tiền, sổ quỹ, mật khẩu, dữ liệu cá nhân bị từ chối.
+  - Tóm tắt chỉ là bản nháp, không lưu gì; lưu vào biên bản là `PUT .../handover/summary` (chủ nhiệm, và chưa bị khóa), ghi ai lưu, lúc nào, bản mẫu hay không.
+  - Đếm lượt dùng theo CLB và học kỳ; mức giới hạn lượt của bản miễn phí chưa có nên mặc định chỉ đếm.
+  - Lược đồ: `db/migrations/006_ai_assistant.sql` (cột `handovers.summary`, bảng `ai_usage`).
+- **Trang chủ ban điều hành**: `GET /clubs/:clubId/dashboard` trả thêm `tasks`, `handover`, `kit`, `participation` (thống kê tham gia là phép đếm từ điểm danh, không phải AI). `dashboardRes` nhận thêm thời điểm hiện tại.
+- Luật mới ở `web/src/lib`: `saveHandoverSummary`, `countAiUse`, `aiUsageOf`, `participationStats`. `STATE_VERSION` lên 5.
+- Test: `test/ai.test.ts` (9); `db.test.ts` thêm hỏi đáp, tóm tắt, lưu bản tóm tắt. Cả bộ 96/96, `npm run test:db` 96/96.
 
 ## Chưa có
 

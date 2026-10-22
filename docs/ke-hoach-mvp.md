@@ -22,6 +22,12 @@
   - gửi email;
   - xử lý yêu cầu xóa dữ liệu.
 
+**Hướng dẫn của cô ngày 05/10/2026 (ảnh hưởng tới CP3; Hiệu chọn ghi lại, bàn sau khi nộp CP2 ngày 17 hoặc 18/10):**
+- Sản phẩm **phải tích hợp AI**; không có thì Checkpoint 3 tối đa 5 điểm. Cô chấm độ phức tạp: kéo AI về làm chatbot khác với dùng AI để đánh giá, mô phỏng. Kế hoạch này hiện chưa có tính năng AI nào (mục 2 ghi "không hứa có AI dự báo").
+- **Prototype và test với 20 người đúng persona** (focus group hoặc survey) thuộc CP3 phần 2, nộp **24–25/10**. Kế hoạch này đang coi MVP là Checkpoint 4 với lộ trình 10 tuần, nên phải đối chiếu lại mốc.
+- Cô hướng tới **MMP** (bản người dùng sẵn sàng trả tiền), không chỉ MVP. Công cụ cô gợi ý để làm nhanh prototype: Lovable, Google AI Studio.
+- Nguồn: `../CP2/Checkpoint2_Huong_dan.md` mục 7–8; `../CP2/Meeting Transcription.pdf` (phút 01:14–01:17).
+
 ## Tóm tắt
 
 Làm thật ngay phần cho **ban điều hành CLB**: thành viên, điểm danh, sổ quỹ (kèm thanh toán VietQR và đối soát sao kê), bàn giao.

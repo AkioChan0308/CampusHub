@@ -187,9 +187,59 @@ Cột "Màn" là tên màn trong `design/screens/`.
 
 | API | Ai gọi | Màn | Ghi chú |
 |---|---|---|---|
-| `GET /clubs/:clubId/handover` | Ban điều hành | BDH-BanGiao | Bước hiện tại, số dư đã chốt và hiện tại, tài khoản nhận quỹ cũ và mới (chỉ 4 số cuối) |
-| `PUT /clubs/:clubId/handover/receiver` | Chủ nhiệm | BDH-BanGiao | Bước 3: `personId`, `bank`, `account` (chỉ chữ số), `transferRef`. Lưu xong sang bước 4 |
-| `PUT /clubs/:clubId/handover/step` | Chủ nhiệm | BDH-BanGiao | Chỉ quay lại bước trước |
+Từ 22/10/2026 bàn giao có **7 bước**: 1 chọn ban mới, 2 chốt số dư, 3 kiểm tra kho bàn giao, 4 đổi tài khoản nhận quỹ, 5 chuyển quyền quản trị, 6 ban mới xác nhận, 7 biên bản. Mỗi thao tác chỉ làm được khi bàn giao đang đúng ở bước của nó (không thì 409), làm xong sang bước kế và ghi một dòng vào biên bản (`history`). Dữ liệu cũ ở bước 3 trở đi được dời xuống một bước (`db/migrations/005_handover_steps.sql`).
+
+| API | Ai gọi | Màn | Ghi chú |
+|---|---|---|---|
+| `GET /clubs/:clubId/handover` | Ban điều hành, hoặc người được chọn làm chủ nhiệm mới ở bước 1 | BDH-BanGiao | Bước hiện tại, số dư đã chốt và hiện tại, ban mới, việc còn dở (`open`), tóm tắt kho (`kit`), các tài khoản của kho (`accounts`), tài khoản nhận quỹ cũ và mới (chỉ 4 số cuối), biên bản (`history`), `canAccept` |
+| `PUT /clubs/:clubId/handover/board` | Chủ nhiệm | BDH-BanGiao | Bước 1: `presidentId`, `viceId`, `treasurerId`, `headIds`. Chỉ người đã nhận lời mời, mỗi người một vai. Chủ nhiệm hiện tại chọn lại chính mình thì phải gửi `confirmSelf: true` |
+| `POST /clubs/:clubId/handover/lock-balance` | Chủ nhiệm | BDH-BanGiao | Bước 2: chốt số dư bằng số dư sổ quỹ lúc bấm. Muốn chốt lại thì quay lại bước 2 |
+| `POST /clubs/:clubId/handover/kit-review` | Chủ nhiệm | BDH-BanGiao | Bước 3: đã xem kho bàn giao. Không chặn khi kho còn thiếu; số mục thiếu ghi vào biên bản |
+| `PUT /clubs/:clubId/handover/receiver` | Chủ nhiệm | BDH-BanGiao | Bước 4: `personId`, `bank`, `account` (chỉ chữ số), `transferRef`. Lưu xong sang bước 5 |
+| `POST /clubs/:clubId/handover/accounts/:itemId/transfer` | Chủ nhiệm | BDH-BanGiao | Bước 5, từng dòng: `holderId` là người nhận quyền quản trị của tài khoản trong kho. Đổi quyền thật làm ở chính dịch vụ; ở đây chỉ ghi lại |
+| `POST /clubs/:clubId/handover/transfer-done` | Chủ nhiệm | BDH-BanGiao | Hết bước 5. 409 khi còn tài khoản "bắt buộc chuyển khi bàn giao" chưa chuyển |
+| `POST /clubs/:clubId/handover/accept` | Chủ nhiệm mới (người được chọn ở bước 1) | BDH-BanGiao | Bước 6: người khác gọi thì 403. Xong thì sang bước 7 và biên bản không sửa được nữa |
+| `PUT /clubs/:clubId/handover/step` | Chủ nhiệm | BDH-BanGiao | Chỉ quay lại bước trước, và chỉ khi ban mới chưa xác nhận |
+| `PUT /clubs/:clubId/handover/summary` | Chủ nhiệm | BDH-BanGiao | Lưu bản tóm tắt cho ban mới (`text`, đã được người duyệt sửa) vào biên bản; ghi ai lưu, lúc nào. 409 khi ban mới đã xác nhận |
+
+### Trợ lý bàn giao (bản mẫu)
+
+Thêm ngày 22/10/2026 (mô tả ở `docs/tien-do-mvp.md`, phần B, mục 5.5). **Không phải chatbot chung**: chỉ hai việc gắn với bàn giao, tóm tắt và hỏi đáp trong Kho bàn giao. Cấu hình `AI_MODE=mock|real` trong `server/.env` (mặc định `mock`). Bản mẫu **tính từ dữ liệu của CLB**, không gọi dịch vụ AI nào; `real` chưa nối nên trả 501 `NOT_IMPLEMENTED`. Mọi kết quả có `mode` để màn ghi rõ "Bản mẫu, chưa dùng AI thật". Trợ lý không tự gửi cho ai và không tự đổi dữ liệu.
+
+| API | Ai gọi | Màn | Ghi chú |
+|---|---|---|---|
+| `GET /clubs/:clubId/ai` | Thành viên đã nhận lời mời | Trợ lý bàn giao | `mode` và `usage` (số lượt đã hỏi và đã tóm tắt trong kỳ; `limit` chỉ có khi đã đặt `AI_FREE_ASKS_PER_TERM`) |
+| `POST /clubs/:clubId/ai/summary` | Ban điều hành | Trợ lý bàn giao | Bản nháp tóm tắt cho ban mới: việc còn dở, hạn sắp tới, kho còn thiếu, tài khoản chưa chuyển, ai hỏi lại. Không lưu gì; lưu vào biên bản bằng `PUT /clubs/:clubId/handover/summary` |
+| `POST /clubs/:clubId/ai/ask` | Thành viên đã nhận lời mời | Trợ lý bàn giao | `question`. Chỉ trả lời từ nội dung kho mà người hỏi được thấy và luôn kèm `sources` (mục để mở). Không có trong kho thì `found: false`, "Không tìm thấy trong kho bàn giao." Thành viên thường không nhận gì từ phần tài khoản. Câu hỏi về tiền, sổ quỹ, mật khẩu, dữ liệu cá nhân thì từ chối. Mỗi lần hỏi tính một lượt; có `AI_FREE_ASKS_PER_TERM` thì hết lượt trả 409 |
+
+### Việc cần làm
+
+Thêm ngày 22/10/2026 (bản vẽ chưa có; mô tả ở `docs/tien-do-mvp.md`, phần B, mục 5.3). Ban điều hành tạo, giao, sửa việc. Người được giao đổi được trạng thái việc của mình. Mọi đổi trạng thái lưu lịch sử (ai, lúc nào). Không có thông báo hay nhắc việc tự động.
+
+| API | Ai gọi | Màn | Ghi chú |
+|---|---|---|---|
+| `GET /clubs/:clubId/tasks` | Ban điều hành | Việc cần làm | Hạn gần nhất trước; kèm danh sách người phụ trách, buổi và quy trình để chọn khi tạo việc |
+| `POST /clubs/:clubId/tasks` | Ban điều hành | Việc cần làm | `title`, `assigneeId` (thành viên đã nhận lời mời), `due`, `eventId`, `processId` (không bắt buộc, của chính CLB) |
+| `PUT /clubs/:clubId/tasks/:taskId` | Ban điều hành | Việc cần làm | Cùng dữ liệu như tạo. Đổi `assigneeId` là giao lại; lịch sử ghi "giao lại cho …" |
+| `POST /clubs/:clubId/tasks/:taskId/status` | Ban điều hành, hoặc người được giao việc đó | Việc cần làm | `status`: `todo`, `doing`, `done`. Thành viên thường đổi việc của người khác thì 403 |
+| `GET /me/tasks` | Người đã đăng nhập | Việc của tôi | Việc được giao cho mình ở mọi CLB đã nhận lời mời, hạn gần nhất trước |
+
+### Kho bàn giao
+
+Thêm ngày 22/10/2026 (bản vẽ chưa có; mô tả ở `docs/tien-do-mvp.md`, phần B, mục 5.2). Ba phần: biểu mẫu, quy trình, tài khoản và quyền truy cập. **Kho không lưu mật khẩu**: chỉ tên dịch vụ, đường link và người giữ quyền quản trị. Sửa: chủ nhiệm, phó chủ nhiệm, trưởng ban. Thành viên thường chỉ đọc được biểu mẫu và quy trình; phần tài khoản, số mục thiếu và danh sách người giữ chỉ ban điều hành nhận (`server/src/responses.ts`, hàm `kitRes`).
+
+| API | Ai gọi | Màn | Ghi chú |
+|---|---|---|---|
+| `GET /clubs/:clubId/handover-kit` | Thành viên đã nhận lời mời (thành viên thường không thấy tài khoản) | Kho bàn giao | `documents`, `processes`; ban điều hành nhận thêm `accounts`, `holders` và `summary` đủ (`accounts`, `missing`, `personal`). `missing`: tài khoản "bắt buộc chuyển khi bàn giao" mà chưa ghi người giữ |
+| `POST /clubs/:clubId/handover-kit/documents` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | `name`, `category` (`permit`, `finance`, `media`, `other`), `link` (http hoặc https), `holderId` (thành viên của CLB) |
+| `PUT /clubs/:clubId/handover-kit/documents/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | Cùng dữ liệu như thêm |
+| `DELETE /clubs/:clubId/handover-kit/documents/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | Xóa biểu mẫu và gỡ nó khỏi các quy trình đang dùng |
+| `POST /clubs/:clubId/handover-kit/processes` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | `name`, `steps` (1–20 bước, mỗi bước `text` và `who`), `leadDays` (0–365, không bắt buộc), `documentIds` (biểu mẫu của chính CLB) |
+| `PUT /clubs/:clubId/handover-kit/processes/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | Cùng dữ liệu như thêm. Không gửi `leadDays` là bỏ hạn thường gặp |
+| `DELETE /clubs/:clubId/handover-kit/processes/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | |
+| `POST /clubs/:clubId/handover-kit/accounts` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | `service`, `label` (tên tài khoản hoặc link), `holderId` (không bắt buộc; bỏ trống là chưa ai nhận), `ownership` (`club` hoặc `personal`), `required` |
+| `PUT /clubs/:clubId/handover-kit/accounts/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | Cùng dữ liệu như thêm. Không gửi `holderId` là bỏ người giữ |
+| `DELETE /clubs/:clubId/handover-kit/accounts/:itemId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Kho bàn giao | |
 
 ### Nhà trường
 

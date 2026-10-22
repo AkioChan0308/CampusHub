@@ -2,7 +2,7 @@
 // Chạy trong web/: node e2e/member-student-school.cjs (web cổng 3000, server cổng 4000 chế độ demo). Ảnh chụp ở e2e/screenshots/.
 const fs = require("fs");
 const path = require("path");
-const { BASE, launch, outDir } = require("./common.cjs");
+const { BASE, launch, outDir, inactiveClubsToday, collectionSizeAfterApproval } = require("./common.cjs");
 const OUT = outDir("member-student-school");
 fs.mkdirSync(OUT, { recursive: true });
 const results = [];
@@ -142,7 +142,7 @@ async function readDownload(page, click) {
   await p.goto(`${BASE}/school`);
   await p.getByRole("button", { name: "Xuất Excel" }).first().waitFor();
   const t3 = await p.locator("body").innerText();
-  ok(/5\s*CLB/.test(t3) && /1\s*CLB/.test(t3) && /4\/6\s*CLB/.test(t3), "Các CLB: ba ô số 5, 1, 4/6");
+  ok(new RegExp(String.raw`${6 - inactiveClubsToday()}\s*CLB`).test(t3) && new RegExp(String.raw`${inactiveClubsToday()}\s*CLB`).test(t3) && /4\/6\s*CLB/.test(t3), `Các CLB: ba ô số ${6 - inactiveClubsToday()}, ${inactiveClubsToday()}, 4/6`);
   ok(t3.includes("800.000 / 6.050.000") && t3.includes("Quá 30 ngày"), "Các CLB: đã chi / dự trù, quá 30 ngày");
   await tall(p, "8-school-clubs.png", LAPTOP);
   await p.getByRole("button", { name: /Chưa nộp dự trù/ }).click();

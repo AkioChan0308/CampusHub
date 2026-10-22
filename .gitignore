@@ -37,6 +37,8 @@ web/e2e/screenshots/
 
 # Skill và cấu hình Claude Code (karpathy-guidelines, Impeccable): mỗi người tự cài theo docs/tien-do-mvp.md, không commit.
 .claude/
+# Ghi chú riêng cho Claude Code trên từng máy (skill bắt buộc, cách cài): Claude Code tự đọc, không commit.
+CLAUDE.local.md
 # File skill Impeccable tạo ra (design.json, mô tả bề mặt, ảnh review, log). Luật thiết kế cho cả nhóm nằm ở DESIGN.md và PRODUCT.md.
 .impeccable/
 

@@ -3,7 +3,7 @@ const { BASE, launch, outDir } = require("./common.cjs");
 const C = `${BASE}/clubs/cau-long-san-nha`;
 const pages = [
   ["Thành viên", `${C}/members`, "Xem tiếp", [".l-sec-head h2", ".l-app", ".l-filters", "thead th", "tbody tr", ".l-foot", ".l-sheet"]],
-  ["Bàn giao", `${C}/handover`, "Lưu và sang bước 4", [".l-steps", ".l-ho-split", ".l-ho-accounts", ".l-ho-transfer", ".l-row-actions", ".l-ho-side", ".l-sheet"]],
+  ["Bàn giao", `${C}/handover`, "Lưu và sang bước 5", [".l-steps", ".l-ho-split", ".l-ho-accounts", ".l-ho-transfer", ".l-row-actions", ".l-ho-side", ".l-sheet"]],
   ["Chiếu QR", `${C}/events/tuan-5/qr`, "Bắt đầu điểm danh", [".l-proj-head", ".l-proj-body", ".l-qr-panel", ".l-qr-message", ".l-qr-title", ".l-qr-lead", ".l-att-head", ".l-att-n"]],
 ];
 async function marks(p, sels) {

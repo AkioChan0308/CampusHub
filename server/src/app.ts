@@ -7,14 +7,17 @@ import type { Config } from "./config.ts";
 import { nowIso, type Person } from "./domain.ts";
 import { HttpError, unauthenticated } from "./errors.ts";
 import { googleExchange, type ExchangeGoogleCode } from "./google.ts";
+import { aiHandlers } from "./handlers/ai.ts";
 import { authHandlers } from "./handlers/auth.ts";
 import { boardHandlers } from "./handlers/board.ts";
 import { exploreHandlers } from "./handlers/explore.ts";
+import { kitHandlers } from "./handlers/kit.ts";
 import { meHandlers } from "./handlers/me.ts";
 import { moneyHandlers } from "./handlers/money.ts";
 import { schoolHandlers } from "./handlers/school.ts";
 import { setupHandlers } from "./handlers/setup.ts";
 import { systemHandlers } from "./handlers/system.ts";
+import { taskHandlers } from "./handlers/tasks.ts";
 import type { AuthKit, Ctx, Handlers } from "./handlers/types.ts";
 import { createAccounts, type Accounts } from "./accounts.ts";
 import { createSessions, SESSION_COOKIE, SESSION_SECONDS, type Sessions } from "./sessions.ts";
@@ -33,7 +36,7 @@ export interface AppOptions {
   exchangeGoogleCode?: ExchangeGoogleCode;
 }
 
-const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers };
+const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...kitHandlers, ...taskHandlers, ...aiHandlers };
 
 export function createApp({ config, store = createStore(), now = Date.now, sessions = createSessions(now), accounts = createAccounts(), exchangeGoogleCode = googleExchange(config, now) }: AppOptions) {
   const app = express();

@@ -1,6 +1,6 @@
 # CampusHub
 
-CampusHub là trang web giúp **ban điều hành CLB sinh viên** quản lý thành viên, điểm danh, quỹ CLB và bàn giao nhiệm kỳ ở một chỗ, thay cho Google Sheets, Google Form và việc dò sao kê ngân hàng bằng tay. Trang web cũng giúp **ban quản lý CLB của trường** nắm tình hình các CLB.
+CampusHub là **bộ bàn giao cho ban điều hành CLB sinh viên**, dùng cạnh Google Sheets: biểu mẫu, cách làm từng việc và tài khoản của CLB nằm một chỗ (Kho bàn giao), việc cần làm có người phụ trách, nhiệm kỳ sau không phải gọi hỏi nhiệm kỳ trước. Điểm danh bằng mã QR, thành viên và ghi sổ quỹ là các tính năng đi kèm. Trang web cũng giúp **ban quản lý CLB của trường** nắm tình hình các CLB.
 
 Dự án của nhóm NeedSleep, môn EXE101, Đại học FPT TP.HCM.
 
@@ -10,7 +10,7 @@ Dự án của nhóm NeedSleep, môn EXE101, Đại học FPT TP.HCM.
 
 | Nhóm người dùng | Cách gọi trong nhóm | Gồm ai | Dùng trên | Việc chính |
 |---|---|---|---|---|
-| **Ban điều hành CLB** | Staff | Chủ nhiệm, phó chủ nhiệm, thủ quỹ, trưởng ban | Laptop | Thêm thành viên, mở điểm danh, thu quỹ, đối soát sao kê, duyệt chi, lập dự trù, bàn giao nhiệm kỳ |
+| **Ban điều hành CLB** | Staff | Chủ nhiệm, phó chủ nhiệm, thủ quỹ, trưởng ban | Laptop | Bàn giao nhiệm kỳ và Kho bàn giao, giao việc, thêm thành viên, mở điểm danh; thu quỹ, đối soát sao kê, duyệt chi, lập dự trù |
 | **Thành viên CLB** | Khách hàng | Người đã nhận lời mời vào CLB | Điện thoại | Điểm danh bằng mã QR, đóng quỹ, xem và tải dữ liệu của mình |
 | **Sinh viên chưa vào CLB** | Khách hàng | Sinh viên muốn tìm CLB | Điện thoại | Xem các CLB, gửi đơn xin vào |
 | **Ban quản lý CLB của trường** | Quản lý | Cán bộ trường (SRO, PDP), kiêm mentor | Laptop | Xem tình hình các CLB (chỉ số tổng hợp), duyệt khoản chi lớn |
@@ -30,7 +30,7 @@ Mỗi luồng kể từng bước ai làm gì, kèm luật cần nhớ, ở [doc
 5. **Đối soát sao kê:** thủ quỹ tải file sao kê từ app ngân hàng lên. Giao dịch đúng mã, đúng tiền tự khớp; giao dịch lệch (sai cú pháp, chuyển hộ, thiếu tiền) hiện ra để gán tay.
 6. **Đề xuất và duyệt chi:** một người đề xuất, người khác trong ban điều hành duyệt. Khoản trên 2.000.000 ₫ cần mentor của trường duyệt thêm.
 7. **Dự trù kỳ:** ban điều hành lập dự trù theo hoạt động, biết quỹ đủ hay thiếu, gửi cho trường.
-8. **Bàn giao nhiệm kỳ:** chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền quản trị sang ban mới. Bản demo mới làm được bước đổi tài khoản nhận quỹ.
+8. **Bàn giao nhiệm kỳ:** 7 bước: chọn ban mới, chốt số dư, kiểm tra Kho bàn giao, đổi tài khoản nhận quỹ, chuyển quyền quản trị, ban mới xác nhận, biên bản. Kho bàn giao giữ biểu mẫu, quy trình, tài khoản (không lưu mật khẩu). Có trợ lý bản mẫu tóm tắt cho ban mới và trả lời câu hỏi trong kho; việc cần làm giao cho từng người.
 9. **Dữ liệu cá nhân:** thành viên tự tải dữ liệu của mình, rút đồng ý, gửi yêu cầu xóa dữ liệu.
 10. **Phía nhà trường:** xem các CLB có hoạt động không, dự trù và số đã chi, duyệt khoản chi lớn.
 

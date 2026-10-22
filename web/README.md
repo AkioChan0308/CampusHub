@@ -54,6 +54,14 @@ Màn chưa có bản vẽ (mô tả được Hiệu duyệt ngày 04/10/2026):
 | Đợt thu: mở đợt đang dùng, hoặc mời tạo khi chưa có | `/clubs/cau-long-san-nha/collections` |
 | Tạo đợt thu | `/clubs/cau-long-san-nha/collections/new` |
 
+Màn chưa có bản vẽ, làm theo `../docs/tien-do-mvp.md` (phần B) ngày 22/10/2026 (chờ Hiệu duyệt):
+
+| Màn | Đường dẫn |
+|---|---|
+| Kho bàn giao (biểu mẫu, quy trình, tài khoản) | `/clubs/cau-long-san-nha/handover-kit` |
+| Việc cần làm (ban điều hành) | `/clubs/cau-long-san-nha/tasks` |
+| Việc của tôi (thành viên, điện thoại) | `/me/tasks` |
+
 Màn chưa có bản vẽ, mô tả được Hiệu duyệt ngày 05/10/2026:
 
 | Màn | Đường dẫn |
@@ -123,7 +131,7 @@ Chữ trên giao diện viết thẳng trong từng trang, không qua file dịc
 - **Mã QR đóng quỹ:** cố ý **không** theo chuẩn VietQR. Quét mã không chuyển được tiền, dưới mã ghi "Bản demo: mã này không chuyển tiền được."
 - **Quyền theo vai:** máy chủ kiểm tra ở mọi API (`../server/src/access.ts`). Giao diện chỉ ẩn hay khóa nút cho dễ hiểu.
 - **Xuất Excel:** ra file CSV, mở được bằng Excel. Mẫu dự trù của trường chưa có.
-- **Chưa có:** tải ảnh chứng từ, ảnh biên lai; gửi email (link mời gửi tay qua Zalo); bàn giao bước 4–6; trang chính sách dữ liệu; sổ quỹ chỉ đọc cho thành viên. Nút nào chưa làm thì xám: bấm vào thì hiện thông báo "Bản demo chưa có phần này" (hoặc lý do riêng, ví dụ "Bản demo chưa gửi tin nhắn được."), hoặc bên cạnh có chữ "chưa có".
+- **Chưa có:** tải ảnh chứng từ, ảnh biên lai; gửi email (link mời gửi tay qua Zalo); bàn giao: mentor xác nhận biên bản ở phía trường, áp dụng vai trò mới khi bàn giao xong; trang chính sách dữ liệu; sổ quỹ chỉ đọc cho thành viên. Nút nào chưa làm thì xám: bấm vào thì hiện thông báo "Bản demo chưa có phần này" (hoặc lý do riêng, ví dụ "Bản demo chưa gửi tin nhắn được."), hoặc bên cạnh có chữ "chưa có".
 
 ## File sao kê (CSV)
 
@@ -152,7 +160,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Hộp hỏi lại (`LichConfirm`, dựng trên AlertDialog của Radix, thay cho hộp confirm của trình duyệt) trước khi: ghi nhận tay, ghi tiền mặt, ghi đã chi, từ chối đơn, đóng điểm danh, rút đồng ý, xóa dữ liệu, đặt lại dữ liệu mẫu. Nút "Hủy" nhận focus trước; nút xác nhận ghi "Ghi vào sổ", "Từ chối đơn", "Xác nhận đóng", "Rút đồng ý", "Rời CLB và xóa", "Đặt lại".
 - Form đề xuất chi mới, form thêm hoạt động dự trù, ô lý do khi từ chối khoản chi.
 - Trạng thái sau khi bấm: khoản chi "Đã duyệt · chờ chi" có nút "Ghi đã chi vào sổ quỹ"; dự trù "Đã gửi · Gửi lại cho mentor"; bàn giao "Đã lưu tài khoản nhận quỹ mới".
-- Bàn giao bước 4–6 dừng ở dòng "Màn của bước này chưa có trong bản vẽ".
+- (Đã thay ngày 22/10/2026) Bàn giao đủ 7 bước, xem mục cuối.
 - Lời mời đã từ chối, hoặc link mời không còn dùng được. Đơn xin vào đang chờ, bị từ chối, CLB tạm ngưng nhận đơn, người đã ở trong CLB.
 - Báo thiếu quyền: nút bị khóa, lý do ghi thành một dòng chữ dưới đầu trang và nối với nút bằng aria-describedby (ví dụ trưởng ban không ghi tiền được); trang chặn khi vào sai vai (thành viên vào trang ban điều hành, sinh viên vào trang nhà trường).
 - Màn đối soát: nhãn "file trước" cho giao dịch còn treo từ lần tải trước, nút "Tải file CSV mẫu", báo lỗi khi file không đọc được.
@@ -189,6 +197,7 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Trang /register (bản vẽ chưa có, 05/10/2026): chỉ có nút "Đăng ký bằng Google", kèm câu vì sao dùng Google (email đã được xác minh) và "Nếu CLB đã mời bạn, dùng đúng email trong lời mời." Máy chủ chưa có khóa Google thì ghi "Đăng ký bằng Google chưa mở. Báo ban điều hành CLB."
 - Trang /account "Đặt tên tài khoản và mật khẩu" (bản vẽ chưa có, 05/10/2026): tên hiển thị, email (chỉ xem), tên tài khoản (gợi ý sẵn phần trước @ của email nếu hợp lệ), mật khẩu hiện tại (khi đã có mật khẩu, trừ lúc vừa đặt lại bằng Google), mật khẩu, nhập lại, "Hiện mật khẩu". Luật kiểm tra ngay trên form (`src/lib/account.ts`), lỗi hiện dưới từng ô. Ngay sau lần đầu đăng ký có nút "Để sau"; mở từ Của tôi thì là "Hủy". Đã có mật khẩu thì tiêu đề là "Đổi tên tài khoản và mật khẩu".
 - Của tôi (TV-CuaToi) có thêm mục "Đăng nhập" (05/10/2026, Hiệu duyệt): dòng "Tên tài khoản" (chưa đặt thì ghi "Chưa đặt · đăng nhập bằng Google") và dòng "Đặt tên tài khoản và mật khẩu" / "Đổi tên tài khoản và mật khẩu" mở /account.
+- Của tôi: mục "Đăng nhập" có thêm dòng "Đăng xuất" (22/10/2026, Hiệu chọn đặt ở tab Của tôi). Trước đó phía thành viên không có cách đăng xuất; khung ban điều hành và khung nhà trường đã có sẵn.
 - Trang đầu `/` (bản vẽ chưa có, 05/10/2026): thanh trên dính khi cuộn (Tìm CLB, Đăng nhập, Đăng ký); tờ lịch hôm nay và câu "Cả tuần của CLB, trên một cuốn lịch.", câu giới thiệu, nút "Đăng ký bằng Google" và "Đăng nhập". Bố cục xếp chồng như framer.com (Hiệu chọn): ngay dưới là khối "Thành viên điểm danh, đóng quỹ ngay trên điện thoại." với video điện thoại, cuộn xuống là khối "Ban điều hành lo việc cả nhiệm kỳ trên laptop." với video laptop. Không có nhãn nhỏ phía trên tiêu đề (luật đã chốt); người dùng của khối nằm ngay trong tiêu đề. Mỗi video có 5 bước; bước đang chạy đậm màu kèm thanh tiến độ, bấm một bước thì nhảy tới đoạn đó. Video tự chạy không tiếng khi cuộn tới, cuộn qua thì dừng, có nút dừng; máy bật giảm chuyển động thì đứng yên với nút "Phát video". Khi cuộn xuống, khối tiếp theo (phần đầu trang, hai khối video, dòng "không giữ tiền") trượt 72px từ bên trái vào và rõ dần; khối đã xem trượt sang phải và mờ đi (Hiệu yêu cầu, 05/10/2026, theo framer.com). Hiệu ứng đi theo vị trí cuộn, không theo thời gian, nên không áp luật 150–250 ms. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay; khối chỉ mờ đi khi mép dưới đã lên quá 35% màn hình, nên phần đang đọc không mờ. Trang chặn tràn ngang bằng `overflow-x: clip`. Máy giảm chuyển động thì không có hiệu ứng này. Code: `ScrollFade` trong `src/app/(landing)/demo-video.tsx`. Cuối trang: dòng "CampusHub không giữ tiền…" và chân trang (nhóm NeedSleep, EXE101; dòng "Bản demo dùng dữ liệu mẫu." chỉ hiện ở chế độ demo). Link "Bản demo: đăng nhập bằng tài khoản mẫu" (tới /login) / "Tìm CLB của trường bạn" giữ chỗ mà chưa hiện tới khi biết máy chủ chạy chế độ nào, để chữ không đổi trước mắt người xem. Nút dừng video luôn hiện. Lỗi đăng nhập Google: máy chủ gửi mã (`?error=huy`…), trang đăng nhập đổi mã thành câu có sẵn; mã lạ thì hiện "Đăng nhập chưa xong. Bạn thử lại." Video quay từ bản demo bằng `e2e/record-demo-videos.cjs`, bắt đầu từ trang đăng nhập (Hiệu yêu cầu); trong video có con trỏ vẽ thêm và không có phần chỉ có ở bản demo. Khối điểm danh chạy thử trước đó đã bỏ theo góp ý của Hiệu (màn đó chỉ thấy sau khi đăng nhập).
 - Chuyển động (thêm ngày 03/10/2026 theo góp ý của Hiệu: nút và chuyển trang còn thô, chuyển trang chớp):
   - Đang tải hiện khung xương đúng bố cục thay cho chữ "Đang tải…". Dữ liệu tới thì nội dung hiện dần trong 200 ms.
@@ -409,3 +418,48 @@ Bản vẽ đã được duyệt ngày 02/10/2026. Những chỗ dưới đây d
 - Thử bằng Playwright: hộp hỏi (mở, Esc, xác nhận, focus về nút), đổi tab bằng phím mũi tên, focus sau khi duyệt, từ chối, điểm danh tay, gửi đơn; thông báo hiện đúng chữ; console không có lỗi hay cảnh báo.
 - Script chạy thử (`smoke.js`, nằm ngoài repo) đã sửa và chạy lại ngày 03/10/2026: 40/40 kiểm tra đạt (thêm một kiểm tra: mở màn chiếu chưa tự mở điểm danh), không có lỗi trên trang. Những chỗ đã phải sửa trong script: nút sao chép không còn đổi chữ thành "Đã sao chép" (chữ này nằm trong thông báo); các nút chưa làm ("Tạo sự kiện", "Xem", "Nhập từ Excel", "Nhắn hỏi", "Xem đề nghị", mục menu bị khóa) dùng aria-disabled nên Playwright coi là bị khóa, muốn bấm thì dùng force; các nút trước đây mở hộp confirm của trình duyệt giờ mở hộp hỏi lại, script phải bấm thêm nút xác nhận (chữ ở mục "Trạng thái bản vẽ chưa có"); nút "Ghi nhận" ở Đối soát không còn khóa khi chưa chọn người; màn chiếu QR phải bấm "Bắt đầu điểm danh" trước khi có mã.
 - Sau khi chốt các câu hỏi ngày 03/10/2026: 41/47 ảnh khác so với sau bước 5, phần lớn vì bỏ line-height ở body; đã xem lại Trang chủ, đóng quỹ và màn chiếu QR. Thử thêm bằng Playwright: phải bấm "Bắt đầu điểm danh" mới có mã, đóng rồi vẫn điểm danh tay được, ghi chú khi duyệt vào lịch sử: đều đúng.
+
+**Sau CP2 (22/10/2026, chờ Hiệu duyệt)**
+- **Kho bàn giao** (`/clubs/[clubId]/handover-kit`, menu "Kho bàn giao" ở nhóm Nhiệm kỳ):
+  - Ba phần chọn bằng nút tròn: Biểu mẫu, Quy trình, Tài khoản và quyền truy cập. Vùng làm việc là một tờ giấy, mỗi mục một dòng ngăn bằng nét kẻ.
+  - **Không lưu mật khẩu.** Dòng cố định "CampusHub không lưu mật khẩu. Đổi quyền quản trị ở chính dịch vụ đó." ở phần Tài khoản; ở phần Biểu mẫu có dòng "Không tải lên file có danh sách thành viên thật". Bản demo chỉ lưu tên và đường link, không lưu file.
+  - Đường link chỉ nhận `http://` hoặc `https://` (chặn `javascript:`). Dữ liệu mẫu dùng tên miền `example.com`.
+  - Tài khoản: nhãn "Chưa có người giữ", "Bắt buộc chuyển khi bàn giao", "Đứng tên cá nhân: nên chuyển sang tài khoản CLB". Dòng phụ đầu trang ghi số mục thiếu (tài khoản bắt buộc mà chưa có người giữ).
+  - Quy trình: bước đánh số kèm người làm, sắp xếp lại bằng nút Lên, Xuống (không kéo thả). **"Hạn thường gặp" hiện bằng chữ** ("thường phải xong trước 7 ngày") thay cho tờ lịch nhỏ như file mô tả ghi, vì đó là số ngày chứ không phải ngày cụ thể. Không có sơ đồ.
+  - Kho trống thì hiện "Bắt đầu với 3 việc" (mẫu xin phép sự kiện; fanpage, nhóm Zalo, Drive; cách xin phòng họp).
+  - Chủ nhiệm, phó chủ nhiệm, trưởng ban thêm, sửa, xóa; thủ quỹ chỉ xem. API đã trả cho thành viên thường phần biểu mẫu và quy trình, nhưng **chưa có màn xem kho cho thành viên** (file mô tả không bắt buộc).
+- **Bàn giao 7 bước** (`/clubs/[clubId]/handover`): 1 Chọn ban mới, 2 Chốt số dư, 3 Kiểm tra kho bàn giao (mới), 4 Đổi tài khoản nhận quỹ (bước cũ số 3), 5 Chuyển quyền quản trị, 6 Ban mới xác nhận, 7 Biên bản bàn giao.
+  - Bước 1: chọn chủ nhiệm mới, phó, thủ quỹ, trưởng ban (nhiều người, nút bật tắt); chủ nhiệm hiện tại chọn lại chính mình phải tích ô xác nhận.
+  - Bước 2: số dư lấy từ sổ quỹ lúc bấm; liệt kê việc còn dở (chưa đóng quỹ, chờ xác nhận, khoản chi chờ duyệt, giao dịch chưa khớp), không chặn.
+  - Bước 3: số biểu mẫu, quy trình, tài khoản, số mục thiếu; không chặn nếu thiếu. Link sang Kho bàn giao và sang Việc cần làm (số việc còn dở).
+  - Bước 5: bảng tài khoản của kho; mỗi dòng chọn người nhận (mặc định chủ nhiệm mới) rồi bấm "Đã chuyển". Nút Tiếp tục khóa tới khi mọi tài khoản bắt buộc đã chuyển. Bấm "Đã chuyển" làm người giữ của tài khoản trong kho đổi sang người nhận.
+  - Bước 6: chỉ chủ nhiệm mới (người chọn ở bước 1) có nút "Tôi đã nhận bàn giao" (có hộp hỏi lại). **Chủ nhiệm mới đang là thành viên thường vẫn mở được trang này (Hiệu chọn 22/10/2026)**; khung của họ chỉ có hai mục Bàn giao và Kho bàn giao, không có nút xuất dữ liệu, các trang ban điều hành khác vẫn chặn.
+  - Bước 7: biên bản chỉ đọc (CLB, nhiệm kỳ, ban mới, số dư, tài khoản nhận quỹ, mentor, người xác nhận và từng bước đã làm: lúc nào, ai). Nút "In biên bản" (in trình duyệt, ẩn thanh bên) và "Xuất biên bản" (CSV). Ban mới đã xác nhận thì không quay lại bước trước được.
+  - Quay lại bước trước có hộp hỏi lại; biên bản ghi dòng "quay lại bước n". Dải bước chia 7 cột.
+  - **Chưa làm:** bàn giao xong chưa tự đổi vai trò (chủ nhiệm mới chưa thành chủ nhiệm, chủ nhiệm cũ chưa thành thành viên); dòng Mentor ở biên bản chỉ ghi tên và "chưa xác nhận trên CampusHub", chưa có thao tác xác nhận ở phía trường; nút "Tóm tắt" của trợ lý AI chưa có (nhóm C).
+- **Việc cần làm** (`/clubs/[clubId]/tasks`, menu "Việc cần làm" cạnh Điểm danh): ba cột Chưa làm, Đang làm, Xong; mỗi việc có tờ lịch hạn (đỏ khi quá hạn hoặc còn từ 3 ngày trở xuống), người phụ trách, nhãn buổi và quy trình gắn kèm; nút Bắt đầu, Xong, Mở lại và Sửa (đổi người phụ trách là giao lại). Bộ lọc: Tất cả, Việc của tôi, Quá hạn, và theo người. Không có thông báo hay nhắc việc. Ban điều hành (kể cả thủ quỹ) tạo và giao việc; thành viên thường chỉ xem và đổi trạng thái việc của mình.
+- **Việc của tôi** (`/me/tasks`, mở từ dòng "Việc được giao cho tôi" ở Của tôi): khung điện thoại có link quay lại Của tôi, không có thanh tab; việc chưa xong ở trên, "Đã xong" ở dưới.
+- **Đăng xuất của thành viên** (Hiệu chọn): dòng "Đăng xuất" ở mục "Đăng nhập" của tab Của tôi. Trước đó phía thành viên không có cách đăng xuất.
+- Nhãn trong dòng việc và dòng kho được xuống dòng thay vì cố định cao 26px.
+
+**Sau CP2, nhóm C (22/10/2026, chờ Hiệu duyệt)**
+- **Trợ lý bàn giao (bản mẫu)** (`src/components/lich/Assistant.tsx`): không phải chatbot chung.
+  - Ở đầu Kho bàn giao: ô "Hỏi về bàn giao" (trả lời từ nội dung kho, luôn kèm nguồn bấm được: chuyển tới đúng phần, tô nền mục đó), và nút "Tóm tắt" cho ban điều hành.
+  - Bản tóm tắt là bản nháp có hai nhãn cố định "AI viết, cần kiểm tra" và "Bản mẫu, chưa dùng AI thật"; sửa được trong ô văn bản; "Lưu vào biên bản" (chỉ chủ nhiệm) hoặc "Đóng, không lưu".
+  - **Khác file mô tả:** nút Tóm tắt ở bước 6 (Ban mới xác nhận) thay cho bước 7, vì bước 7 là biên bản đã khóa sau khi ban mới xác nhận. Bước 7 chỉ hiện bản tóm tắt đã lưu (ai lưu, lúc nào).
+  - Dòng ghi chú dưới ô hỏi: "Bản mẫu: câu trả lời lấy từ dữ liệu mẫu, chưa dùng AI thật", số lượt đã hỏi trong kỳ, và "mức giới hạn: chưa có" (số lượt giới hạn chưa có nguồn nên không tự đặt).
+  - Chưa có màn hỏi đáp cho thành viên thường; API đã sẵn.
+- **Trang chủ ban điều hành đổi thứ tự** (`/clubs/[clubId]`): tờ lịch hôm nay; Việc cần làm (việc quá hạn trước, tối đa 4, kèm "Tất cả việc"); Bàn giao (số mục thiếu của kho, thanh tiến độ 7 bước, "Tiếp tục bàn giao"); Sự kiện sắp tới; ở cột phải "Cần bạn xử lý", thẻ khóa "Thống kê tham gia" và **Quỹ thu gọn thành một dòng ở cuối** ("Quỹ: số dư, N khoản chờ duyệt"). Hai khối cũ (đợt thu đang mở với số người đã đóng, và "Quỹ hiện có" với 3 giao dịch gần nhất) không còn ở trang chủ; xem ở Đợt thu và Sổ quỹ. Không xóa tính năng tiền.
+  - **Tiêu đề trang đổi từ "Việc cần làm" thành "Trang chủ"** vì trùng tên với mục Việc cần làm mới.
+- **Menu**: nhóm "Nhiệm kỳ" (Bàn giao, Kho bàn giao) lên trên; nhóm "Quỹ" (Đợt thu, Đối soát sao kê, Đề xuất và duyệt chi, Dự trù kỳ) xuống dưới, **đóng mặc định**, tự mở khi đang ở một trang của quỹ; khi đóng vẫn hiện tổng số việc đang chờ trong nhóm. Nút Quỹ là nút gấp (`aria-expanded`).
+- **Thẻ "Thống kê tham gia" (khung khóa)** ở trang chủ: nhãn "Có trong bản trả phí", số làm mờ và ẩn với trình đọc màn hình, nút "Tìm hiểu bản trả phí" mở trang `/clubs/[clubId]/paid-plan` chỉ có chữ (chưa có giá, chưa có thanh toán, không khóa phần cốt lõi). Số tính bằng phép đếm từ dữ liệu điểm danh, gọi đúng tên là phân tích tự động, không ghi là AI. **Số vẫn có trong dữ liệu trang** (chỉ bị làm mờ): đây là khung demo, không phải khóa thật.
+- **Khung quảng cáo mẫu** (`SponsoredSlot.tsx`): ở `/me` (dưới phần đầu trang, trước thẻ "Kỳ") và giữa danh sách CLB `/explore` (sau hai CLB). Viền 1px, nhãn "Được tài trợ", "Chỗ đặt quảng cáo (ví dụ)", cao cố định, nút "Ẩn quảng cáo này" ẩn trong phiên (sessionStorage). Không pop-up, không che nội dung, không tiếng, không nhấp nháy; không có ở màn tiền, màn đồng ý, lúc quét QR, bàn giao; nội dung giống nhau cho mọi người; không đếm lượt xem hay bấm. Ngoại lệ đã ghi vào `CLAUDE.md` (Hiệu duyệt 22/10/2026).
+- **Trang đầu**: câu mở đầu đổi theo định vị "bộ bàn giao cho ban điều hành CLB, dùng cạnh Google Sheets". Hai video demo chưa quay lại (nhóm D), nên vẫn là bản cũ chưa có Kho bàn giao.
+
+**Hướng web trước, khung thành viên trên laptop (22/10/2026, Hiệu chọn)**
+- Hướng đi: **web trước, chưa làm app**. Ban điều hành, thành viên và sinh viên đều dùng bản web; thành viên dùng trình duyệt điện thoại, không cài app (như `CLAUDE.md` đã ghi). Khung hẹp 430px trước đây khiến màn thành viên mở bằng laptop trông như một app nằm giữa màn hình.
+- Từ 1024px trở lên, khung của thành viên và sinh viên (`PhoneFrame`) là một trang web thường: tên CLB và avatar ở thanh trên, ba tab Điểm danh, Quỹ, Của tôi thành thanh ngang (gạch chân tab đang mở), nội dung rộng tối đa 760px canh giữa. Dưới 1024px giữ khung điện thoại như cũ (tab ở dưới). Chỉ đổi CSS ở cuối `lich.css`, không đổi thành phần hay màn nào.
+- Sau đăng nhập: người ban điều hành đăng nhập mà `next` chỉ là `/me` thì về trang CLB (`landingAfterLogin` trong `src/api/after-login.ts`, có test). Lý do: `next=/me` thường là phần còn sót lại của người đăng nhập trước (phiên hết hạn khi đang ở `/me`), nên người ban điều hành bị đưa vào giao diện thành viên. Link mời, link đóng quỹ, link điểm danh vẫn mở đúng vì luật chỉ áp dụng cho đúng `/me`. Luật này chỉ ở trang đăng nhập; đăng nhập Google với `next=/me` vẫn do máy chủ đưa thẳng tới `/me`.
+
+**Bảng tin chung, khung rỗng (22/10/2026, chờ Hiệu duyệt mô tả ở `../docs/mo-ta-bang-tin-chung.md`)**
+- `/feed` và `/clubs/[clubId]/posts` mới có đường dẫn, khung xương và trạng thái rỗng; chưa có API, dữ liệu hay lối vào (không có mục menu, không có tab). Mở bằng cách gõ thẳng đường dẫn. Chỗ đắp nội dung đã ghi trong mã. Chưa kiểm trên trình duyệt (xem mô tả, mục 8).

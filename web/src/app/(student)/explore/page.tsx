@@ -4,13 +4,14 @@
 // Dữ liệu từ GET /clubs: các CLB và quan hệ của người đang xem với từng CLB (đã ở, được mời, đã gửi đơn, bị từ chối).
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { ClubCardDto } from "@contract";
 import { useClubs, useMe } from "@/api/queries";
 import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
+import { SponsoredSlot } from "@/components/lich/SponsoredSlot";
 import { dm } from "@/lib/format";
 import { matchesSearch } from "@/lib/text";
 import { FIELDS } from "@/lib/types";
@@ -61,7 +62,7 @@ export default function ExplorePage() {
               <p className="l-sr" aria-live="polite">{clubs.length} CLB</p>
               {clubs.length === 0
                 ? <p className="l-fine">Không có CLB nào khớp. Thử tên khác hoặc chọn lĩnh vực Tất cả.</p>
-                : <section className="l-pay-card l-rows" aria-label="Các CLB">{clubs.map((c) => <ClubRow key={c.id} club={c} />)}</section>}
+                : <section className="l-pay-card l-rows" aria-label="Các CLB">{clubs.map((c, i) => <Fragment key={c.id}>{i === 2 && <SponsoredSlot />}<ClubRow club={c} /></Fragment>)}</section>}
               {/* Thêm ngày 04/10/2026: chủ nhiệm tự tạo CLB (phương án nghiệp vụ N1), mô tả được Hiệu duyệt. */}
               <div className="l-create-club">
                 <span className="l-fine">Chưa thấy CLB của bạn? Chủ nhiệm tự tạo được, không cần chờ duyệt.</span>
@@ -81,12 +82,15 @@ function ListSkeleton() {
   return (
     <Loading className="l-pay-card l-rows">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="l-clubrow">
+        <Fragment key={i}>
+        {i === 2 && <Skel w="100%" h={116} />}
+        <div className="l-clubrow">
           <div className="l-clubrow-top"><h2><SkelLine w={[200, 170, 220][i]} /></h2><span className="l-tag off"><SkelLine w={90} /></span></div>
           <span className="l-meta"><SkelLine w={210} /></span>
           <span className="l-note">{i === 0 ? <><SkelLine w={290} /><br /><SkelLine w={90} /></> : <SkelLine w={260} />}</span>
           <Skel w="100%" h={48} className="l-clubrow-btn" />
         </div>
+        </Fragment>
       ))}
     </Loading>
   );

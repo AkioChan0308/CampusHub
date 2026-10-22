@@ -17,11 +17,12 @@ import { myDataRows } from "@/api/excel-rows";
 import { errorText, keys, useMe, useMyClub } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { LichConfirm } from "@/components/lich/Confirm";
-import { ErrorGate, NOT_IN_MVP } from "@/components/lich/Gate";
+import { ErrorGate, NOT_IN_MVP, useLogout } from "@/components/lich/Gate";
 import { dueLabel, isUrgent, Leaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, Spinner, useSawPending } from "@/components/lich/motion";
 import { NoClubGate } from "@/components/lich/NoClub";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
+import { SponsoredSlot } from "@/components/lich/SponsoredSlot";
 import { downloadCsv } from "@/lib/csv";
 import { dm, dmy, initials, money } from "@/lib/format";
 
@@ -67,16 +68,19 @@ function MeSkeleton() {
           <span className="l-meta"><SkelLine w={250} /><br /><SkelLine w={110} /></span>
         </div>
       </div>
+      <Skel w="100%" h={116} />
       <section className="l-pay-card l-list">
         <h2 className="l-list-head">Kỳ <SkelLine w={84} /></h2>
         <div className="l-kv"><span>Điểm danh</span><span className="l-kv-value"><SkelLine w={64} /></span></div>
         <div className="l-kv"><span><SkelLine w={150} /></span><Skel w={150} h={26} /></div>
         <div className="l-kv"><span>Sổ quỹ của CLB</span><span className="l-note">Xem (chỉ đọc) · chưa có</span></div>
+        <span className="l-act l-inert"><span>Việc được giao cho tôi</span></span>
       </section>
       <section className="l-pay-card l-list">
         <h2 className="l-list-head">Đăng nhập</h2>
         <div className="l-kv"><span>Tên tài khoản</span><SkelLine w={120} /></div>
         <span className="l-act l-inert"><span><SkelLine w={130} /></span></span>
+        <span className="l-act l-inert"><span>Đăng xuất</span></span>
       </section>
       <section className="l-pay-card l-list">
         <h2 className="l-list-head">Dữ liệu của tôi</h2>
@@ -112,6 +116,7 @@ function PayState({ collection }: { collection: NonNullable<MyClubRes["collectio
 function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
   const client = useQueryClient();
   const dataTitle = useRef<HTMLHeadingElement>(null);
+  const { logout, pending: leaving } = useLogout();
   const [exporting, setExporting] = useState(false);
   const clubId = data.club.id;
   const { person } = me;
@@ -165,6 +170,8 @@ function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
         </div>
       </div>
 
+      <SponsoredSlot />
+
       <section className="l-pay-card l-list" aria-labelledby="this-term">
         <h2 id="this-term" className="l-list-head">Kỳ {data.club.term}</h2>
         <div className="l-kv">
@@ -173,6 +180,10 @@ function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
         </div>
         {data.collection && <div className="l-kv"><span>{data.collection.name}</span><PayState collection={data.collection} /></div>}
         <div className="l-kv"><span>Sổ quỹ của CLB</span><span className="l-note">Xem (chỉ đọc) · chưa có</span></div>
+        <Link className="l-act" href="/me/tasks">
+          <span>Việc được giao cho tôi</span>
+          <span className="l-act-end"><LinkIcon name="chevronRight" size={18} /></span>
+        </Link>
       </section>
 
       <section className="l-pay-card l-list" aria-labelledby="login-section">
@@ -185,6 +196,9 @@ function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
           <span>{me.account.hasPassword ? "Đổi tên tài khoản và mật khẩu" : "Đặt tên tài khoản và mật khẩu"}</span>
           <span className="l-act-end"><LinkIcon name="chevronRight" size={18} /></span>
         </Link>
+        <button type="button" className="l-act" aria-busy={leaving || undefined} onClick={() => logout()}>
+          <span>Đăng xuất</span><span className="l-act-end">{leaving ? <Spinner /> : <Icon name="chevronRight" size={18} />}</span>
+        </button>
       </section>
 
       <section className="l-pay-card l-list" aria-labelledby="my-data">

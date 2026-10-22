@@ -4,10 +4,10 @@
 import type * as C from "./contract.ts";
 import {
   attendanceOf, averageAttendance, balance, budgetView, clubCollection, clubMembers, clubSummary, collectionStats, daysAgo, DUPLICATE_TXN,
-  handConfirmedTransfers, heldSessions, latestStatement, ledgerOf, membershipOf, nextSession, openManualAll, paymentsOf,
-  pendingApplications, pendingExpenses, personName, recentLedger, statementsOf, upcomingEvents,
+  handConfirmedTransfers, heldSessions, kitSummary, latestStatement, ledgerOf, membershipOf, nextSession, isTaskOverdue, openManualAll, openTasks, participationStats, paymentsOf,
+  pendingApplications, pendingExpenses, personName, recentLedger, statementsOf, tasksOf, upcomingEvents,
   type AppState, type Application, type Attendance, type Club, type ClubEvent, type Collection, type ExpenseRequest,
-  type Membership, type Payment, type Person, type StatementTxn,
+  type ClubTask, type KitAccount, type KitDocument, type KitProcess, type Membership, type Payment, type Person, type StatementTxn,
 } from "./domain.ts";
 
 export const CONSENT_VERSION = "chinh-sach-du-lieu-v1";
@@ -98,11 +98,13 @@ export function boardRes(s: AppState, club: Club, me: Person, ms: Membership): C
   };
 }
 
-export function dashboardRes(s: AppState, club: Club): C.DashboardRes {
+export function dashboardRes(s: AppState, club: Club, now: number): C.DashboardRes {
   const apps = pendingApplications(s, club.id);
   const exps = pendingExpenses(s, club.id);
   const collection = clubCollection(s, club.id);
   const st = collection ? latestStatement(s, collection.id) : undefined;
+  const open = openTasks(s, club.id);
+  const handover = s.handovers.find((h) => h.clubId === club.id);
   return {
     pendingApplications: { count: apps.length, oldestAt: apps[0]?.submittedAt },
     pendingExpenses: { count: exps.length, total: exps.reduce((sum, e) => sum + e.amount, 0), titles: exps.map((e) => e.title) },
@@ -114,6 +116,14 @@ export function dashboardRes(s: AppState, club: Club): C.DashboardRes {
     balance: balance(s, club.id),
     recentLedger: recentLedger(s, club.id, 3).map(({ date, direction, amount, label, count }) => ({ date, direction, amount, label, count })),
     setup: { members: s.memberships.filter((m) => m.clubId === club.id).length, events: s.events.filter((e) => e.clubId === club.id).length },
+    tasks: {
+      open: open.length, overdue: open.filter((t) => isTaskOverdue(t, now)).length,
+      items: [...open].sort((a, b) => Number(isTaskOverdue(b, now)) - Number(isTaskOverdue(a, now)) || a.due.localeCompare(b.due)).slice(0, 4)
+        .map((t) => ({ id: t.id, title: t.title, assignee: personRef(s, t.assigneeId), due: t.due, status: t.status, overdue: isTaskOverdue(t, now) })),
+    },
+    handover: handover ? { step: handover.step, toTerm: handover.toTerm, accepted: !!handover.acceptedAt } : undefined,
+    kit: (({ documents, processes, accounts, missing }) => ({ documents, processes, accounts, missing }))(kitSummary(s, club.id)),
+    participation: participationStats(s, club.id),
   };
 }
 
@@ -264,18 +274,94 @@ export function budgetRes(s: AppState, club: Club): C.BudgetRes {
   };
 }
 
-export function handoverRes(s: AppState, club: Club): C.HandoverRes | undefined {
+/** Bàn giao. me: người đang xem, để biết có phải chủ nhiệm mới (được bấm xác nhận ở bước 6) không. */
+export function handoverRes(s: AppState, club: Club, meId: string): C.HandoverRes | undefined {
   const h = s.handovers.find((x) => x.clubId === club.id);
   if (!h) return undefined;
   const collection = clubCollection(s, club.id);
   const members = clubMembers(s, club.id);
+  const stats = collection ? collectionStats(s, collection.id) : undefined;
+  const exps = pendingExpenses(s, club.id);
+  const ref = (id: string | undefined) => (id ? personRef(s, id) : undefined);
+  const b = h.newBoard;
   return {
-    fromTerm: h.fromTerm, toTerm: h.toTerm, step: h.step, lockedBalance: h.lockedBalance, currentBalance: balance(s, club.id),
+    fromTerm: h.fromTerm, toTerm: h.toTerm, step: h.step, lockedBalance: h.lockedBalance, lockedAt: h.lockedAt, currentBalance: balance(s, club.id),
+    currentPresident: ref(members.find((m) => m.role === "president")?.personId),
     currentReceiver: collection ? { ...personRef(s, collection.receiverId), bankLabel: collection.bankLabel, last4: collection.last4 } : undefined,
     newReceiver: h.newReceiver ? { ...personRef(s, h.newReceiver.personId), bank: h.newReceiver.bank, accountLast4: h.newReceiver.account.slice(-4) } : undefined,
     transferRef: h.transferRef || undefined,
     candidates: members.filter((m) => m.invite === "accepted").sort(byCode).map((m) => personRef(s, m.personId)),
     memberCount: members.length,
+    newBoard: b ? { president: personRef(s, b.president), vice: ref(b.vice), treasurer: ref(b.treasurer), heads: b.heads.map((id) => personRef(s, id)) } : undefined,
+    open: {
+      unpaid: stats?.unpaid ?? 0, reported: stats?.reported ?? 0, pendingExpenses: exps.length, pendingExpenseTotal: exps.reduce((sum, e) => sum + e.amount, 0),
+      openManual: collection ? openManualAll(s, collection.id).length : 0, openTasks: openTasks(s, club.id).length,
+    },
+    kit: kitSummary(s, club.id),
+    accounts: s.kitAccounts.filter((a) => a.clubId === club.id).map((a) => ({
+      id: a.id, service: a.service, label: a.label, holder: ref(a.holderId), ownership: a.ownership, required: a.required, transferred: h.transferred.includes(a.id),
+    })),
+    acceptedAt: h.acceptedAt, acceptedBy: ref(h.acceptedBy),
+    history: h.history.map((x) => ({ at: x.at, by: personRef(s, x.by), text: x.text })),
+    mentor: club.mentor,
+    canAccept: !!b && b.president === meId,
+    summary: h.summary ? { text: h.summary.text, by: personRef(s, h.summary.by), at: h.summary.at, mock: h.summary.mock } : undefined,
+  };
+}
+
+// ---------- Việc cần làm ----------
+
+export function taskDto(s: AppState, t: ClubTask): C.TaskDto {
+  const event = t.eventId ? s.events.find((e) => e.id === t.eventId) : undefined;
+  const process = t.processId ? s.kitProcesses.find((p) => p.id === t.processId) : undefined;
+  return {
+    id: t.id, title: t.title, assignee: personRef(s, t.assigneeId), due: t.due, status: t.status,
+    event: event ? { id: event.id, title: event.title } : undefined, process: process ? { id: process.id, name: process.name } : undefined,
+    createdAt: t.createdAt, history: t.history.map((x) => ({ at: x.at, by: personRef(s, x.by), text: x.text })),
+  };
+}
+
+export function tasksRes(s: AppState, club: Club): C.TasksRes {
+  return {
+    tasks: tasksOf(s, club.id).map((t) => taskDto(s, t)),
+    assignees: clubMembers(s, club.id).filter((m) => m.invite === "accepted").sort(byCode).map((m) => personRef(s, m.personId)),
+    events: s.events.filter((e) => e.clubId === club.id).map((e) => ({ id: e.id, title: e.title })),
+    processes: s.kitProcesses.filter((p) => p.clubId === club.id).map((p) => ({ id: p.id, name: p.name })),
+  };
+}
+
+// ---------- Kho bàn giao ----------
+
+export function kitDocumentDto(s: AppState, d: KitDocument): C.KitDocumentDto {
+  return { id: d.id, name: d.name, category: d.category, link: d.link, holder: personRef(s, d.holderId), updatedAt: d.updatedAt };
+}
+
+export function kitProcessDto(s: AppState, p: KitProcess): C.KitProcessDto {
+  return {
+    id: p.id, name: p.name, steps: p.steps, leadDays: p.leadDays,
+    documents: p.documentIds.map((id) => s.kitDocuments.find((d) => d.id === id)).filter((d): d is KitDocument => !!d).map((d) => ({ id: d.id, name: d.name })),
+    updatedAt: p.updatedAt,
+  };
+}
+
+export function kitAccountDto(s: AppState, a: KitAccount): C.KitAccountDto {
+  return { id: a.id, service: a.service, label: a.label, holder: a.holderId ? personRef(s, a.holderId) : undefined, ownership: a.ownership, required: a.required, updatedAt: a.updatedAt };
+}
+
+/**
+ * Kho bàn giao. Tài khoản và quyền truy cập, số mục thiếu và danh sách người giữ chỉ ban điều hành (board = true) nhận;
+ * thành viên thường chỉ thấy biểu mẫu và quy trình. Đây là chỗ duy nhất quyết định ai thấy phần nào của kho.
+ */
+export function kitRes(s: AppState, club: Club, board: boolean): C.KitRes {
+  const sum = kitSummary(s, club.id);
+  return {
+    documents: s.kitDocuments.filter((d) => d.clubId === club.id).map((d) => kitDocumentDto(s, d)),
+    processes: s.kitProcesses.filter((p) => p.clubId === club.id).map((p) => kitProcessDto(s, p)),
+    ...(board ? {
+      accounts: s.kitAccounts.filter((a) => a.clubId === club.id).map((a) => kitAccountDto(s, a)),
+      holders: clubMembers(s, club.id).sort(byCode).map((m) => personRef(s, m.personId)),
+    } : {}),
+    summary: board ? sum : { documents: sum.documents, processes: sum.processes },
   };
 }
 

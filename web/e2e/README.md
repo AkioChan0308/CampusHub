@@ -38,6 +38,9 @@ Script tự đặt lại dữ liệu mẫu trước khi chạy (`POST /api/v1/de
 | `money-flows.cjs` | Đợt thu, Đối soát, Duyệt chi, Dự trù |
 | `members-qr-handover.cjs` | Thành viên, Chiếu QR, Bàn giao, điểm danh trên điện thoại |
 | `member-student-school.cjs` | Của tôi, Lời mời, Danh sách CLB, Trang CLB, hai màn nhà trường |
+| `handover-kit-tasks.cjs` | Kho bàn giao (thêm, sửa, xóa, tìm, quyền), bàn giao 7 bước (đi hết bước 4 đến 7, chủ nhiệm mới xác nhận, quay lại bước 1, chọn lại chính mình), Việc cần làm, Việc của tôi, nút Đăng xuất của thành viên. 41 kiểm tra |
+| `assistant-dashboard.cjs` | Trợ lý bàn giao (hỏi đáp kèm nguồn, theo vai, từ chối câu về tiền, tóm tắt và lưu vào biên bản), trang chủ ban điều hành mới, menu gom nhóm Quỹ, khung khóa thống kê và trang Bản trả phí, khung quảng cáo mẫu, chữ trang đầu. 31 kiểm tra |
+| `feed-shell.cjs` | Bảng tin chung, khung rỗng: `/feed` (tab, trạng thái rỗng, sinh viên chưa vào CLB, chưa đăng nhập) và `/clubs/[clubId]/posts` (ban điều hành thấy khung, thành viên thường bị chặn, chưa có mục menu). 8 kiểm tra; chạy trong `npm run e2e` |
 | `club-setup.cjs` | Tạo CLB, thêm thành viên từ file .xlsx, tạo/sửa/xóa buổi, tạo/sửa đợt thu, đổi vai, nhận lời mời |
 | `regressions.cjs` | Các lỗi sửa ngày 05/10/2026: link QR giữ `?e=&t=` khi phải đăng nhập, màn tự tải lại khi máy chủ báo 409, đối soát hỏi lại và nhận ra "đã đóng" theo trạng thái máy chủ, đối soát đợt thu cũ khi CLB có hai đợt, trang Của tôi đổi ngay sau khi báo đã chuyển |
 | `auth.cjs` | Trang đầu (hai video, chuyển về trang của mình khi đã đăng nhập), /demo đã bỏ, bảng tài khoản mẫu (đủ 7 vai, bấm là điền sẵn, đăng nhập được), câu lỗi Google theo mã, đăng nhập bằng tên tài khoản hoặc email và mật khẩu, sai mật khẩu, khóa sau 5 lần sai, đặt và đổi mật khẩu ở /account, nút "Để sau", tên tài khoản ở Của tôi |
@@ -60,3 +63,5 @@ Trang đầu có hai video quay từ chính bản demo: thành viên trên đi�
 3. Chạy trong `web/`: `node e2e/record-demo-videos.cjs` (cả hai), hoặc `node e2e/record-demo-videos.cjs member` / `club-admin` (một video).
 
 Script đặt lại dữ liệu mẫu, đăng nhập bằng hai tài khoản mẫu (`hoangnam`, `quocbao`) rồi bấm qua từng bước, bắt đầu từ trang đăng nhập. Mỗi bước dừng thêm một chút ở màn kết quả (`HOLD`, `BOARD_HOLD` trong script) để người xem kịp đọc. Kết quả ghi vào `public/video/` (file `.mp4` và ảnh đầu video `.jpg`) và `src/app/(landing)/video-steps.json` (giây bắt đầu của từng bước). Trong lúc quay, web được báo là đang chạy bản thật, nên video không có phần chỉ có ở bản demo. Đổi bước nào thì sửa cả tên bước trong `src/app/(landing)/page.tsx`.
+
+**Ngày trong kiểm tra.** Dữ liệu mẫu cố định theo ngày 03/10/2026, còn script chạy theo ngày thật của máy. Kiểm tra nào phụ thuộc ngày (số CLB không hoạt động 30 ngày, đợt thu mẫu hết hạn 10/10) tính số mong đợi bằng `inactiveClubsToday()` và `collectionSizeAfterApproval()` trong `common.cjs`, không ghi cứng số.

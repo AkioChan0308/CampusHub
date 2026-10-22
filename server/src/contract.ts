@@ -17,6 +17,7 @@ export type PaymentStatus = "unpaid" | "reported" | "paid" | "partial";
 export type ExpenseStatus = "pending" | "mentor" | "approved" | "rejected" | "spent";
 export type EventStatus = "upcoming" | "open" | "closed";
 export type ConsentPurpose = "membership" | "phone" | "age16" | "application";
+export type KitCategory = "permit" | "finance" | "media" | "other";
 
 export interface PersonRef {
   personId: string;
@@ -37,6 +38,7 @@ export type ErrorCode =
   | "INVITE_PENDING" // 403: chưa nhận lời mời; details: { clubName, inviteCode }
   | "DEVICE_USED" // 409: điện thoại đã điểm danh cho người khác trong buổi này
   | "TOO_MANY_ATTEMPTS" // 429: nhập sai mật khẩu quá nhiều lần, tạm khóa đăng nhập bằng mật khẩu; details: { until }
+  | "NOT_IMPLEMENTED" // 501: chưa làm (ví dụ trợ lý AI thật)
   | "INTERNAL"; // 500
 
 /**
@@ -316,6 +318,13 @@ export interface DashboardRes {
   recentLedger: { date: IsoTime; direction: "in" | "out"; amount: Money; label: string; count: number }[]; // khoản thu cùng ngày của cùng đợt thu được gộp
   /** CLB mới: trang chủ nhắc thêm thành viên, tạo buổi, tạo đợt thu khi còn trống. */
   setup: { members: number; events: number };
+  /** Việc chưa xong: quá hạn trước, rồi hạn gần nhất; tối đa 4. */
+  tasks: { open: number; overdue: number; items: { id: string; title: string; assignee: PersonRef; due: IsoTime; status: TaskStatus; overdue: boolean }[] };
+  /** Có khi CLB đã bắt đầu bàn giao. */
+  handover?: { step: number; toTerm: string; accepted: boolean };
+  kit: { documents: number; processes: number; accounts: number; missing: number };
+  /** Phân tích tự động từ dữ liệu điểm danh (phép đếm, không phải AI). Hiện ở khung "Có trong bản trả phí". */
+  participation: { sessions: number; rate?: number; absentRuns: number };
 }
 
 export interface MembersRes {
@@ -471,14 +480,149 @@ export interface BudgetItemRes {
 export interface HandoverRes {
   fromTerm: string;
   toTerm: string;
-  step: number; // 1..6
+  /** 1 chọn ban mới, 2 chốt số dư, 3 kiểm tra kho bàn giao, 4 đổi tài khoản nhận quỹ, 5 chuyển quyền quản trị, 6 ban mới xác nhận, 7 biên bản. */
+  step: number;
   lockedBalance: Money; // số dư đã chốt ở bước 2
+  lockedAt?: IsoTime;
   currentBalance: Money;
+  currentPresident?: PersonRef;
   currentReceiver?: PersonRef & { bankLabel: string; last4: string };
   newReceiver?: PersonRef & { bank: string; accountLast4: string };
   transferRef?: string;
-  candidates: PersonRef[]; // thành viên đã nhận lời mời, chọn làm chủ tài khoản mới
+  candidates: PersonRef[]; // thành viên đã nhận lời mời: chọn vào ban mới, làm chủ tài khoản mới
   memberCount: number;
+  newBoard?: { president: PersonRef; vice?: PersonRef; treasurer?: PersonRef; heads: PersonRef[] };
+  /** Việc còn dở lúc bàn giao, hiện ở bước 2 và 3. */
+  open: { unpaid: number; reported: number; pendingExpenses: number; pendingExpenseTotal: Money; openManual: number; openTasks: number };
+  kit: { documents: number; processes: number; accounts: number; missing: number; personal: number };
+  /** Các tài khoản trong kho, cho bước 5. transferred: đã chuyển quyền quản trị ở bước 5. */
+  accounts: { id: string; service: string; label: string; holder?: PersonRef; ownership: "club" | "personal"; required: boolean; transferred: boolean }[];
+  acceptedAt?: IsoTime;
+  acceptedBy?: PersonRef;
+  /** Nội dung biên bản: mỗi bước đã làm một dòng. */
+  history: { at: IsoTime; by: PersonRef; text: string }[];
+  mentor?: string;
+  /** Người đang xem là chủ nhiệm mới: được bấm xác nhận ở bước 6. */
+  canAccept: boolean;
+  /** Bản tóm tắt cho ban mới đã lưu vào biên bản. mock: viết bằng bản mẫu, chưa dùng AI thật. */
+  summary?: { text: string; by: PersonRef; at: IsoTime; mock: boolean };
+}
+
+export type TaskStatus = "todo" | "doing" | "done";
+
+export interface TaskDto {
+  id: string;
+  title: string;
+  assignee: PersonRef;
+  due: IsoTime;
+  status: TaskStatus;
+  event?: { id: string; title: string };
+  process?: { id: string; name: string };
+  createdAt: IsoTime;
+  history: { at: IsoTime; by: PersonRef; text: string }[];
+}
+
+export interface TasksRes {
+  tasks: TaskDto[]; // hạn gần nhất trước
+  /** Chọn người phụ trách, buổi và quy trình khi tạo việc. */
+  assignees: PersonRef[];
+  events: { id: string; title: string }[];
+  processes: { id: string; name: string }[];
+}
+
+export interface TaskRes {
+  task: TaskDto;
+}
+
+export interface MyTasksRes {
+  tasks: (TaskDto & { club: ClubRef })[];
+}
+
+export interface KitDocumentDto {
+  id: string;
+  name: string;
+  category: KitCategory;
+  link: string; // đường link (Google Drive...). Bản demo không lưu file
+  holder: PersonRef; // người đang giữ
+  updatedAt: IsoTime;
+}
+
+export interface KitProcessDto {
+  id: string;
+  name: string;
+  steps: { text: string; who: string }[]; // thứ tự là thứ tự làm
+  leadDays?: number; // thường phải xong trước ngày diễn ra bao nhiêu ngày
+  documents: { id: string; name: string }[]; // biểu mẫu đi kèm
+  updatedAt: IsoTime;
+}
+
+/** Tài khoản hay dịch vụ của CLB. Không có mật khẩu: kho này không lưu mật khẩu. */
+export interface KitAccountDto {
+  id: string;
+  service: string;
+  label: string; // tên tài khoản hoặc đường link
+  holder?: PersonRef; // vắng: chưa ai nhận quyền quản trị
+  ownership: "club" | "personal";
+  required: boolean; // phải chuyển khi bàn giao
+  updatedAt: IsoTime;
+}
+
+export interface KitRes {
+  documents: KitDocumentDto[];
+  processes: KitProcessDto[];
+  /** Chỉ ban điều hành có. Thành viên thường không thấy tài khoản và quyền truy cập. */
+  accounts?: KitAccountDto[];
+  /** accounts, missing, personal chỉ ban điều hành có. missing: tài khoản bắt buộc mà chưa ghi người giữ; personal: tài khoản đứng tên cá nhân. */
+  summary: { documents: number; processes: number; accounts?: number; missing?: number; personal?: number };
+  /** Chỉ ban điều hành có: các thành viên có thể chọn làm người giữ. */
+  holders?: PersonRef[];
+}
+
+export interface KitDocumentRes {
+  document: KitDocumentDto;
+}
+
+export interface KitProcessRes {
+  process: KitProcessDto;
+}
+
+export interface KitAccountRes {
+  account: KitAccountDto;
+}
+
+export type AiMode = "mock" | "real";
+
+/** Số lượt dùng trợ lý của CLB trong học kỳ. limit: mức giới hạn lượt hỏi của bản miễn phí; vắng là chưa có mức giới hạn. */
+export interface AiUsageDto {
+  asks: number;
+  summaries: number;
+  limit?: number;
+}
+
+export interface AiStatusRes {
+  mode: AiMode;
+  usage: AiUsageDto;
+}
+
+export interface AiSummaryRes {
+  mode: AiMode;
+  text: string; // bản nháp, ban điều hành sửa được trước khi lưu vào biên bản
+  bullets: string[];
+  usage: AiUsageDto;
+}
+
+export interface AiSourceDto {
+  kind: "document" | "process" | "account";
+  id: string;
+  name: string;
+}
+
+export interface AiAskRes {
+  mode: AiMode;
+  found: boolean; // false: không có trong kho, hoặc câu hỏi ngoài phạm vi (tiền, dữ liệu cá nhân)
+  answer: string;
+  sources: AiSourceDto[]; // mục kho đã dùng để trả lời, mở được từ màn
+  usage: AiUsageDto;
 }
 
 export interface SchoolClubsRes {
@@ -603,7 +747,62 @@ export interface SetReceiverBody {
 }
 
 export interface SetStepBody {
-  step: number; // chỉ được quay lại bước trước
+  step: number; // 1..7, chỉ được quay lại bước trước
+}
+
+export interface SetBoardBody {
+  presidentId: string; // thành viên đã nhận lời mời
+  viceId?: string;
+  treasurerId?: string;
+  headIds: string[];
+  /** Chủ nhiệm hiện tại chọn lại chính mình thì phải gửi true. */
+  confirmSelf?: true;
+}
+
+export interface TransferAccountBody {
+  holderId: string; // người nhận quyền quản trị mới (thường là chủ nhiệm mới)
+}
+
+export interface TaskBody {
+  title: string;
+  assigneeId: string; // thành viên đã nhận lời mời
+  due: IsoTime;
+  eventId?: string; // buổi của CLB
+  processId?: string; // quy trình trong kho bàn giao
+}
+
+export interface TaskStatusBody {
+  status: TaskStatus;
+}
+
+export interface AiAskBody {
+  question: string; // 3–300 ký tự
+}
+
+export interface SaveSummaryBody {
+  text: string; // bản tóm tắt đã sửa, 1–4000 ký tự
+}
+
+export interface KitDocumentBody {
+  name: string;
+  category: KitCategory;
+  link: string; // bắt đầu bằng http:// hoặc https://
+  holderId: string; // thành viên của CLB
+}
+
+export interface KitProcessBody {
+  name: string;
+  steps: { text: string; who: string }[]; // 1–20 bước
+  leadDays?: number; // 0–365
+  documentIds: string[]; // biểu mẫu của chính CLB này
+}
+
+export interface KitAccountBody {
+  service: string;
+  label: string;
+  holderId?: string; // thành viên của CLB; bỏ trống là chưa ai nhận
+  ownership: "club" | "personal";
+  required: boolean;
 }
 
 export interface CreateClubBody {
@@ -682,6 +881,7 @@ export const ENDPOINTS = {
   withdrawPhoneConsent: { method: "POST", path: "/me/clubs/:clubId/consents/phone/withdraw", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   requestDeletion: { method: "POST", path: "/me/clubs/:clubId/deletion-request", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   exportMyData: { method: "GET", path: "/me/export", auth: "user", who: "Người đã đăng nhập", screen: "TV-CuaToi" },
+  getMyTasks: { method: "GET", path: "/me/tasks", auth: "user", who: "Người đã đăng nhập", screen: "Việc của tôi (chưa có bản vẽ)" },
   getMyPayment: { method: "GET", path: "/me/collections/:collectionId", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DongQuy" },
   reportTransfer: { method: "POST", path: "/me/collections/:collectionId/report-transfer", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DongQuy" },
   checkIn: { method: "POST", path: "/checkin", auth: "user", who: "Thành viên quét mã QR", screen: "TV-DiemDanh" },
@@ -730,6 +930,30 @@ export const ENDPOINTS = {
   getHandover: { method: "GET", path: "/clubs/:clubId/handover", auth: "user", who: "Ban điều hành", screen: "BDH-BanGiao" },
   setHandoverReceiver: { method: "PUT", path: "/clubs/:clubId/handover/receiver", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
   setHandoverStep: { method: "PUT", path: "/clubs/:clubId/handover/step", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  setHandoverBoard: { method: "PUT", path: "/clubs/:clubId/handover/board", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  lockHandoverBalance: { method: "POST", path: "/clubs/:clubId/handover/lock-balance", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  reviewHandoverKit: { method: "POST", path: "/clubs/:clubId/handover/kit-review", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  transferHandoverAccount: { method: "POST", path: "/clubs/:clubId/handover/accounts/:itemId/transfer", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  finishHandoverTransfer: { method: "POST", path: "/clubs/:clubId/handover/transfer-done", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  acceptHandover: { method: "POST", path: "/clubs/:clubId/handover/accept", auth: "user", who: "Chủ nhiệm mới", screen: "BDH-BanGiao" },
+  listTasks: { method: "GET", path: "/clubs/:clubId/tasks", auth: "user", who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
+  createTask: { method: "POST", path: "/clubs/:clubId/tasks", auth: "user", status: 201, who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
+  updateTask: { method: "PUT", path: "/clubs/:clubId/tasks/:taskId", auth: "user", who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
+  getAiStatus: { method: "GET", path: "/clubs/:clubId/ai", auth: "user", who: "Thành viên đã nhận lời mời", screen: "Trợ lý bàn giao (chưa có bản vẽ)" },
+  aiSummary: { method: "POST", path: "/clubs/:clubId/ai/summary", auth: "user", who: "Ban điều hành", screen: "Trợ lý bàn giao (chưa có bản vẽ)" },
+  askAi: { method: "POST", path: "/clubs/:clubId/ai/ask", auth: "user", who: "Thành viên đã nhận lời mời (chỉ hỏi được phần mình thấy)", screen: "Trợ lý bàn giao (chưa có bản vẽ)" },
+  saveHandoverSummary: { method: "PUT", path: "/clubs/:clubId/handover/summary", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
+  setTaskStatus: { method: "POST", path: "/clubs/:clubId/tasks/:taskId/status", auth: "user", who: "Ban điều hành, hoặc người được giao việc đó", screen: "Việc cần làm (chưa có bản vẽ)" },
+  getKit: { method: "GET", path: "/clubs/:clubId/handover-kit", auth: "user", who: "Thành viên đã nhận lời mời (thành viên thường không thấy tài khoản)", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  createKitDocument: { method: "POST", path: "/clubs/:clubId/handover-kit/documents", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  updateKitDocument: { method: "PUT", path: "/clubs/:clubId/handover-kit/documents/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  deleteKitDocument: { method: "DELETE", path: "/clubs/:clubId/handover-kit/documents/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  createKitProcess: { method: "POST", path: "/clubs/:clubId/handover-kit/processes", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  updateKitProcess: { method: "PUT", path: "/clubs/:clubId/handover-kit/processes/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  deleteKitProcess: { method: "DELETE", path: "/clubs/:clubId/handover-kit/processes/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  createKitAccount: { method: "POST", path: "/clubs/:clubId/handover-kit/accounts", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  updateKitAccount: { method: "PUT", path: "/clubs/:clubId/handover-kit/accounts/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
+  deleteKitAccount: { method: "DELETE", path: "/clubs/:clubId/handover-kit/accounts/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
 
   listSchoolClubs: { method: "GET", path: "/school/clubs", auth: "user", who: "Cán bộ của trường", screen: "NT-TongQuan" },
   getSchoolClub: { method: "GET", path: "/school/clubs/:clubId", auth: "user", who: "Cán bộ của trường", screen: "NT-ChiTietCLB" },
@@ -741,6 +965,7 @@ export type EndpointId = keyof typeof ENDPOINTS;
 
 type NoBody = undefined;
 type Club = { clubId: string };
+type Item = { itemId: string };
 
 /** Tham số trên đường dẫn, dữ liệu gửi lên và kết quả của từng API. */
 export interface Api {
@@ -762,6 +987,7 @@ export interface Api {
   withdrawPhoneConsent: { params: Club; body: NoBody; res: ConsentRes };
   requestDeletion: { params: Club; body: NoBody; res: MyClubRes };
   exportMyData: { params: {}; body: NoBody; res: MyExportRes };
+  getMyTasks: { params: {}; body: NoBody; res: MyTasksRes };
   getMyPayment: { params: { collectionId: string }; body: NoBody; res: MyPaymentRes };
   reportTransfer: { params: { collectionId: string }; body: NoBody; res: MyPaymentRes };
   checkIn: { params: {}; body: CheckinBody; res: CheckinRes };
@@ -811,6 +1037,30 @@ export interface Api {
   getHandover: { params: Club; body: NoBody; res: HandoverRes };
   setHandoverReceiver: { params: Club; body: SetReceiverBody; res: HandoverRes };
   setHandoverStep: { params: Club; body: SetStepBody; res: HandoverRes };
+  setHandoverBoard: { params: Club; body: SetBoardBody; res: HandoverRes };
+  lockHandoverBalance: { params: Club; body: NoBody; res: HandoverRes };
+  reviewHandoverKit: { params: Club; body: NoBody; res: HandoverRes };
+  transferHandoverAccount: { params: Club & Item; body: TransferAccountBody; res: HandoverRes };
+  finishHandoverTransfer: { params: Club; body: NoBody; res: HandoverRes };
+  acceptHandover: { params: Club; body: NoBody; res: HandoverRes };
+  listTasks: { params: Club; body: NoBody; res: TasksRes };
+  createTask: { params: Club; body: TaskBody; res: TaskRes };
+  updateTask: { params: Club & { taskId: string }; body: TaskBody; res: TaskRes };
+  setTaskStatus: { params: Club & { taskId: string }; body: TaskStatusBody; res: TaskRes };
+  getAiStatus: { params: Club; body: NoBody; res: AiStatusRes };
+  aiSummary: { params: Club; body: NoBody; res: AiSummaryRes };
+  askAi: { params: Club; body: AiAskBody; res: AiAskRes };
+  saveHandoverSummary: { params: Club; body: SaveSummaryBody; res: HandoverRes };
+  getKit: { params: Club; body: NoBody; res: KitRes };
+  createKitDocument: { params: Club; body: KitDocumentBody; res: KitDocumentRes };
+  updateKitDocument: { params: Club & Item; body: KitDocumentBody; res: KitDocumentRes };
+  deleteKitDocument: { params: Club & Item; body: NoBody; res: OkRes };
+  createKitProcess: { params: Club; body: KitProcessBody; res: KitProcessRes };
+  updateKitProcess: { params: Club & Item; body: KitProcessBody; res: KitProcessRes };
+  deleteKitProcess: { params: Club & Item; body: NoBody; res: OkRes };
+  createKitAccount: { params: Club; body: KitAccountBody; res: KitAccountRes };
+  updateKitAccount: { params: Club & Item; body: KitAccountBody; res: KitAccountRes };
+  deleteKitAccount: { params: Club & Item; body: NoBody; res: OkRes };
 
   listSchoolClubs: { params: {}; body: NoBody; res: SchoolClubsRes };
   getSchoolClub: { params: Club; body: NoBody; res: SchoolClubRes };

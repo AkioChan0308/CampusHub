@@ -617,8 +617,8 @@ html:has(.l-phead) { scroll-padding-top: 72px; scroll-padding-bottom: 72px; }
 .l-att-actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
 
 /* ---------- Nhóm 2: Bàn giao ---------- */
-.l-steps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
-.l-step { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 14px 16px; font-size: 14px; color: var(--l-ink-3); }
+.l-steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+.l-step { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 14px 12px; font-size: 14px; color: var(--l-ink-3); }
 .l-step + .l-step { border-left: 1px solid var(--l-rule-soft); }
 .l-step-n { flex-shrink: 0; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--l-rule); border-radius: 8px; font: 700 17px/1 var(--l-num); color: var(--l-ink-3); }
 .l-step.done .l-step-n { border-color: var(--l-ok-tint); background: var(--l-ok-tint); color: var(--l-ok); }
@@ -946,4 +946,116 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
   .l-vid-head p:last-child { font-size: 16px; }
   .l-device.phone { width: 260px; border-radius: 36px; padding: 8px; }
   .l-device.phone .l-device-video { border-radius: 28px; }
+}
+
+/* Kho bàn giao: dòng của danh sách biểu mẫu, quy trình, tài khoản */
+.l-kit-row { display: flex; align-items: flex-start; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--l-rule); }
+.l-kit-main { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.l-kit-name { font-weight: 700; overflow-wrap: anywhere; }
+.l-kit-name a { color: var(--l-blue); }
+.l-kit-steps { margin: 6px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+.l-kit-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.l-kit-step-edit { display: grid; grid-template-columns: 28px minmax(0, 2fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.l-kit-step-n { font: 700 15px/1 var(--l-num); color: var(--l-ink-3); text-align: center; }
+.l-kit-notice { padding: 0 20px 12px; }
+.l-attn { color: var(--l-warn); }
+@media (max-width: 900px) {
+  .l-kit-row { flex-direction: column; gap: 8px; }
+  .l-kit-step-edit { grid-template-columns: 28px minmax(0, 1fr); }
+}
+
+.l-kit-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; }
+.l-kit-bar .l-input { max-width: 320px; }
+
+/* Bàn giao: biên bản (bước 7) */
+.l-ho-record { margin: 0; display: flex; flex-direction: column; }
+.l-ho-record .l-kv { align-items: flex-start; gap: 16px; }
+.l-ho-record dt { flex: 0 0 180px; color: var(--l-ink-3); }
+.l-ho-record dd { flex: 1; margin: 0; text-align: left; font-weight: 600; overflow-wrap: anywhere; }
+.l-ho-log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.l-ho-log li { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-top: 1px solid var(--l-rule-soft); }
+@media (max-width: 900px) { .l-ho-record .l-kv { flex-direction: column; gap: 2px; } .l-ho-record dt { flex-basis: auto; } }
+@media print {
+  .l-side, .l-top-actions, .l-steps, .l-ho-side, .l-row-actions { display: none !important; }
+  .l-board { display: block; }
+}
+
+/* Việc cần làm: ba cột trạng thái */
+.l-task-filter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; padding: 12px 20px; }
+.l-task-person { max-width: 240px; }
+.l-task-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; }
+.l-task-col { min-width: 0; }
+.l-task-col + .l-task-col { border-left: 1px solid var(--l-rule); }
+.l-task-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--l-rule-soft); }
+.l-task-row .l-field { flex: 1; min-width: 0; gap: 4px; }
+.l-task-row .l-row-actions { flex-direction: column; align-items: stretch; flex-shrink: 0; }
+.l-task-title { font-weight: 700; overflow-wrap: anywhere; }
+.l-mytask { align-items: flex-start; }
+.l-mytask .l-row-actions { margin-top: 6px; }
+/* Vùng chính hẹp hơn khoảng 1100px (cửa sổ dưới 1360px): ba cột chật, nên xếp một cột. */
+@media (max-width: 1360px) {
+  .l-task-cols { grid-template-columns: minmax(0, 1fr); }
+  .l-task-col + .l-task-col { border-left: 0; border-top: 1px solid var(--l-rule); }
+}
+
+/* Nhãn dài trong dòng việc và dòng kho: được xuống dòng, không bị cắt ở chiều cao 26px */
+.l-task-row .l-tag, .l-kit-tags .l-tag { height: auto; min-height: 26px; padding-top: 3px; padding-bottom: 3px; line-height: 1.3; }
+
+/* Dải 7 bước ở cửa sổ hẹp: bớt đệm để tên bước không xuống 3 đến 4 dòng */
+@media (max-width: 1360px) {
+  .l-step { gap: 6px; padding: 12px 8px; font-size: 13.5px; }
+  .l-step-n { width: 26px; height: 26px; font-size: 15px; }
+}
+
+/* Trang chủ: việc cần làm, quỹ thu gọn, khung khóa thống kê */
+.l-panel-sub { padding: 0 20px 8px; margin: 0; }
+.l-task-mini { text-decoration: none; color: inherit; }
+.lich a.l-task-mini { color: var(--l-ink); }
+.l-task-mini:hover { background: #F6F7F9; }
+.l-fundline { display: flex; flex-direction: row; justify-content: flex-start; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+.l-fundline .l-subhead { flex: 0 0 auto; }
+.l-fundline-text { flex: 1; min-width: 0; color: var(--l-ink-2); }
+.l-fundline-text strong { color: var(--l-ink); }
+.l-locked dd { filter: blur(6px); user-select: none; pointer-events: none; }
+
+/* Menu: nhóm Quỹ gấp được */
+.l-navtoggle { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 40px; margin: 8px 0 0; padding: 0 10px; border: 0; background: none; font: 500 15px/1.25 var(--l-body); color: var(--l-ink-2); text-align: left; cursor: pointer; }
+.l-navtoggle:hover { color: var(--l-ink); }
+.l-navtoggle .l-cnt { margin-left: auto; }
+
+/* Trợ lý bàn giao */
+.l-ai-box { display: flex; flex-direction: column; gap: 20px; }
+.l-ai-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
+.l-ai-row .l-input { flex: 1; min-width: 200px; }
+.l-ai-answer { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid var(--l-rule); border-radius: var(--l-r-lg); background: var(--l-ground); }
+.l-ai-text { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.l-ai-textarea { height: auto; min-height: 160px; padding: 10px 12px; line-height: 1.5; resize: vertical; font: inherit; }
+.l-hl { background: var(--l-blue-tint); }
+.l-kit-row { transition: background-color 200ms ease-out; }
+.l-kit-row:focus-visible { outline-offset: -2px; }
+
+/* Khung quảng cáo mẫu: giữ chỗ cố định, nằm trong dòng nội dung, viền 1px, không che gì */
+.l-sponsor { display: flex; flex-direction: column; gap: 4px; min-height: 116px; padding: 12px 16px; border: 1px solid var(--l-rule); border-radius: var(--l-r-lg); background: var(--l-paper); }
+.l-pay-card.l-rows > .l-sponsor { border-width: 1px 0; border-radius: 0; margin: 0 -16px; }
+.l-sponsor-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.l-sponsor-label { font-size: 12.5px; font-weight: 600; color: var(--l-ink-3); }
+
+.l-sponsor .l-linkbtn { min-height: 44px; padding: 0 8px; margin: -12px -8px -12px 0; }
+/* Quỹ thu gọn: một hàng rộng ở cuối tờ giấy của trang chủ */
+.l-split-foot { border: 1px solid var(--l-rule); border-radius: var(--l-r-lg); background: var(--l-paper); }
+.l-split-foot > .l-panel { border: 0; border-radius: 0; }
+/* Vùng chính hẹp: cột trái bớt rộng để cột phải không chật */
+@media (max-width: 1360px) { .l-split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+
+/* Khung thành viên trên laptop (từ 1024px): trang web thường, không còn dáng cột điện thoại.
+   Header và ba tab thành thanh ngang trên cùng, nội dung rộng khoảng 760px canh giữa. Dưới 1024px giữ nguyên khung điện thoại. */
+@media (min-width: 1024px) {
+  .l-phone { max-width: none; }
+  .l-phead, .l-tabs { padding-inline: max(24px, calc((100% - 760px) / 2 + 24px)); }
+  .l-phead { order: -2; }
+  .l-tabs { order: -1; position: sticky; top: 56px; display: flex; gap: 4px; padding-bottom: 0; border-top: 0; border-bottom: 1px solid var(--l-rule); }
+  .l-tab { flex-direction: row; gap: 8px; min-height: 48px; padding: 0 14px; font-size: 14.5px; border-bottom: 2px solid transparent; }
+  .lich a.l-tab.on { border-bottom-color: var(--l-blue); }
+  .l-pmain { width: 100%; max-width: 760px; align-self: center; padding: 24px 24px 40px; gap: 16px; }
+  html:has(.l-phead) { scroll-padding-top: 112px; scroll-padding-bottom: 24px; }
 }

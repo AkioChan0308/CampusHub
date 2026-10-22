@@ -1,20 +1,22 @@
 // Ban điều hành trên laptop: khung trang, trang chủ, thành viên và đơn xin vào, điểm danh, sổ quỹ (xem), bàn giao.
 
-import { requireBoard, requireRight } from "../access.ts";
+import { requireBoard, requireBoardOrIncoming, requireRight } from "../access.ts";
 import {
-  approveApplication, checkIn, closeEvent, membershipOf, nowIso, openEvent, rejectApplication, saveHandoverAccount, setHandoverStep,
-  type AppState, type ClubEvent,
+  acceptHandover, approveApplication, checkIn, closeEvent, finishHandoverTransfer, lockHandoverBalance, membershipOf, nowIso, openEvent, rejectApplication,
+  reviewHandoverKit, saveHandoverAccount, saveHandoverBoard, setHandoverStep, transferHandoverAccount,
+  type AppState, type ClubEvent, type Handover,
 } from "../domain.ts";
-import { conflict, HttpError, invalid, notFound } from "../errors.ts";
+import { conflict, forbidden, HttpError, invalid, notFound } from "../errors.ts";
 import { QR_STEP_MS, qrStep, qrToken } from "../qr.ts";
-import { manualCheckinBody, parseBody, setReceiverBody, setStepBody } from "../schemas.ts";
+import { manualCheckinBody, parseBody, setBoardBody, setReceiverBody, setStepBody, transferAccountBody } from "../schemas.ts";
 import { applicationDto, attendanceDto, boardRes, dashboardRes, eventDetailRes, eventDto, eventsRes, handoverRes, ledgerRes, membersRes } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys =
   | "getBoard" | "getDashboard" | "listMembers" | "listApplications" | "approveApplication" | "rejectApplication"
   | "listEvents" | "getEvent" | "openEvent" | "closeEvent" | "getEventQr" | "manualCheckIn"
-  | "getLedger" | "getHandover" | "setHandoverReceiver" | "setHandoverStep";
+  | "getLedger" | "getHandover" | "setHandoverReceiver" | "setHandoverStep" | "setHandoverBoard" | "lockHandoverBalance" | "reviewHandoverKit"
+  | "transferHandoverAccount" | "finishHandoverTransfer" | "acceptHandover";
 
 const APPLICATION_STATUS = ["pending", "approved", "rejected"] as const;
 
@@ -37,13 +39,19 @@ function findHandover(s: AppState, clubId: string) {
   return h;
 }
 
+/** Bàn giao phải đang đúng ở bước này thì mới làm được thao tác của bước. */
+function atStep(h: Handover, step: number, message: string): Handover {
+  if (h.step !== step) throw conflict(message);
+  return h;
+}
+
 export const boardHandlers: Pick<Handlers, Keys> = {
   getBoard: (ctx) => {
-    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    const { club, ms } = requireBoardOrIncoming(ctx.state, ctx.params.clubId, ctx.me);
     return boardRes(ctx.state, club, ctx.me, ms);
   },
 
-  getDashboard: (ctx) => dashboardRes(ctx.state, requireBoard(ctx.state, ctx.params.clubId, ctx.me).club),
+  getDashboard: (ctx) => dashboardRes(ctx.state, requireBoard(ctx.state, ctx.params.clubId, ctx.me).club, ctx.now()),
 
   listMembers: (ctx) => membersRes(ctx.state, requireBoard(ctx.state, ctx.params.clubId, ctx.me).club),
 
@@ -136,32 +144,102 @@ export const boardHandlers: Pick<Handlers, Keys> = {
   getLedger: (ctx) => ledgerRes(ctx.state, requireBoard(ctx.state, ctx.params.clubId, ctx.me).club.id),
 
   getHandover: (ctx) => {
-    const { club } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    const { club } = requireBoardOrIncoming(ctx.state, ctx.params.clubId, ctx.me);
     findHandover(ctx.state, club.id);
-    return handoverRes(ctx.state, club)!;
+    return handoverRes(ctx.state, club, ctx.me.id)!;
   },
 
-  /** Bước 3: đổi tài khoản nhận quỹ. Lưu xong thì sang bước 4. Chỉ trả về 4 số cuối của tài khoản. */
+  /** Bước 1: chọn ban mới. Chỉ chọn người đã nhận lời mời, mỗi người một vai. Chủ nhiệm cũ chọn lại chính mình thì phải xác nhận. */
+  setHandoverBoard: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "handover");
+    atStep(findHandover(ctx.state, club.id), 1, "Bàn giao đang không ở bước chọn ban mới.");
+    const body = parseBody(setBoardBody, ctx.body);
+    const ids = [body.presidentId, ...(body.viceId ? [body.viceId] : []), ...(body.treasurerId ? [body.treasurerId] : []), ...body.headIds];
+    if (new Set(ids).size !== ids.length) throw invalid("Mỗi người chỉ giữ một vai trong ban mới.");
+    for (const id of ids) {
+      const m = membershipOf(ctx.state, club.id, id);
+      if (!m || m.invite !== "accepted") throw invalid("Ban mới chỉ gồm thành viên đã nhận lời mời.");
+    }
+    const sitting = ctx.state.memberships.find((m) => m.clubId === club.id && m.role === "president");
+    if (sitting?.personId === body.presidentId && !body.confirmSelf) throw invalid("Chủ nhiệm hiện tại đang chọn lại chính mình. Cần xác nhận.");
+    const s = ctx.update(saveHandoverBoard(club.id, { president: body.presidentId, vice: body.viceId, treasurer: body.treasurerId, heads: body.headIds }, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Bước 2: chốt số dư bằng số dư sổ quỹ lúc này. */
+  lockHandoverBalance: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "handover");
+    atStep(findHandover(ctx.state, club.id), 2, "Bàn giao đang không ở bước chốt số dư.");
+    const s = ctx.update(lockHandoverBalance(club.id, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Bước 3: đã xem kho bàn giao. Không chặn khi kho còn thiếu; số mục thiếu được ghi vào biên bản. */
+  reviewHandoverKit: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "handover");
+    atStep(findHandover(ctx.state, club.id), 3, "Bàn giao đang không ở bước kiểm tra kho.");
+    const s = ctx.update(reviewHandoverKit(club.id, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Bước 4: đổi tài khoản nhận quỹ. Lưu xong thì sang bước 5. Chỉ trả về 4 số cuối của tài khoản. */
   setHandoverReceiver: (ctx) => {
     const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
     requireRight(ms, "handover");
-    const h = findHandover(ctx.state, club.id);
-    if (h.step !== 3) throw conflict("Bàn giao đang không ở bước đổi tài khoản nhận quỹ.");
+    atStep(findHandover(ctx.state, club.id), 4, "Bàn giao đang không ở bước đổi tài khoản nhận quỹ.");
     const body = parseBody(setReceiverBody, ctx.body);
     const receiver = membershipOf(ctx.state, club.id, body.personId);
     if (!receiver || receiver.invite !== "accepted") throw invalid("Chủ tài khoản mới phải là thành viên đã nhận lời mời.");
-    const s = ctx.update(saveHandoverAccount(club.id, { personId: body.personId, bank: body.bank, account: body.account }, body.transferRef ?? ""));
-    return handoverRes(s, club)!;
+    const s = ctx.update(saveHandoverAccount(club.id, { personId: body.personId, bank: body.bank, account: body.account }, body.transferRef ?? "", ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
   },
 
-  /** Chỉ quay lại bước trước. Đi tiếp thì làm bằng thao tác của từng bước. */
+  /** Bước 5, từng dòng: ghi người nhận quyền quản trị của một tài khoản trong kho. Đổi quyền thật làm ở chính dịch vụ. */
+  transferHandoverAccount: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "handover");
+    atStep(findHandover(ctx.state, club.id), 5, "Bàn giao đang không ở bước chuyển quyền quản trị.");
+    const account = ctx.state.kitAccounts.find((a) => a.id === ctx.params.itemId && a.clubId === club.id);
+    if (!account) throw notFound("Không tìm thấy tài khoản này trong kho.");
+    const body = parseBody(transferAccountBody, ctx.body);
+    const holder = membershipOf(ctx.state, club.id, body.holderId);
+    if (!holder || holder.invite !== "accepted") throw invalid("Người nhận quyền quản trị phải là thành viên đã nhận lời mời.");
+    const s = ctx.update(transferHandoverAccount(club.id, account.id, body.holderId, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Hết bước 5 khi mọi tài khoản "bắt buộc chuyển khi bàn giao" đã chuyển. */
+  finishHandoverTransfer: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "handover");
+    const h = atStep(findHandover(ctx.state, club.id), 5, "Bàn giao đang không ở bước chuyển quyền quản trị.");
+    const left = ctx.state.kitAccounts.filter((a) => a.clubId === club.id && a.required && !h.transferred.includes(a.id));
+    if (left.length) throw conflict(`Còn ${left.length} tài khoản bắt buộc chưa chuyển: ${left.map((a) => a.service).join(", ")}.`);
+    const s = ctx.update(finishHandoverTransfer(club.id, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Bước 6: chỉ chủ nhiệm mới (người được chọn ở bước 1) bấm được. Xong thì biên bản không sửa được nữa. */
+  acceptHandover: (ctx) => {
+    const { club } = requireBoardOrIncoming(ctx.state, ctx.params.clubId, ctx.me);
+    const h = atStep(findHandover(ctx.state, club.id), 6, "Bàn giao đang không ở bước ban mới xác nhận.");
+    if (h.newBoard?.president !== ctx.me.id) throw forbidden("Chỉ chủ nhiệm mới được chọn ở bước 1 mới xác nhận đã nhận bàn giao.");
+    const s = ctx.update(acceptHandover(club.id, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
+  },
+
+  /** Chỉ quay lại bước trước, và chỉ khi ban mới chưa xác nhận. Đi tiếp thì làm bằng thao tác của từng bước. */
   setHandoverStep: (ctx) => {
     const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
     requireRight(ms, "handover");
     const h = findHandover(ctx.state, club.id);
+    if (h.acceptedAt) throw conflict("Ban mới đã xác nhận nên biên bản không sửa được nữa.");
     const body = parseBody(setStepBody, ctx.body);
     if (body.step >= h.step) throw conflict("Chỉ quay lại được bước trước.");
-    const s = ctx.update(setHandoverStep(club.id, body.step));
-    return handoverRes(s, club)!;
+    const s = ctx.update(setHandoverStep(club.id, body.step, ctx.me.id, ctx.nowIso()));
+    return handoverRes(s, club, ctx.me.id)!;
   },
 };

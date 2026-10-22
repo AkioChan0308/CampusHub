@@ -98,7 +98,7 @@ export const setReceiverBody = z.object({
 }) satisfies z.ZodType<C.SetReceiverBody>;
 
 export const setStepBody = z.object({
-  step: z.number().int().min(1).max(6),
+  step: z.number().int().min(1).max(7),
 }) satisfies z.ZodType<C.SetStepBody>;
 
 // ---------- Tạo dữ liệu từ đầu (04/10/2026) ----------
@@ -161,3 +161,68 @@ export const updateCollectionBody = z.object({
   dueDate: time("Hạn đóng không hợp lệ.").optional(),
   amount: money("Mức thu không hợp lệ.").max(100_000_000, { error: "Mức thu quá lớn." }).optional(),
 }).refine((b) => b.dueDate !== undefined || b.amount !== undefined, { error: "Chưa có gì để sửa." }) satisfies z.ZodType<C.UpdateCollectionBody>;
+
+// ---------- Kho bàn giao (22/10/2026) ----------
+
+/** Chỉ nhận đường link http(s): giao diện mở link này, nên không nhận javascript: hay đường dẫn lạ. */
+const link = z.string({ error: "Cần ghi đường link." }).trim().min(1, { error: "Cần ghi đường link." })
+  .max(500, { error: "Tối đa 500 ký tự." }).regex(/^https?:\/\/\S+$/i, { error: "Đường link phải bắt đầu bằng http:// hoặc https://." });
+
+export const kitDocumentBody = z.object({
+  name: text(150, "Cần ghi tên biểu mẫu."),
+  category: z.enum(["permit", "finance", "media", "other"], { error: "Cần chọn nhóm." }),
+  link,
+  holderId: z.string({ error: "Cần chọn người giữ." }).trim().min(1, { error: "Cần chọn người giữ." }),
+}) satisfies z.ZodType<C.KitDocumentBody>;
+
+export const kitProcessBody = z.object({
+  name: text(150, "Cần ghi tên quy trình."),
+  steps: z.array(z.object({
+    text: text(300, "Cần ghi nội dung bước."),
+    who: z.string().trim().max(100, { error: "Tối đa 100 ký tự." }),
+  })).min(1, { error: "Cần ít nhất một bước." }).max(20, { error: "Tối đa 20 bước." }),
+  leadDays: z.number().int({ error: "Số ngày phải là số nguyên." }).min(0, { error: "Từ 0 đến 365 ngày." }).max(365, { error: "Từ 0 đến 365 ngày." }).optional(),
+  documentIds: z.array(id).max(20).refine((ids) => new Set(ids).size === ids.length, { error: "Một biểu mẫu được chọn hai lần." }),
+}) satisfies z.ZodType<C.KitProcessBody>;
+
+export const kitAccountBody = z.object({
+  service: text(100, "Cần ghi tên dịch vụ."),
+  label: text(300, "Cần ghi tên tài khoản hoặc đường link."),
+  holderId: id.optional(),
+  ownership: z.enum(["club", "personal"], { error: "Cần chọn tài khoản đứng tên ai." }),
+  required: z.boolean(),
+}) satisfies z.ZodType<C.KitAccountBody>;
+
+// ---------- Bàn giao 7 bước và việc cần làm (22/10/2026) ----------
+
+export const setBoardBody = z.object({
+  presidentId: z.string({ error: "Cần chọn chủ nhiệm mới." }).trim().min(1, { error: "Cần chọn chủ nhiệm mới." }),
+  viceId: id.optional(),
+  treasurerId: id.optional(),
+  headIds: z.array(id).max(10, { error: "Tối đa 10 trưởng ban." }),
+  confirmSelf: z.literal(true).optional(),
+}) satisfies z.ZodType<C.SetBoardBody>;
+
+export const transferAccountBody = z.object({
+  holderId: z.string({ error: "Cần chọn người nhận quyền quản trị." }).trim().min(1, { error: "Cần chọn người nhận quyền quản trị." }),
+}) satisfies z.ZodType<C.TransferAccountBody>;
+
+export const taskBody = z.object({
+  title: text(200, "Cần ghi tên việc."),
+  assigneeId: z.string({ error: "Cần chọn người phụ trách." }).trim().min(1, { error: "Cần chọn người phụ trách." }),
+  due: time("Cần ghi hạn."),
+  eventId: id.optional(),
+  processId: id.optional(),
+}) satisfies z.ZodType<C.TaskBody>;
+
+export const aiAskBody = z.object({
+  question: text(300, "Cần gõ câu hỏi.").pipe(z.string().min(3, { error: "Câu hỏi quá ngắn." })),
+}) satisfies z.ZodType<C.AiAskBody>;
+
+export const saveSummaryBody = z.object({
+  text: text(4000, "Bản tóm tắt đang trống."),
+}) satisfies z.ZodType<C.SaveSummaryBody>;
+
+export const taskStatusBody = z.object({
+  status: z.enum(["todo", "doing", "done"], { error: "Trạng thái phải là todo, doing hoặc done." }),
+}) satisfies z.ZodType<C.TaskStatusBody>;

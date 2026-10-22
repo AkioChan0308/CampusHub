@@ -16,3 +16,14 @@ export function homeFor(me: MeRes): string {
 export function safeNext(value: string | null): string | undefined {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
 }
+
+/**
+ * Trang mở sau khi đăng nhập: `next` nếu có, trừ một trường hợp. Người ban điều hành đăng nhập mà `next` chỉ là trang Của tôi (/me)
+ * thì về trang CLB của họ: `next=/me` thường là phần còn sót lại của người đăng nhập trước (phiên hết hạn khi đang ở /me),
+ * và /me là giao diện thành viên. Link mời, link đóng quỹ, link điểm danh (/me/pay/..., /checkin, /invite/...) vẫn mở đúng.
+ */
+export function landingAfterLogin(me: MeRes, next: string | undefined): string {
+  const isBoard = me.person.kind !== "staff" && me.memberships.some((m) => m.invite === "accepted" && m.role !== "member");
+  if (next && isBoard && /^\/me(\?.*)?$/.test(next)) return homeFor(me);
+  return next ?? homeFor(me);
+}

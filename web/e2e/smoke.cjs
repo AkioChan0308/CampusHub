@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { BASE, launch, outDir } = require("./common.cjs");
+const { BASE, launch, outDir, inactiveClubsToday, collectionSizeAfterApproval } = require("./common.cjs");
 const OUT = outDir("smoke");
 fs.mkdirSync(OUT, { recursive: true });
 const errors = [];
@@ -29,7 +29,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
   attach(page);
   const body = async (p = page) => p.locator("body").innerText();
   const shot = async (name, p = page) => p.screenshot({ path: path.join(OUT, name), fullPage: true });
-  const nav = async (label) => { const a = page.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: label }).first(); const href = await a.getAttribute("href"); await a.click(); await page.waitForURL("**" + href); await page.waitForLoadState("networkidle"); };
+  const nav = async (label) => { const menu = page.getByRole("navigation", { name: "Menu ban điều hành" }); if ((await menu.locator("a", { hasText: label }).count()) === 0) { const fund = menu.getByRole("button", { name: /^Quỹ/ }); if (await fund.count()) await fund.click(); } const a = menu.locator("a", { hasText: label }).first(); const href = await a.getAttribute("href"); await a.click(); await page.waitForURL("**" + href); await page.waitForLoadState("networkidle"); };
   // Chờ chữ khớp mẫu xuất hiện trên trang: màn nối máy chủ chỉ đổi số sau khi API trả về.
   // body() đọc chữ ngay; waitText chờ tới khi chữ khớp xuất hiện (tối đa 10 giây).
   const waitText = (re, p = page) => p.waitForFunction((src) => new RegExp(src).test(document.body.innerText), re.source, { timeout: 10000 }).then(() => true).catch(() => false);
@@ -65,7 +65,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     await page.waitForURL("**/clubs/cau-long-san-nha");
     await page.getByRole("heading", { name: "Cần bạn xử lý" }).waitFor();
     let t = await body();
-    check("Trang chủ: 29/42 người đã đóng", /29\s*\/42/.test(t));
+    check("Trang chủ: quỹ thu gọn một dòng ở cuối, 2 khoản chờ duyệt", /Quỹ[\s\S]*3\.120\.000 ₫ · 2 khoản chờ duyệt/.test(t));
     check("Trang chủ: số dư 3.120.000 ₫", t.includes("3.120.000 ₫"));
     check("Trang chủ: 3 đơn xin vào", /3\s+Đơn xin vào CLB đang chờ duyệt/.test(t));
     check("Trang chủ: 2 khoản chi 650.000 ₫", /2\s+Khoản chi chờ duyệt · 650\.000 ₫/.test(t));
@@ -119,7 +119,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     await page.goto(BASE + "/clubs/cau-long-san-nha/collections/quy-fall-2026");
     await page.getByText(/Đang hiện \d+\/\d+/).waitFor();
     t = await body();
-    check("Đợt thu: 43 người sau khi duyệt đơn", t.includes("Tất cả (43)"));
+    check(`Đợt thu: ${collectionSizeAfterApproval()} người sau khi duyệt đơn (43 trước hạn 10/10, 42 sau hạn)`, t.includes(`Tất cả (${collectionSizeAfterApproval()})`));
     await page.getByRole("button", { name: /^Chưa đóng \(/ }).click();
     await page.locator("table.l-table tbody tr").first().getByRole("button", { name: "Ghi tiền mặt" }).click();
     await confirmDialog("Ghi vào sổ");
@@ -182,13 +182,13 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
 
     // ===== Bàn giao =====
     await nav("Bàn giao");
-    await page.locator("button[type=submit]", { hasText: "Lưu và sang bước 4" }).click();
+    await page.locator("button[type=submit]", { hasText: "Lưu và sang bước 5" }).click();
     // Lỗi giờ báo riêng dưới từng ô còn thiếu (chủ tài khoản mới đã chọn sẵn trong dữ liệu mẫu).
     check("Bàn giao: thiếu ngân hàng thì báo lỗi", (await body()).includes("Cần ghi ngân hàng."));
     await page.fill("#handover-bank", "[Ngân hàng thử]");
     await page.fill("#handover-account-number", "0123456789");
-    await page.locator("button[type=submit]", { hasText: "Lưu và sang bước 4" }).click();
-    check("Bàn giao: sang bước 4", await waitText(/Bước 4 \/ 6/));
+    await page.locator("button[type=submit]", { hasText: "Lưu và sang bước 5" }).click();
+    check("Bàn giao: sang bước 5", await waitText(/Bước 5 \/ 7/));
     await shot("08-handover.png");
 
     // ===== Trưởng ban duyệt khoản của chủ nhiệm =====
@@ -213,7 +213,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     // ===== Nhà trường duyệt khoản trên 2 triệu (đã nối máy chủ) =====
     await choose("Ban quản lý CLB của trường");
     await page.waitForURL("**/school");
-    check("Nhà trường: 6 CLB, 1 không hoạt động", await waitText(/Tất cả \(6\)[\s\S]*Không hoạt động 30 ngày \(1\)/));
+    check(`Nhà trường: 6 CLB, ${inactiveClubsToday()} không hoạt động`, await waitText(new RegExp(String.raw`Tất cả \(6\)[\s\S]*Không hoạt động 30 ngày \(${inactiveClubsToday()}\)`)));
     await shot("09-school.png");
     await page.locator("table a", { hasText: "Xem" }).first().click();
     await page.waitForURL("**/school/clubs/cau-long-san-nha");

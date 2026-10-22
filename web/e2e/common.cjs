@@ -21,4 +21,25 @@ function outDir(name) {
   return dir;
 }
 
-module.exports = { BASE, launch, outDir };
+/**
+ * Dữ liệu mẫu cố định theo ngày 03/10/2026, còn các kiểm tra chạy theo ngày thật của máy. Hai hàm dưới tính số mong đợi theo hôm nay
+ * (ngày theo giờ Việt Nam), để kiểm tra không lệch dần theo thời gian.
+ */
+const dayNumber = (ms) => Math.floor((ms + 7 * 3600_000) / 86_400_000);
+
+/** Ngày hoạt động gần nhất của sáu CLB trong dữ liệu mẫu (web/src/lib/seed.ts; CLB Cầu lông lấy từ buổi điểm danh gần nhất). */
+const SEED_LAST_ACTIVITY = ["2026-09-26", "2026-10-02", "2026-10-01", "2026-09-21", "2026-09-27", "2026-08-22"];
+
+/** Số CLB mẫu không có hoạt động trong 30 ngày tính tới hôm nay (cùng luật với server: quá 30 ngày thì không hoạt động). */
+function inactiveClubsToday() {
+  const today = dayNumber(Date.now());
+  return SEED_LAST_ACTIVITY.filter((d) => today - dayNumber(Date.parse(`${d}T12:00:00+07:00`)) > 30).length;
+}
+
+/**
+ * Số người trong đợt thu mẫu sau khi duyệt một đơn xin vào: người mới chỉ có khoản phải đóng khi đợt thu chưa quá hạn (luật openCollections).
+ * Đợt thu mẫu hết hạn 23:59 ngày 10/10/2026: trước hạn là 43, sau hạn là 42.
+ */
+const collectionSizeAfterApproval = () => (Date.now() <= Date.parse("2026-10-10T23:59:00+07:00") ? 43 : 42);
+
+module.exports = { BASE, launch, outDir, inactiveClubsToday, collectionSizeAfterApproval };

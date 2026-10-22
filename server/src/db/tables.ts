@@ -2,7 +2,7 @@
 // Mỗi bảng: tên cột theo đúng thứ tự, cột khóa, cách lấy các dòng từ AppState và cách dựng lại đối tượng từ một dòng.
 // Thứ tự các bảng trong TABLES là thứ tự thêm dòng (bảng cha trước bảng con); xóa thì đi ngược lại.
 
-import { nowIso, STATE_VERSION, type AppState, type Budget, type Club, type Consent, type ExpenseRequest, type Handover, type Statement } from "../domain.ts";
+import { nowIso, STATE_VERSION, type AppState, type Budget, type Club, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
 
 export type Val = string | number | boolean | null;
 type Row = Record<string, unknown>;
@@ -97,8 +97,41 @@ export const TABLES: TableDef[] = [
   },
   {
     name: "handovers", source: "handovers", keyCount: 2,
-    cols: ["club_id", "from_term", "to_term", "step", "locked_balance", "new_receiver_person_id", "new_receiver_bank", "new_receiver_account", "transfer_ref"],
-    rows: (s) => s.handovers.map((h) => [h.clubId, h.fromTerm, h.toTerm, h.step, h.lockedBalance, n(h.newReceiver?.personId), n(h.newReceiver?.bank), n(h.newReceiver?.account), n(h.transferRef)]),
+    cols: ["club_id", "from_term", "to_term", "step", "locked_balance", "new_receiver_person_id", "new_receiver_bank", "new_receiver_account", "transfer_ref",
+      "locked_at", "new_board", "transferred", "accepted_at", "accepted_by", "history", "summary"],
+    rows: (s) => s.handovers.map((h) => [h.clubId, h.fromTerm, h.toTerm, h.step, h.lockedBalance, n(h.newReceiver?.personId), n(h.newReceiver?.bank), n(h.newReceiver?.account), n(h.transferRef),
+      n(h.lockedAt), h.newBoard ? JSON.stringify(h.newBoard) : null, JSON.stringify(h.transferred), n(h.acceptedAt), n(h.acceptedBy), JSON.stringify(h.history),
+      h.summary ? JSON.stringify(h.summary) : null]),
+  },
+  {
+    name: "kit_documents", source: "kitDocuments", keyCount: 1,
+    cols: ["id", "club_id", "name", "category", "link", "holder_id", "updated_at"],
+    rows: (s) => s.kitDocuments.map((d) => [d.id, d.clubId, d.name, d.category, d.link, d.holderId, d.updatedAt]),
+  },
+  {
+    name: "kit_processes", source: "kitProcesses", keyCount: 1,
+    cols: ["id", "club_id", "name", "steps", "lead_days", "document_ids", "updated_at"],
+    rows: (s) => s.kitProcesses.map((p) => [p.id, p.clubId, p.name, JSON.stringify(p.steps), n(p.leadDays), JSON.stringify(p.documentIds), p.updatedAt]),
+  },
+  {
+    name: "kit_accounts", source: "kitAccounts", keyCount: 1,
+    cols: ["id", "club_id", "service", "label", "holder_id", "ownership", "required", "updated_at"],
+    rows: (s) => s.kitAccounts.map((a) => [a.id, a.clubId, a.service, a.label, n(a.holderId), a.ownership, a.required, a.updatedAt]),
+  },
+  {
+    name: "tasks", source: "tasks", keyCount: 1,
+    cols: ["id", "club_id", "title", "assignee_id", "due", "status", "event_id", "process_id", "created_by", "created_at"],
+    rows: (s) => s.tasks.map((t) => [t.id, t.clubId, t.title, t.assigneeId, t.due, t.status, n(t.eventId), n(t.processId), t.createdBy, t.createdAt]),
+  },
+  {
+    name: "task_history", source: "tasks", keyCount: 2,
+    cols: ["task_id", "pos", "at", "by_person_id", "note"],
+    rows: (s) => s.tasks.flatMap((t) => t.history.map((h, i) => [t.id, i, h.at, h.by, h.text])),
+  },
+  {
+    name: "ai_usage", source: "aiUsage", keyCount: 2,
+    cols: ["club_id", "term", "asks", "summaries"],
+    rows: (s) => s.aiUsage.map((u) => [u.clubId, u.term, u.asks, u.summaries]),
   },
   {
     // Nhật ký chỉ thêm vào cuối, không xóa (trigger chặn), nên vị trí trong danh sách là khóa ổn định.
@@ -133,6 +166,12 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
     const list = history.get(str(r.expense_id)) ?? [];
     list[num(r.pos)] = { at: time(r.at), by: str(r.by_person_id), text: str(r.note) };
     history.set(str(r.expense_id), list);
+  }
+  const taskHistory = new Map<string, ClubTask["history"]>();
+  for (const r of t.task_history) {
+    const list = taskHistory.get(str(r.task_id)) ?? [];
+    list[num(r.pos)] = { at: time(r.at), by: str(r.by_person_id), text: str(r.note) };
+    taskHistory.set(str(r.task_id), list);
   }
   const txns = new Map<string, Statement["txns"]>();
   for (const r of t.statement_txns) {
@@ -201,7 +240,29 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
       newReceiver: r.new_receiver_person_id === null || r.new_receiver_person_id === undefined ? undefined
         : { personId: str(r.new_receiver_person_id), bank: str(r.new_receiver_bank ?? ""), account: str(r.new_receiver_account ?? "") },
       transferRef: opt<string>(r.transfer_ref),
+      lockedAt: optTime(r.locked_at), newBoard: r.new_board === null || r.new_board === undefined ? undefined : json<Handover["newBoard"]>(r.new_board),
+      transferred: json<string[]>(r.transferred), acceptedAt: optTime(r.accepted_at), acceptedBy: opt<string>(r.accepted_by),
+      history: json<Handover["history"]>(r.history).map((h) => ({ ...h, at: time(h.at) })),
+      summary: r.summary === null || r.summary === undefined ? undefined : (() => { const v = json<NonNullable<Handover["summary"]>>(r.summary); return { ...v, at: time(v.at) }; })(),
     })),
+    kitDocuments: t.kit_documents.map((r) => ({
+      id: str(r.id), clubId: str(r.club_id), name: str(r.name), category: r.category as KitDocument["category"], link: str(r.link),
+      holderId: str(r.holder_id), updatedAt: time(r.updated_at),
+    })),
+    kitProcesses: t.kit_processes.map((r) => clean<KitProcess>({
+      id: str(r.id), clubId: str(r.club_id), name: str(r.name), steps: json<KitProcess["steps"]>(r.steps),
+      leadDays: r.lead_days === null || r.lead_days === undefined ? undefined : num(r.lead_days),
+      documentIds: json<string[]>(r.document_ids), updatedAt: time(r.updated_at),
+    })),
+    kitAccounts: t.kit_accounts.map((r) => clean<KitAccount>({
+      id: str(r.id), clubId: str(r.club_id), service: str(r.service), label: str(r.label), holderId: opt<string>(r.holder_id),
+      ownership: r.ownership as KitAccount["ownership"], required: Boolean(r.required), updatedAt: time(r.updated_at),
+    })),
+    tasks: t.tasks.map((r) => clean<ClubTask>({
+      id: str(r.id), clubId: str(r.club_id), title: str(r.title), assigneeId: str(r.assignee_id), due: time(r.due), status: r.status as ClubTask["status"],
+      eventId: opt<string>(r.event_id), processId: opt<string>(r.process_id), createdBy: str(r.created_by), createdAt: time(r.created_at), history: taskHistory.get(str(r.id)) ?? [],
+    })),
+    aiUsage: t.ai_usage.map((r) => ({ clubId: str(r.club_id), term: str(r.term), asks: num(r.asks), summaries: num(r.summaries) })),
     consents: t.consents.map((r) => clean<Consent>({
       personId: str(r.person_id), clubId: str(r.club_id), purpose: r.purpose as Consent["purpose"], version: str(r.version), at: time(r.at), withdrawnAt: optTime(r.withdrawn_at),
     })),

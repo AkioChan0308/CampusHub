@@ -1,6 +1,6 @@
 # Cây thư mục CampusHub
 
-*Cập nhật ngày 05/10/2026.* File này dành cho người mới vào dự án giữa chừng, dev hay người không làm kỹ thuật đều đọc được. Mục tiêu: nhìn tên thư mục là biết nó làm gì, cho ai, và muốn sửa một thứ thì mở file nào.
+*Cập nhật ngày 22/10/2026.* File này dành cho người mới vào dự án giữa chừng, dev hay người không làm kỹ thuật đều đọc được. Mục tiêu: nhìn tên thư mục là biết nó làm gì, cho ai, và muốn sửa một thứ thì mở file nào.
 
 Đọc theo thứ tự: mục 1 (repo có gì), mục 2 (luật đặt tên), mục 3 (trang web nào nằm ở đâu), rồi tra mục 6 khi cần sửa.
 
@@ -13,8 +13,8 @@ campushub/
   DESIGN.md        hệ thiết kế "Lịch bloc": màu, chữ, khoảng cách, thành phần, chuyển động
   PRODUCT.md       mô tả sản phẩm và người dùng (cho skill thiết kế Impeccable)
   docs/            tài liệu tiếng Việt
-    tien-do-mvp.md      đang làm tới đâu, việc tiếp theo, quyết định đã duyệt (đọc đầu tiên)
-    luong-nguoi-dung.md luồng của từng nhóm người dùng, viết cho cả người không làm kỹ thuật
+    tien-do-mvp.md      đang làm tới đâu, việc tiếp theo, quyết định đã duyệt (đọc đầu tiên); phần B: mô tả gốc đợt chỉnh sửa sau CP2
+    luong-nguoi-dung.md luồng của từng nhóm người dùng, viết cho cả người không làm kỹ thuật; cuối file: kiểm thử bằng tay các luồng
     cay-thu-muc.md      file này
     api.md              hợp đồng API giữa web và máy chủ, bản để đọc và duyệt
     postgresql.md       cách chạy cơ sở dữ liệu (có và không có Docker)
@@ -40,7 +40,7 @@ Hiệu chốt ngày 05/10/2026. Chuẩn code do Khoa (Tech Lead) chốt cuối c
 - **Trang web gom theo người dùng** bằng thư mục trong ngoặc (route group của Next.js): `(landing)`, `(auth)`, `(club-admin)`, `(member)`, `(student)`, `(school-staff)`. Thư mục trong ngoặc không xuất hiện trong URL.
 - **Tên dễ nhầm thì tránh:** không trùng tên giữa web và máy chủ khi nghĩa khác nhau (trước đây có `store.tsx` ở web và `store.ts` ở máy chủ; nay web là `browser-state.tsx`), không dùng từ trùng từ khóa JavaScript (`exports`).
 - **Ngoại lệ:**
-  - Ba file migration đã chạy (`001_khoi_tao.sql`, `002_tien_cho_sao_ke.sql`, `003_tai_khoan.sql`) giữ tên cũ: máy chủ ghi tên file vào bảng `schema_migrations`, đổi tên thì nó chạy lại. File mới đặt tên tiếng Anh, ví dụ `004_refunds.sql`.
+  - Ba file migration đã chạy (`001_khoi_tao.sql`, `002_tien_cho_sao_ke.sql`, `003_tai_khoan.sql`) giữ tên cũ: máy chủ ghi tên file vào bảng `schema_migrations`, đổi tên thì nó chạy lại. File mới đặt tên tiếng Anh, ví dụ `004_handover_kit.sql`, `005_handover_steps.sql`.
   - `lich.css` và `components/lich/` lấy theo tên riêng của hệ thiết kế "Lịch bloc".
   - Tên màn trong bản vẽ (`BDH-…`, `TV-…`, `SV-…`, `NT-…`) giữ nguyên: đó là mã màn của bộ bản vẽ, tài liệu dùng khắp nơi.
   - Tham số trong URL đã đổi sang tiếng Anh ngày 05/10/2026: `?new=1`, `?reset=1` (/account), `?error=` (/login, mã lỗi `cancelled`, `expired`…), `?done=1`, `?checkedIn=1`, `?collection=`, `?create=1`, `?as=`.
@@ -66,9 +66,15 @@ Mỗi thư mục có `page.tsx` (nội dung trang) và `layout.tsx` (tên trên 
 | `/clubs/[clubId]/reconcile` | `…/reconcile/` | thủ quỹ, chủ nhiệm | BDH-DoiSoat |
 | `/clubs/[clubId]/expenses` | `…/expenses/` | ban điều hành | BDH-DuyetChi |
 | `/clubs/[clubId]/budget` | `…/budget/` | ban điều hành | BDH-DuTru |
-| `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm | BDH-BanGiao |
+| `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm; chủ nhiệm mới ở bước 6 | BDH-BanGiao, 7 bước |
+| `/clubs/[clubId]/handover-kit` | `…/handover-kit/` | ban điều hành xem và sửa | Kho bàn giao: biểu mẫu, quy trình, tài khoản (chưa có bản vẽ) |
+| `/clubs/[clubId]/tasks` | `…/tasks/` | ban điều hành | Việc cần làm (chưa có bản vẽ) |
+| `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: khung rỗng, chờ duyệt |
+| `/clubs/[clubId]/paid-plan` | `…/paid-plan/` | ban điều hành | Bản trả phí: trang mô tả một ý tưởng, chưa có giá (chưa có bản vẽ) |
 | `/me` | `(member)/me/` | thành viên, điện thoại | TV-CuaToi ("Của tôi") |
 | `/me/attendance` | `(member)/me/attendance/` | thành viên | Tab Điểm danh, lịch sử điểm danh |
+| `/me/tasks` | `(member)/me/tasks/` | thành viên | Việc của tôi (chưa có bản vẽ) |
+| `/feed` | `(student)/feed/` | mọi người đã đăng nhập | Bảng tin chung: khung rỗng, chờ duyệt (`docs/mo-ta-bang-tin-chung.md`) |
 | `/me/pay`, `/me/pay/[collectionId]` | `(member)/me/pay/` | thành viên | TV-DongQuy (tab Quỹ) |
 | `/invite/[code]` | `(member)/invite/[code]/` | người được mời | TV-LoiMoi |
 | `/checkin` | `(member)/checkin/` | thành viên quét mã | TV-DiemDanh (link trong mã QR) |
@@ -144,7 +150,10 @@ server/
       auth.ts             đăng nhập, đăng xuất
       me.ts               người đã đăng nhập: tài khoản, Của tôi, đóng quỹ, điểm danh, dữ liệu của tôi
       explore.ts          sinh viên: tìm CLB, gửi đơn, lời mời
-      board.ts            ban điều hành: thành viên, buổi, mã QR, bàn giao
+      board.ts            ban điều hành: thành viên, buổi, mã QR, bàn giao 7 bước
+      kit.ts              kho bàn giao: biểu mẫu, quy trình, tài khoản
+      tasks.ts            việc cần làm
+      ai.ts               trợ lý bàn giao: tóm tắt, hỏi đáp trong kho, lưu bản tóm tắt vào biên bản
       setup.ts            tạo dữ liệu từ đầu: tạo CLB, thêm thành viên, buổi, đợt thu
       money.ts            đợt thu, đối soát, khoản chi, dự trù
       school.ts           nhà trường
@@ -155,6 +164,7 @@ server/
     domain.ts         lấy luật nghiệp vụ từ web/src/lib
     store.ts, sessions.ts, accounts.ts   dữ liệu, phiên đăng nhập, tài khoản (bản trong bộ nhớ)
     db/               bản lưu PostgreSQL của các phần trên
+    ai.ts             tầng trợ lý (AI_MODE=mock|real): bản mẫu tính từ dữ liệu của CLB; bản thật chưa nối
     qr.ts, google.ts, password.ts, demo-accounts.ts, config.ts, errors.ts
   db/migrations/      lược đồ cơ sở dữ liệu, chạy theo thứ tự số
   test/               test máy chủ (npm test; npm run test:db chạy trên PostgreSQL)
@@ -194,6 +204,11 @@ Chi tiết từng file: `server/README.md`.
 | expense | khoản chi |
 | budget | dự trù kỳ |
 | handover | bàn giao nhiệm kỳ |
+| kit, handover-kit | kho bàn giao (biểu mẫu, quy trình, tài khoản của CLB) |
+| ai, assistant | trợ lý bàn giao (bản mẫu) |
+| sponsored | khung quảng cáo mẫu |
+| paid-plan | bản trả phí (trang mô tả) |
+| task | việc cần làm |
 | event | buổi sinh hoạt |
 | checkin, attendance | điểm danh |
 | invite | lời mời vào CLB |

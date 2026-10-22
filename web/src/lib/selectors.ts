@@ -1,13 +1,15 @@
 // Các phép tính đọc từ state: số dư, đợt thu, điểm danh, dự trù, việc chờ, quyền.
 // Không sửa state ở đây. Khi có backend, phần lớn các phép tính này chuyển lên máy chủ.
 
-import type { AppState, Club, Collection, ExpenseRequest, LedgerEntry, Membership, Payment, Person, Role, Statement } from "./types.ts";
+import type { AppState, ClubTask, Club, Collection, ExpenseRequest, LedgerEntry, Membership, Payment, Person, Role, Statement } from "./types.ts";
 
 export const MENTOR_THRESHOLD = 2_000_000; // mặc định trong "Phương án nghiệp vụ"; chưa chốt
 
-type Action = "approveApplication" | "money" | "approveExpense" | "budget" | "handover" | "checkin" | "assignRole";
+type Action = "approveApplication" | "money" | "approveExpense" | "budget" | "handover" | "checkin" | "assignRole" | "kit" | "task";
 
 const RIGHTS: Record<Action, Role[]> = {
+  kit: ["president", "vice", "head"],
+  task: ["president", "vice", "treasurer", "head"],
   approveApplication: ["president", "vice", "head"],
   money: ["president", "treasurer"],
   approveExpense: ["president", "vice", "head"],
@@ -25,6 +27,8 @@ export const RIGHT_LABEL: Record<Action, string> = {
   handover: "Chỉ chủ nhiệm khởi tạo bàn giao.",
   checkin: "Chỉ ban điều hành mở điểm danh.",
   assignRole: "Chỉ chủ nhiệm đổi vai trò và ban của thành viên.",
+  kit: "Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban sửa kho bàn giao.",
+  task: "Chỉ ban điều hành tạo và giao việc.",
 };
 
 export function can(role: Role | undefined, action: Action): boolean {
@@ -186,6 +190,55 @@ export function expensesOf(s: AppState, clubId: string): ExpenseRequest[] {
 
 export function pendingExpenses(s: AppState, clubId: string) {
   return expensesOf(s, clubId).filter((e) => e.status === "pending");
+}
+
+/**
+ * Tóm tắt kho bàn giao. Mục thiếu là tài khoản "bắt buộc chuyển khi bàn giao" mà chưa ghi người giữ quyền quản trị.
+ * personal: số tài khoản đứng tên cá nhân (nên chuyển sang tài khoản CLB); chỉ cảnh báo, không tính là thiếu.
+ */
+export function kitSummary(s: AppState, clubId: string) {
+  const accounts = s.kitAccounts.filter((a) => a.clubId === clubId);
+  return {
+    documents: s.kitDocuments.filter((d) => d.clubId === clubId).length,
+    processes: s.kitProcesses.filter((p) => p.clubId === clubId).length,
+    accounts: accounts.length,
+    missing: accounts.filter((a) => a.required && !a.holderId).length,
+    personal: accounts.filter((a) => a.ownership === "personal").length,
+  };
+}
+
+/** Việc của một CLB: hạn gần nhất trước. */
+export function tasksOf(s: AppState, clubId: string): ClubTask[] {
+  return s.tasks.filter((t) => t.clubId === clubId).sort((a, b) => a.due.localeCompare(b.due));
+}
+
+/** Việc chưa xong mà đã quá hạn (hạn tính tới hết ngày hạn, giờ Việt Nam). */
+export function isTaskOverdue(t: ClubTask, now: number): boolean {
+  return t.status !== "done" && Date.parse(t.due) < now;
+}
+
+/** Việc còn dở của CLB: hiện cho ban mới ở bước kiểm tra kho của bàn giao. */
+export function openTasks(s: AppState, clubId: string): ClubTask[] {
+  return tasksOf(s, clubId).filter((t) => t.status !== "done");
+}
+
+/** Số lượt dùng trợ lý của CLB trong học kỳ. */
+export function aiUsageOf(s: AppState, clubId: string, term: string) {
+  return s.aiUsage.find((u) => u.clubId === clubId && u.term === term) ?? { clubId, term, asks: 0, summaries: 0 };
+}
+
+/**
+ * Phân tích tự động từ dữ liệu điểm danh (chỉ là phép đếm, không phải AI): tỉ lệ có mặt trung bình các buổi sinh hoạt đã đóng gần đây
+ * (so với số thành viên đã nhận lời mời) và số thành viên vắng liền các buổi gần nhất. window: số buổi gần nhất xét.
+ */
+export function participationStats(s: AppState, clubId: string, window = 3) {
+  const closed = heldSessions(s, clubId).filter((e) => e.status === "closed");
+  const recent = closed.slice(-window);
+  const people = clubMembers(s, clubId).filter((m) => m.invite === "accepted");
+  if (recent.length === 0 || people.length === 0) return { sessions: recent.length, rate: undefined as number | undefined, absentRuns: 0 };
+  const present = recent.reduce((sum, e) => sum + people.filter((m) => s.attendance.some((a) => a.eventId === e.id && a.personId === m.personId)).length, 0);
+  const absentRuns = recent.length < window ? 0 : people.filter((m) => recent.every((e) => !s.attendance.some((a) => a.eventId === e.id && a.personId === m.personId))).length;
+  return { sessions: recent.length, rate: Math.round((present * 100) / (recent.length * people.length)), absentRuns };
 }
 
 /** Số liệu một CLB cho phía nhà trường: CLB demo tính từ dữ liệu, CLB khác dùng số tĩnh. */

@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { ApiError, apiPost } from "@/api/client";
-import { homeFor, safeNext } from "@/api/after-login";
+import { homeFor, landingAfterLogin, safeNext } from "@/api/after-login";
 import { errorText, keys, useHealth, useMe } from "@/api/queries";
 import { LichConfirm } from "@/components/lich/Confirm";
 import { signOutDone, useLogout } from "@/components/lich/Gate";
@@ -62,13 +62,13 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   useEffect(() => {
     if (!me.data) return;
     choosePersona(me.data.person.id); // các màn chưa nối máy chủ đọc vai từ trình duyệt
-    if (goOn && !signedIn) router.replace(next ?? homeFor(me.data));
+    if (goOn && !signedIn) router.replace(landingAfterLogin(me.data, next));
   }, [me.data, goOn, next, router, choosePersona, signedIn]);
 
   function onSignedIn(res: MeRes) {
     setSignedIn(true);
     client.setQueryData(keys.me, res);
-    router.replace(next ?? homeFor(res));
+    router.replace(landingAfterLogin(res, next));
   }
 
   const google = health.data?.googleLogin;

@@ -202,14 +202,119 @@ export interface Budget {
   support: { amount: number; purpose: string; status: "pending" | "approved" | "rejected" };
 }
 
+/** Ban điều hành mới do chủ nhiệm cũ chọn ở bước 1. */
+export interface NewBoard {
+  president: string;
+  vice?: string;
+  treasurer?: string;
+  heads: string[];
+}
+
+/**
+ * Bàn giao nhiệm kỳ, 7 bước: 1 chọn ban mới, 2 chốt số dư, 3 kiểm tra kho bàn giao, 4 đổi tài khoản nhận quỹ,
+ * 5 chuyển quyền quản trị, 6 ban mới xác nhận, 7 biên bản. history là nội dung của biên bản.
+ */
 export interface Handover {
   clubId: string;
   fromTerm: string;
   toTerm: string;
-  step: number; // 1..6
+  step: number; // 1..7
   lockedBalance: number;
+  lockedAt?: string;
+  newBoard?: NewBoard;
   newReceiver?: { personId: string; bank: string; account: string };
   transferRef?: string;
+  /** Mã các mục kho (tài khoản) đã được chuyển quyền quản trị ở bước 5. */
+  transferred: string[];
+  acceptedAt?: string;
+  acceptedBy?: string;
+  history: { at: string; by: string; text: string }[];
+  /** Bản tóm tắt cho ban mới, do ban điều hành duyệt và sửa trước khi lưu vào biên bản. mock: viết bằng bản mẫu, chưa dùng AI thật. */
+  summary?: { text: string; by: string; at: string; mock: boolean };
+}
+
+/** Số lượt dùng trợ lý theo CLB và học kỳ. Bản miễn phí giới hạn lượt hỏi theo kỳ; mức giới hạn chưa có. */
+export interface AiUsage {
+  clubId: string;
+  term: string;
+  asks: number;
+  summaries: number;
+}
+
+export type TaskStatus = "todo" | "doing" | "done";
+
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = { todo: "Chưa làm", doing: "Đang làm", done: "Xong" };
+
+/** Việc cần làm của ban điều hành. */
+export interface ClubTask {
+  id: string;
+  clubId: string;
+  title: string;
+  assigneeId: string;
+  due: string;
+  status: TaskStatus;
+  /** Gắn với một buổi hay một quy trình của kho bàn giao, nếu có. */
+  eventId?: string;
+  processId?: string;
+  createdBy: string;
+  createdAt: string;
+  history: { at: string; by: string; text: string }[];
+}
+
+
+// ---------- Kho bàn giao: những thứ ban cũ hay mang đi (biểu mẫu, cách làm, tài khoản). Không lưu mật khẩu. ----------
+
+export type KitCategory = "permit" | "finance" | "media" | "other";
+
+export const KIT_CATEGORY_LABEL: Record<KitCategory, string> = {
+  permit: "Xin phép trường",
+  finance: "Tài chính",
+  media: "Truyền thông",
+  other: "Khác",
+};
+
+/** Biểu mẫu hay tài liệu. Bản demo chỉ lưu tên và đường link, không lưu file. */
+export interface KitDocument {
+  id: string;
+  clubId: string;
+  name: string;
+  category: KitCategory;
+  link: string;
+  holderId: string;
+  updatedAt: string;
+}
+
+export interface KitStep {
+  text: string;
+  /** Ai làm bước này, ví dụ "Trưởng ban Hậu cần". */
+  who: string;
+}
+
+/** Cách làm một việc: các bước đánh số, hạn thường gặp, biểu mẫu đi kèm. */
+export interface KitProcess {
+  id: string;
+  clubId: string;
+  name: string;
+  steps: KitStep[];
+  /** Thường phải xong trước ngày diễn ra bao nhiêu ngày. */
+  leadDays?: number;
+  documentIds: string[];
+  updatedAt: string;
+}
+
+/** Tài khoản hay dịch vụ của CLB. Chỉ lưu tên dịch vụ, đường link và người giữ quyền quản trị. */
+export interface KitAccount {
+  id: string;
+  clubId: string;
+  service: string;
+  /** Tên tài khoản hoặc đường link. */
+  label: string;
+  /** Người đang giữ quyền quản trị; trống là chưa ai nhận. */
+  holderId?: string;
+  ownership: "club" | "personal";
+  /** Phải chuyển khi bàn giao. */
+  required: boolean;
+  updatedAt: string;
 }
 
 export interface Consent {
@@ -238,5 +343,10 @@ export interface AppState {
   budgetItems: BudgetItem[];
   budgets: Budget[];
   handovers: Handover[];
+  kitDocuments: KitDocument[];
+  kitProcesses: KitProcess[];
+  kitAccounts: KitAccount[];
+  tasks: ClubTask[];
+  aiUsage: AiUsage[];
   consents: Consent[];
 }

@@ -1,6 +1,6 @@
 # CampusHub: hướng dẫn cho Claude Code và cả nhóm
 
-CampusHub là web giúp **ban điều hành CLB sinh viên** quản lý thành viên, điểm danh, sổ quỹ và bàn giao nhiệm kỳ, và giúp **ban quản lý CLB của trường** nắm tình hình các CLB. Dự án của nhóm NeedSleep, môn EXE101, ĐH FPT TP.HCM.
+CampusHub là **bộ bàn giao cho ban điều hành CLB sinh viên**, dùng cạnh Google Sheets: Kho bàn giao (biểu mẫu, quy trình, tài khoản của CLB), bàn giao nhiệm kỳ 7 bước và việc cần làm; kèm quản lý thành viên, điểm danh QR và sổ quỹ. Sản phẩm cũng giúp **ban quản lý CLB của trường** nắm tình hình các CLB. (Định vị đổi ngày 22/10/2026 theo kết quả Checkpoint 2, Hiệu duyệt; chi tiết ở `docs/tien-do-mvp.md` (phần B).)
 
 Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát nằm ở thư mục cha `hieu khoi nghiep` và **không đưa vào repo**.
 
@@ -37,6 +37,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - Luật của hệ: `DESIGN.md`. Màu, chữ, nút nằm trong `web/src/app/lich.css` (biến màu ở `:root`, kiểu của màn dưới lớp `.lich`). Thành phần dùng chung nằm ở `web/src/components/lich/`: tờ lịch, khung laptop, khung điện thoại, trang chặn, chuyển động.
 - Màn đã chuyển sang Lịch bloc: cả 16 màn của bản vẽ, /login và các trang chặn (xong ngày 04/10/2026). Hai nhóm cuối (TV-CuaToi, TV-LoiMoi, SV-DanhSach, SV-DonXinVao, NT-TongQuan, NT-ChiTietCLB) làm một lượt, Hiệu duyệt ngày 04/10/2026. Trang chọn vai của bản demo, trang lỗi và trang không tìm thấy chuyển ngày 05/10/2026.
 - Màn chưa có bản vẽ đã làm theo mô tả Hiệu duyệt (05/10/2026): Tạo CLB, Thêm thành viên, Các buổi, Đợt thu (danh sách, tạo, sửa). Danh sách ở `docs/tien-do-mvp.md`, mục 3.
+- Màn chưa có bản vẽ, làm theo `docs/tien-do-mvp.md` (phần B) (22/10/2026, chờ Hiệu duyệt): Kho bàn giao (biểu mẫu, quy trình, tài khoản; **không lưu mật khẩu**), Bàn giao 7 bước, Việc cần làm (ban điều hành) và Việc của tôi (thành viên), trợ lý bàn giao bản mẫu (tóm tắt, hỏi đáp trong kho), Bản trả phí (trang mô tả), trang chủ ban điều hành đổi thứ tự, menu gom nhóm Quỹ, khung quảng cáo mẫu. Danh sách ở `docs/tien-do-mvp.md`, mục 3; chỗ khác bản vẽ ở `web/README.md`.
 - Trước khi làm bất kỳ màn hình nào, đọc `design/README.md`. File này nói 16 màn đã vẽ, mỗi màn làm gì, luật nghiệp vụ nào hiện trên màn, và những gì chưa vẽ.
 - Nội dung và chữ tiếng Việt của từng màn: `design/screens/<tên màn>.html`. Mở bằng trình duyệt; `index.html` liệt kê cả bộ. Bản vẽ vẫn mang màu tím cũ: chỉ lấy nội dung, chữ và luật, không lấy màu hay kiểu. Khi chuyển sang Lịch bloc thì giữ đủ nội dung, chữ và luật của bản vẽ; bố cục đổi theo Lịch bloc. Chỗ nào khác bản vẽ thì ghi vào mục "Chỗ code khác bản vẽ" của `web/README.md`.
 - Màn hoặc trạng thái chưa vẽ thì hỏi Hiệu trước, không tự nghĩ ra màn mới.
@@ -58,6 +59,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 - **Frontend** (thư mục `web/`, bản demo làm ngày 02/10/2026): Next.js 16 (App Router), React 19, TypeScript 5.9. Từ 03/10/2026 (Hiệu đồng ý) có thêm Tailwind CSS v4, shadcn/ui (bản Radix, component trong `src/components/ui`) và Motion (gói `motion`, import từ `motion/react`). Mọi màn dùng `src/app/lich.css`, chữ Barlow và Barlow Condensed, mã chuyển khoản JetBrains Mono. `src/app/globals.css` chỉ còn quy tắc nền cho thẻ HTML và biến theme của shadcn, nối vào biến của lich.css: component thêm bằng `npx shadcn add` ra màu Lịch bloc, lớp tiện ích của Tailwind chỉ có màu, bo góc và font của Lịch bloc. Gọi API bằng `src/api` (TanStack Query lưu tạm kết quả); Next chuyển `/api/v1/...` sang máy chủ (`next.config.ts`). Chuyển động chỉ dùng để cho thấy cái gì vừa đổi, 150–250 ms, tắt khi máy bật giảm chuyển động. Thư viện `qrcode` vẽ mã QR. Người làm: Hiệu (phía thành viên), Khang (màn quản trị).
 - **Backend** (thư mục `server/`, khung API làm ngày 03/10/2026): Node.js 22 + Express 5 như Checkpoint 1, TypeScript chạy thẳng bằng Node (không có bước build), zod kiểm tra dữ liệu gửi lên. Dữ liệu mẫu trong bộ nhớ. Người làm: Khoa; Khoa chốt lại cấu trúc.
 - **Cơ sở dữ liệu:** PostgreSQL (từ 04/10/2026), bật bằng `DATABASE_URL` trong `server/.env`; không có thì dữ liệu mẫu nằm trong bộ nhớ. Cách chạy (có và không có Docker): `docs/postgresql.md`. Mỗi thao tác ghi trong một transaction; sổ quỹ chỉ được thêm, cơ sở dữ liệu tự chặn sửa và xóa. Đổi lược đồ: thêm file mới trong `server/db/migrations/`, sửa `server/src/db/tables.ts`, chạy `npm test` và `npm run test:db`.
+- **Trợ lý bàn giao** (22/10/2026): chỉ hai việc gắn với bàn giao (tóm tắt cho ban mới, hỏi đáp trong Kho bàn giao), không phải chatbot chung. Cấu hình `AI_MODE=mock|real` trong `server/.env`, mặc định `mock`: bản mẫu **tính từ dữ liệu của CLB**, chưa dùng AI thật và màn phải ghi rõ như vậy; `real` chưa nối. Mỗi người chỉ hỏi được phần mình được thấy (thành viên thường không nhận gì từ phần tài khoản); không trả lời về tiền hay dữ liệu cá nhân; không tự gửi, không tự đổi dữ liệu. Khi nối AI thật: không gửi tên hay email thành viên ra ngoài, chỉ gửi vai trò; khóa API để ở `server/.env`. Chi phí và nhà cung cấp: chưa có.
 - **Đăng nhập** bằng Google (luồng mã có PKCE), phiên bằng cookie httpOnly. Khóa Google để trong `server/.env`, không đưa vào repo. Chế độ demo (`AUTH_MODE=demo`) có tài khoản mẫu cho 7 vai (chủ nhiệm `quocbao`, thủ quỹ `thuha`, trưởng ban `giahuy`, thành viên `minhanh`, thành viên mới được mời `hoangnam`, sinh viên chưa vào CLB `baochau`, ban quản lý CLB của trường `thutrang`), mật khẩu chung `CauLong#2026`: máy chủ tự tạo, trang `/login` liệt kê dưới ô đăng nhập, bấm một dòng là điền sẵn (`web/src/lib/demo-accounts.ts`). Trang chọn vai `/demo` đã bỏ ngày 05/10/2026 (Hiệu chọn). Phần này không mang sang bản thật.
 - **Tên tài khoản và mật khẩu** (Hiệu duyệt ngày 05/10/2026): đăng ký chỉ bằng Google; lần đầu xong thì hỏi đặt tên tài khoản và mật khẩu (có "Để sau"), sau đó đăng nhập được bằng tên tài khoản hoặc email kèm mật khẩu. Tên tài khoản khác tên hiển thị và khác email. Mật khẩu băm bằng scrypt kèm salt riêng, không bao giờ trả ra ngoài. Sai 5 lần thì khóa 15 phút. Quên mật khẩu thì đăng nhập Google rồi đặt mật khẩu mới. Luật ở `web/src/lib/account.ts`.
 - **Trang đầu `/`** là trang giới thiệu cho người chưa đăng nhập, có hai video quay từ bản demo (`web/e2e/record-demo-videos.cjs`); người đã đăng nhập mở `/` thì về thẳng trang của mình (`web/src/proxy.ts`).
@@ -121,10 +123,11 @@ Nguồn: `../Phuong an nghiep vu.md` (N0–N9) và `../Ghi chu san pham cho Chec
 
 ## Không làm trong MVP
 
-- Tính năng cho nhãn hàng, nhà tài trợ.
+- Tính năng cho nhãn hàng, nhà tài trợ (trang cho nhãn hàng, đặt quảng cáo thật, tính tiền, xem báo cáo, nhắm đối tượng). **Ngoại lệ duy nhất (22/10/2026): khung quảng cáo mẫu**, chỉ là chỗ trống có nhãn "Được tài trợ" với nội dung mẫu ở `/me` và `/explore`; không pop-up, không che nội dung, không có ở màn tiền, màn đồng ý, lúc quét QR, bàn giao; chỉ ở bản miễn phí; nội dung giống nhau cho mọi người.
 - Điểm danh sự kiện cấp trường (FPT đã có hệ thống điểm trải nghiệm).
 - App cài đặt.
 - Ví điện tử, giữ tiền, cổng thanh toán.
+- Kết nối NGO và Thành Đoàn (Input Hub), gói VIP có thanh toán. Lý do: chưa có bằng chứng; chỉ là giả thuyết trong mô hình kinh doanh, chưa vào prototype (trang Bản trả phí chỉ là trang mô tả, chưa có giá).
 
 ## Không được đưa vào repo
 

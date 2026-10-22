@@ -14,6 +14,10 @@ export interface Config {
   cookieSecure: boolean;
   /** Địa chỉ PostgreSQL (docs/postgresql.md). Trống thì dữ liệu chỉ nằm trong bộ nhớ, tắt máy chủ là mất. */
   databaseUrl: string;
+  /** mock: trợ lý bản mẫu, tính từ dữ liệu của CLB (mặc định). real: chưa nối, API trả 501. */
+  aiMode: "mock" | "real";
+  /** Số lượt hỏi trợ lý tối đa mỗi CLB mỗi học kỳ ở bản miễn phí. 0 là không giới hạn: mức giới hạn chưa có nên mặc định không chặn. */
+  aiFreeAsks: number;
 }
 
 const DEMO_QR_SECRET = "chi-dung-cho-ban-demo";
@@ -33,6 +37,8 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     loginAs: parseLoginAs(env.LOGIN_AS ?? ""),
     cookieSecure: webOrigin.startsWith("https://"),
     databaseUrl: env.DATABASE_URL ?? "",
+    aiMode: env.AI_MODE === "real" ? "real" : "mock",
+    aiFreeAsks: Math.max(0, Math.floor(Number(env.AI_FREE_ASKS_PER_TERM ?? 0)) || 0),
   };
 }
 
