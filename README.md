@@ -68,7 +68,36 @@ Thử nhanh các luồng chính:
 4. Đăng nhập **Trưởng ban**, duyệt khoản "Mua 2 ống cầu" do chủ nhiệm đề xuất. Chủ nhiệm không tự duyệt được khoản của mình.
 5. Đăng nhập **Ban quản lý CLB của trường**, duyệt khoản chi đang chờ mentor. Sau đó thủ quỹ ghi đã chi, và Dự trù kỳ đổi theo.
 
-Muốn lưu dữ liệu vào PostgreSQL thay vì bộ nhớ: xem [docs/postgresql.md](docs/postgresql.md).
+### Lưu dữ liệu vào PostgreSQL (Docker)
+
+Chạy như trên thì dữ liệu mẫu nằm trong bộ nhớ, tắt máy chủ là mất mọi thay đổi. Muốn dữ liệu còn lại giữa các lần chạy, dùng PostgreSQL bằng Docker. Mỗi người chạy một cơ sở dữ liệu riêng trên máy mình, không dùng chung.
+
+Cần [Docker Desktop](https://www.docker.com/products/docker-desktop/), mở lên và chờ báo "running" rồi mới chạy lệnh.
+
+1. Trong `server/`, chép `.env.example` thành `.env` (Windows: `copy .env.example .env`).
+2. Trong `server/.env`, đặt hai dòng sau. Mật khẩu tự nghĩ, chỉ dùng chữ và số, và không gửi mật khẩu qua nhóm chat:
+
+   ```
+   POSTGRES_PASSWORD=matkhaucuaban
+   DATABASE_URL=postgres://campushub:matkhaucuaban@localhost:5432/campushub
+   ```
+
+3. Bật PostgreSQL, rồi chạy máy chủ và web như ở trên:
+
+   ```bash
+   cd server
+   docker compose up -d
+   npm run dev
+   ```
+
+Lần đầu nối vào cơ sở dữ liệu trống, máy chủ **tự tạo bảng và nạp dữ liệu mẫu** cùng tài khoản mẫu; không có script seed nào phải chạy. Dòng log có "Đã nạp dữ liệu mẫu" là đúng.
+
+| Việc | Lệnh (chạy trong `server/`) |
+|---|---|
+| Tắt PostgreSQL, giữ dữ liệu | `docker compose stop` |
+| Làm lại từ đầu (xóa sạch dữ liệu) | `docker compose down -v`, rồi `docker compose up -d` |
+
+Cổng 5432 đã có chương trình khác dùng, hoặc gặp lỗi khác: xem bảng "Lỗi thường gặp" trong [docs/postgresql.md](docs/postgresql.md). Muốn cài PostgreSQL không qua Docker cũng xem file đó.
 
 ## Thư mục và tài liệu
 

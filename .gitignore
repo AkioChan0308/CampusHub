@@ -45,6 +45,8 @@ CLAUDE.local.md
 graphify-out/
 # Sơ đồ do skill Archify tạo ra trên từng máy: tạo lại bằng /archify, không commit.
 .archify/
+# Log và ảnh chụp trang do công cụ Playwright (MCP) tạo ra khi Claude Code bấm thử: có thể chứa nội dung trang, không commit.
+.playwright-mcp/
 
 # Log, file hệ điều hành, cấu hình riêng của trình soạn mã
 *.log
