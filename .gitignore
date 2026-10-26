@@ -41,6 +41,10 @@ web/e2e/screenshots/
 CLAUDE.local.md
 # File skill Impeccable tạo ra (design.json, mô tả bề mặt, ảnh review, log). Luật thiết kế cho cả nhóm nằm ở DESIGN.md và PRODUCT.md.
 .impeccable/
+# Đồ thị tri thức do skill Graphify tạo ra trên từng máy: tạo lại bằng /graphify, không commit.
+graphify-out/
+# Sơ đồ do skill Archify tạo ra trên từng máy: tạo lại bằng /archify, không commit.
+.archify/
 
 # Log, file hệ điều hành, cấu hình riêng của trình soạn mã
 *.log
