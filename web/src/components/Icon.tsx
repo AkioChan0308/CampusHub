@@ -23,6 +23,10 @@ const PATHS = {
   user: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6" /></>),
   play: <path d="M7 4.5v15l12.5-7.5z" />,
   pause: <path d="M8.5 5v14M15.5 5v14" />,
+  feed: (<><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h8M8 17h5" /></>),
+  message: <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z" />,
+  compass: (<><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5z" /></>),
+  close: <path d="M6 6l12 12M18 6 6 18" />,
 };
 
 export type IconName = keyof typeof PATHS;
