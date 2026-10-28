@@ -5,7 +5,7 @@ import type { AppState, ClubTask, Club, Collection, ExpenseRequest, LedgerEntry,
 
 export const MENTOR_THRESHOLD = 2_000_000; // mặc định trong "Phương án nghiệp vụ"; chưa chốt
 
-type Action = "approveApplication" | "money" | "approveExpense" | "budget" | "handover" | "checkin" | "assignRole" | "kit" | "task";
+type Action = "approveApplication" | "money" | "approveExpense" | "budget" | "handover" | "checkin" | "assignRole" | "kit" | "task" | "post";
 
 const RIGHTS: Record<Action, Role[]> = {
   kit: ["president", "vice", "head"],
@@ -17,6 +17,8 @@ const RIGHTS: Record<Action, Role[]> = {
   handover: ["president"],
   checkin: ["president", "vice", "head", "treasurer"],
   assignRole: ["president"],
+  // Đăng tin lên trang chung (29/10/2026). Việc duyệt tin của trường (cán bộ trường là person.kind "staff", không phải một Role) để sau.
+  post: ["president", "vice", "head"],
 };
 
 export const RIGHT_LABEL: Record<Action, string> = {
@@ -29,6 +31,7 @@ export const RIGHT_LABEL: Record<Action, string> = {
   assignRole: "Chỉ chủ nhiệm đổi vai trò và ban của thành viên.",
   kit: "Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban sửa kho bàn giao.",
   task: "Chỉ ban điều hành tạo và giao việc.",
+  post: "Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban đăng tin của CLB.",
 };
 
 export function can(role: Role | undefined, action: Action): boolean {

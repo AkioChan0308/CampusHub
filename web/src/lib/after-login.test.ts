@@ -21,9 +21,16 @@ test("next khác /me vẫn được giữ cho ban điều hành (link đóng qu�
   }
 });
 
-test("thành viên thường đăng nhập với next=/me thì vào /me; không có next thì về trang theo vai", () => {
+test("thành viên thường đăng nhập với next=/me thì vào /me; không có next thì vào trang chung", () => {
   assert.equal(landingAfterLogin(me("member"), "/me"), "/me");
-  assert.equal(landingAfterLogin(me("member"), undefined), "/me");
+  assert.equal(landingAfterLogin(me("member"), undefined), "/feed");
   assert.equal(landingAfterLogin(me("president"), undefined), homeFor(me("president")));
   assert.equal(landingAfterLogin(me("president", { kind: "staff" }), "/me"), "/me"); // cán bộ trường: không đụng
+});
+
+test("người chưa ở CLB nào vào trang chung; có lời mời đang chờ thì vào lời mời", () => {
+  const none: MeRes = { person: { id: "p", name: "Người thử", email: "thu@example.com", kind: "student" }, memberships: [], account: { hasPassword: false } };
+  assert.equal(homeFor(none), "/feed");
+  const invited: MeRes = { ...none, memberships: [{ clubId: "cau-long", clubName: "CLB", term: "Fall 2026", code: "A001", department: "Ban", role: "member", invite: "pending", inviteCode: "moi-a022" }] };
+  assert.equal(homeFor(invited), "/invite/moi-a022");
 });
