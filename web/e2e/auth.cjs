@@ -121,14 +121,16 @@ const PHONE = { width: 390, height: 844 };
     await p.getByLabel("Mật khẩu", { exact: true }).fill("CauLong#2026");
     await p.getByLabel("Nhập lại mật khẩu").fill("CauLong#2026");
     await p.getByRole("button", { name: "Lưu" }).click();
-    ok(await p.waitForURL("**/me", { timeout: 15000 }).then(() => true).catch(() => false), "Lưu xong: về trang của mình", p.url());
+    // Thành viên thường đăng nhập xong vào trang chung (Hiệu chốt 29/10/2026); Của tôi mở bằng tab.
+    ok(await p.waitForURL("**/feed", { timeout: 15000 }).then(() => true).catch(() => false), "Lưu xong: về trang chung", p.url());
+    await p.goto(`${BASE}/me`);
     const loginBox = p.locator("section[aria-labelledby=login-section]");
     ok(await loginBox.getByText("hoanglong.vo", { exact: true }).waitFor({ timeout: 10000 }).then(() => true).catch(() => false), "Của tôi: hiện tên tài khoản");
     await p.screenshot({ path: path.join(OUT, "03-me.png"), fullPage: true });
     await api(p, "POST", "/auth/logout");
     await p.goto(`${BASE}/login`);
     await fillLogin(p, "hoanglong.vo@example.com", "CauLong#2026");
-    ok(await p.waitForURL("**/me", { timeout: 15000 }).then(() => true).catch(() => false), "Đăng nhập bằng email và mật khẩu", p.url());
+    ok(await p.waitForURL("**/feed", { timeout: 15000 }).then(() => true).catch(() => false), "Đăng nhập bằng email và mật khẩu: thành viên vào trang chung", p.url());
     await api(p, "POST", "/auth/logout");
 
     // ---- Để sau: không lưu gì, đi tiếp ----

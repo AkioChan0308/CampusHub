@@ -1,9 +1,11 @@
-// Bảng tin chung, KHUNG RỖNG (22/10/2026): đường dẫn, tab, trạng thái rỗng, quyền. Chưa có dữ liệu thật; mô tả ở docs/mo-ta-bang-tin-chung.md.
-// Chạy trong web/: node e2e/feed-shell.cjs (web cổng 3000, server cổng 4000 chế độ demo, dữ liệu trong bộ nhớ).
+// Trang chung (29/10/2026, Hiệu yêu cầu): thanh công cụ theo vai, trang đầu tiên sau đăng nhập đã có test riêng (src/lib), ở đây bấm thử các màn:
+// tin mẫu, lọc, chi tiết tin, bong bóng chat ở góc phải dưới (khung chat mẫu "đang phát triển"), mục theo vai nổi bật, Của tôi giới hạn cho người chưa vào CLB, quyền đăng tin. Tin là DỮ LIỆU MẪU (src/lib/feed-sample.ts).
+// Chạy trong web/: node e2e/feed-shell.cjs (web cổng 3000, server cổng 4000 chế độ demo, dữ liệu trong bộ nhớ). Mô tả: docs/mo-ta-bang-tin-chung.md.
 const { BASE, launch } = require("./common.cjs");
 const results = [];
 const ok = (cond, name, extra = "") => results.push(`${cond ? "OK " : "LOI"} ${name}${extra ? " :: " + extra : ""}`);
 const waitText = (p, re, t = 10000) => p.waitForFunction((src) => new RegExp(src).test(document.body.innerText), re.source, { timeout: t }).then(() => true).catch(() => false);
+const toPath = (p, path) => p.waitForURL(`**${path}`, { timeout: 10000 }).then(() => true).catch(() => false);
 const PHONE = { width: 390, height: 844 };
 const LAPTOP = { width: 1440, height: 900 };
 
@@ -19,36 +21,90 @@ const LAPTOP = { width: 1440, height: 900 };
     await p.evaluate(async (id) => { await fetch("/api/v1/auth/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ personId: id }) }); }, personId);
     return p;
   }
+  const tabs = async (p) => (await p.locator(".l-tabs.hub .l-tab").allInnerTexts()).join("|");
   await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
 
   // Sinh viên chưa vào CLB nào
   let p = await as("p-bao-chau", PHONE);
   await p.goto(`${BASE}/feed`);
-  ok(await waitText(p, /Bảng tin[\s\S]*Tin chung[\s\S]*CLB của tôi[\s\S]*Chưa có tin nào\./), "Bảng tin: có tiêu đề, hai nút chọn phần và trạng thái rỗng");
-  ok(await p.getByRole("button", { name: "Tin chung" }).getAttribute("aria-pressed") === "true", "Bảng tin: mặc định ở phần Tin chung");
+  ok(await waitText(p, /Trang chung[\s\S]*Tin chung[\s\S]*CLB của tôi[\s\S]*Dữ liệu mẫu[\s\S]*Giải cầu lông nội bộ/), "Trang chung: có tiêu đề, hai nút chọn phần, ghi dữ liệu mẫu và danh sách tin");
+  ok((await tabs(p)) === "Trang chung|Khám phá|Của tôi|Tạo CLB", "Thanh công cụ: sinh viên chưa vào CLB có Của tôi và Tạo CLB", await tabs(p));
   await p.getByRole("button", { name: "CLB của tôi" }).click();
-  ok(await waitText(p, /Bạn chưa ở CLB nào/) && await p.getByRole("link", { name: "Tìm CLB" }).isVisible(), "Bảng tin: sinh viên chưa vào CLB thấy lời mời Tìm CLB ở phần CLB của tôi");
+  ok(await waitText(p, /Bạn chưa ở CLB nào/) && await p.getByRole("link", { name: "Khám phá CLB" }).isVisible(), "Trang chung: sinh viên chưa vào CLB thấy lời mời Khám phá CLB ở phần CLB của tôi");
+  await p.goto(`${BASE}/me`);
+  ok(await waitText(p, /Cần tham gia một CLB[\s\S]*Điểm danh[\s\S]*Cần tham gia CLB/), "Của tôi: người chưa ở CLB nào thấy thông tin, tính năng thành viên bị khóa kèm lý do");
+  ok((await tabs(p)).includes("Trang chung"), "Của tôi: người chưa ở CLB nào vẫn có thanh công cụ trang chung", await tabs(p));
+  await p.getByRole("button", { name: /tài khoản/ }).click();
+  await p.getByRole("menuitem", { name: "Đăng xuất" }).click();
+  ok(await p.waitForURL("**/login", { timeout: 10000 }).then(() => true).catch(() => false), "Đăng xuất: sinh viên chưa vào CLB đăng xuất được từ trang Của tôi");
   await p.context().close();
 
-  // Thành viên (điện thoại và laptop)
-  p = await as("a017", LAPTOP);
+  // Thành viên: lọc, chi tiết tin, khung chat mẫu
+  p = await as("a017", PHONE);
   await p.goto(`${BASE}/feed`);
+  ok(await waitText(p, /Giải cầu lông nội bộ/), "Trang chung: thành viên thấy tin");
+  ok((await tabs(p)) === "Trang chung|Khám phá|Của tôi", "Thanh công cụ: thành viên có mục Của tôi", await tabs(p));
   await p.getByRole("button", { name: "CLB của tôi" }).click();
-  ok(await waitText(p, /Chưa có tin nào\./) && !(await p.locator("body").innerText()).includes("Bạn chưa ở CLB nào"), "Bảng tin: thành viên ở phần CLB của tôi thấy trạng thái rỗng, không bị nói chưa ở CLB nào");
+  ok(await waitText(p, /Giải cầu lông nội bộ/) && !(await p.locator("body").innerText()).includes("Tuyển thành viên kỳ Spring 2027"), "Trang chung: phần CLB của tôi chỉ có tin của CLB mình");
+  await p.getByRole("button", { name: "Tin chung" }).click();
+  await p.getByRole("button", { name: "Sự kiện", exact: true }).click();
+  ok(await waitText(p, /Giải cầu lông nội bộ/) && !(await p.locator("body").innerText()).includes("Tuyển thành viên kỳ Spring 2027"), "Trang chung: lọc Sự kiện bỏ tin loại khác");
+  await p.getByRole("link", { name: /Giải cầu lông nội bộ/ }).click();
+  ok(await toPath(p, "/feed/giai-noi-bo") && await waitText(p, /Thời gian[\s\S]*Nơi diễn ra[\s\S]*Nhắn cho CLB/), "Chi tiết tin: có thời gian, nơi diễn ra và nút Nhắn cho CLB");
+  await p.getByRole("button", { name: "Nhắn cho CLB" }).click();
+  ok(await waitText(p, /Nhắn cho CLB Cầu lông Sân Nhà[\s\S]*Tính năng nhắn tin đang phát triển/), "Khung chat mẫu: Nhắn cho CLB mở khung, đề tên CLB, ghi tính năng đang phát triển");
+  ok(await p.getByRole("button", { name: "Gửi" }).isDisabled() && await p.getByLabel("Tin nhắn cho ban điều hành").isDisabled(), "Khung chat mẫu: ô viết và nút gửi khóa");
+  ok((await p.locator("#chat-unavailable").innerText()).includes("đang phát triển"), "Khung chat mẫu: có dòng lý do nhìn thấy được");
+  await p.keyboard.press("Escape");
+  ok((await p.locator("#chat-panel").count()) === 0, "Khung chat mẫu: Esc đóng khung");
+  const fab = p.getByRole("button", { name: "Tin nhắn" });
+  const box = await fab.boundingBox();
+  const vp = p.viewportSize();
+  ok(box && box.x + box.width > vp.width - 40 && box.y + box.height > vp.height - 150, "Bong bóng chat: nằm ở góc phải dưới", JSON.stringify(box));
+  await fab.click();
+  ok(await waitText(p, /Tin nhắn[\s\S]*Đang phát triển/) && (await p.locator("#chat-panel").count()) === 1, "Bong bóng chat: bấm thì mở khung chat");
+  await fab.click();
+  ok((await p.locator("#chat-panel").count()) === 0, "Bong bóng chat: bấm lần nữa thì đóng");
+  const role = p.getByRole("link", { name: "Của tôi", exact: true });
+  ok((await role.evaluate((el) => getComputedStyle(el).backgroundColor)) === "rgb(29, 71, 163)", "Mục Của tôi: nút đặc xanh mực, nổi bật trên thanh công cụ");
+  await p.goto(`${BASE}/explore/vong-lap`);
+  ok(await waitText(p, /Giới thiệu mẫu[\s\S]*Nhắn cho CLB[\s\S]*Liên hệ CLB[\s\S]*Tin gần đây của CLB[\s\S]*Tuyển thành viên kỳ Spring 2027/), "Trang CLB: có giới thiệu mẫu, nút nhắn tin, liên hệ và tin gần đây");
+  await p.goto(`${BASE}/me`);
+  await p.getByRole("link", { name: "CampusHub, trang chung" }).first().click();
+  ok(await toPath(p, "/feed"), "Logo CampusHub ở trang Của tôi dẫn về trang chung");
+  await p.getByRole("button", { name: /tài khoản/ }).click();
+  ok(await p.getByRole("menuitem", { name: "Của tôi" }).isVisible() && await p.getByRole("menuitem", { name: "Đăng xuất" }).isVisible(), "Menu tài khoản: thành viên thấy Của tôi và Đăng xuất");
+  await p.getByRole("menuitem", { name: "Đăng xuất" }).click();
+  ok(await p.waitForURL("**/login", { timeout: 10000 }).then(() => true).catch(() => false), "Đăng xuất: thành viên đăng xuất được từ trang chung");
   await p.context().close();
 
   // Chưa đăng nhập: bị đưa về đăng nhập
   const anon = await browser.newContext({ viewport: PHONE });
   const ap = await anon.newPage();
   await ap.goto(`${BASE}/feed`);
-  ok(await waitText(ap, /Bạn cần đăng nhập|Đăng nhập/), "Bảng tin: chưa đăng nhập thì được mời đăng nhập");
+  ok(await waitText(ap, /Bạn cần đăng nhập|Đăng nhập/), "Trang chung: chưa đăng nhập thì được mời đăng nhập");
   await anon.close();
 
-  // Ban điều hành
+  // Ban điều hành: mục menu, nút Đăng tin, logo
   p = await as("a001", LAPTOP);
   await p.goto(`${BASE}/clubs/cau-long-san-nha/posts`);
-  ok(await waitText(p, /Bảng tin của CLB[\s\S]*Tin đã đăng[\s\S]*Chưa có tin nào\./), "Bảng tin của CLB: ban điều hành thấy khung rỗng");
-  ok(!(await p.getByRole("navigation", { name: "Menu ban điều hành" }).innerText()).includes("Bảng tin"), "Bảng tin của CLB: chưa có mục menu (chờ Hiệu chọn chỗ đặt)");
+  ok(await waitText(p, /Bảng tin của CLB[\s\S]*Tin đã đăng[\s\S]*Dữ liệu mẫu[\s\S]*Giải cầu lông nội bộ/), "Bảng tin của CLB: ban điều hành thấy danh sách tin mẫu");
+  const menu = await p.getByRole("navigation", { name: "Menu ban điều hành" }).innerText();
+  ok(menu.includes("Trang chung") && menu.includes("Bảng tin của CLB"), "Menu ban điều hành: có Trang chung và Bảng tin của CLB");
+  await p.getByRole("button", { name: "Đăng tin" }).click();
+  ok(await waitText(p, /Tính năng đăng tin đang phát triển/), "Bảng tin của CLB: nút Đăng tin báo đang phát triển");
+  ok(await p.getByRole("button", { name: "Đăng xuất" }).isVisible(), "Đăng xuất: ban điều hành có nút ở thanh bên");
+  await p.getByRole("link", { name: "CampusHub, trang chung" }).click();
+  ok(await toPath(p, "/feed"), "Logo CampusHub ở trang ban điều hành dẫn về trang chung");
+  await waitText(p, /Quản lý CLB/);
+  ok((await tabs(p)) === "Trang chung|Khám phá|Quản lý CLB", "Thanh công cụ: ban điều hành có Quản lý CLB", await tabs(p));
+  await p.context().close();
+
+  // Thủ quỹ không có quyền đăng tin: nút khóa kèm lý do
+  p = await as("a002", LAPTOP);
+  await p.goto(`${BASE}/clubs/cau-long-san-nha/posts`);
+  await waitText(p, /Bảng tin của CLB/);
+  ok((await p.getByRole("button", { name: "Đăng tin" }).getAttribute("aria-disabled")) === "true" && (await p.locator("#post-locked").innerText()).includes("trưởng ban"), "Bảng tin của CLB: thủ quỹ thấy nút Đăng tin khóa kèm lý do");
   await p.context().close();
 
   // Thành viên thường không vào được trang của ban điều hành
