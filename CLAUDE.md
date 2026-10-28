@@ -51,6 +51,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
     - `LinkIcon`: link vừa bấm hiện vòng xoay.
   - Nút đang gửi dùng `aria-busy`, không dùng `disabled`.
   - Thời lượng 150–250 ms; tắt khi máy bật giảm chuyển động.
+  - Ngoại lệ Hiệu duyệt ngày 29/10/2026, có giới hạn và tên riêng trong `DESIGN.md`: cuốn lịch 3D ở trang đầu (`web/src/components/lich/fx/`, GSAP và Three.js, chỉ tải khi máy đủ điều kiện) và lớp hiệu ứng cuối `lich.css` ở màn làm việc (tối đa 296 ms, không áp cho số tiền). Ngoài hai thứ này vẫn theo luật 150–250 ms.
 - Tên người và số tiền trong bản vẽ là dữ liệu mẫu.
 - Không sửa tay `design/screens/`: các file này được tạo lại bằng `design/tools/convert-screens.py`.
 

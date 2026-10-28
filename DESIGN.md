@@ -249,6 +249,38 @@ components:
     rounded: "{rounded.lg}"
     padding: "24px 24px 28px"
     width: "440px"
+  tab-role:
+    backgroundColor: "{colors.blue}"
+    textColor: "{colors.paper}"
+    rounded: "12px"
+    padding: "0 8px"
+    height: "44px"
+  tab-role-secondary:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.blue}"
+  tab-role-current:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.paper}"
+  chat-fab:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.blue}"
+    rounded: "{rounded.pill}"
+    size: "56px"
+  chat-fab-hover:
+    backgroundColor: "{colors.blue}"
+    textColor: "{colors.paper}"
+  chat-window:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.lg}"
+    width: "360px"
+  chat-window-head:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.paper}"
+    padding: "8px 6px 8px 16px"
+  post-row:
+    textColor: "{colors.ink}"
+    padding: "14px 0"
 ---
 
 # Design System: CampusHub
@@ -262,6 +294,8 @@ CLB sinh viên sống theo lịch. Vì vậy mỗi màn mở bằng tờ lịch 
 Giấy trắng nằm trên nền xám lạnh. Chữ là mực gần đen. Đỏ lịch hiếm, chỉ dành cho hôm nay và việc gấp. Xanh mực là màu của thao tác. Các khối chia nhau bằng nét kẻ mảnh 1px, không dùng bóng đổ. Thế giới này bỏ kiểu dashboard thẻ trắng có ô số liệu ở góc.
 
 **Phạm vi hiện tại.** Hiệu duyệt Lịch bloc ngày 03/10/2026, nên đây là hệ thiết kế của dự án. Ngày 04/10/2026 mọi màn đã chuyển: đủ 16 màn của bản vẽ, trang `/login` và các trang chặn, lỗi, đang tải. Nhóm 3 là các màn thành viên và sinh viên trên điện thoại: TV-CuaToi (`/me`, cả tab Quỹ `/me/pay`), TV-LoiMoi, SV-DanhSach, SV-DonXinVao. Nhóm 4 là hai màn nhà trường trên laptop: NT-TongQuan, NT-ChiTietCLB. Hiệu duyệt hai nhóm này ngày 04/10/2026. Năm màn tạo dữ liệu từ đầu không có bản vẽ; Hiệu duyệt mô tả bằng chữ ngày 04/10/2026, và cả năm qua lượt duyệt hoàn thiện ngày 05/10/2026: Tạo CLB (`/clubs/new`), Thêm thành viên (`/clubs/[clubId]/members/add`), cột Thao tác của màn Thành viên, Các buổi (`/clubs/[clubId]/events`) và Tạo đợt thu (`/clubs/[clubId]/collections/new`). Ngày 05/10/2026 trang chọn vai (chỉ có ở bản demo; sau đó bỏ hẳn, thay bằng bảng tài khoản mẫu ở `/login`), trang lỗi và trang không tìm thấy cũng chuyển, và hệ tím cũ (`design/ui.css`) bị bỏ khỏi code: Lịch bloc là hệ duy nhất. Cũng ngày 05/10/2026, Hiệu duyệt các trang không có bản vẽ: trang đầu `/` (giới thiệu cho người chưa đăng nhập, hai video quay từ bản demo), đăng ký (`/register`), đặt tên tài khoản và mật khẩu (`/account`), form mật khẩu của `/login`, và mục "Đăng nhập" ở Của tôi. Biến màu khai báo ở `:root` trong `web/src/app/lich.css`; kiểu của màn nằm dưới lớp `.lich`. `web/src/app/globals.css` chỉ còn quy tắc nền cho thẻ HTML và biến theme của shadcn/ui, nối vào biến của Lịch bloc.
+
+**Trang chung (29/10/2026).** Mọi vai đã đăng nhập có một trang chung (`/feed`) và một thanh tab chung (`HubNav`). Logo CampusHub ở góc trái trên của mọi khung (điện thoại, ban điều hành, nhà trường) là link về đó. Trang chung và bong bóng chat là khung mẫu: tin lấy từ `web/src/lib/feed-sample.ts`, chat chưa gửi được, và màn ghi rõ như vậy.
 
 **Key Characteristics:**
 - Tờ lịch là dấu hiệu nhận ra sản phẩm: dải tháng, số ngày Barlow Condensed cỡ lớn, dòng thứ hoặc "còn N ngày".
@@ -295,6 +329,8 @@ Bảng màu gần như đơn sắc: giấy, mực, nét kẻ. Hai màu nhấn c�
 - **Nét kẻ mờ** (rule-soft): đường chia giữa các dòng trong một khối và trong bảng, nền nút bị khóa, nền nhãn "off", nền thanh tiến độ, thanh giữ chỗ của khung xương.
 
 ### Named Rules
+**The One Solid Blue Rule.** Mỗi vùng có đúng một thứ đặc xanh mực. Ở thanh tab của trang chung đó là nút theo vai đầu tiên. Bong bóng chat nằm cùng màn nên chỉ viền xanh nền giấy, nhẹ hơn một bậc; mục theo vai thứ hai trở đi cũng chỉ viền xanh. Mục theo vai của trang đang mở đổi sang mực, cùng nghĩa với bộ lọc đang chọn.
+
 **The Red Day Rule.** Đỏ chỉ xuất hiện ở ba chỗ: tờ lịch hôm nay; hạn chót còn 3 ngày trở xuống hoặc đã quá hạn; chữ và viền báo lỗi khi nhập. Không dùng đỏ để trang trí, để nhấn tiêu đề, cho khoản chi, khoản bị từ chối, quỹ thiếu, người chưa đóng hay yêu cầu xóa dữ liệu.
 
 **The Neutral Refusal Rule.** Trạng thái bị từ chối, đã đóng lại hay phải chờ người khác dùng nhãn trung tính "off": nền rule-soft, chữ mực 2. Gồm khoản chi bị từ chối, khoản do chính mình đề xuất (phải chờ người khác duyệt), "Đơn bị từ chối", "Tạm ngưng nhận đơn", "Chưa nhận lời mời", "Quá 30 ngày" (lâu không hoạt động), đề nghị hỗ trợ "Từ chối", và nhãn của buổi: "Sắp tới", "Đã đóng", "Chưa mở điểm danh" (buổi đã qua mà chưa từng mở điểm danh). Thiếu tiền, chưa đóng và dự trù "Chưa nộp" dùng hổ phách. Việc đang chờ duyệt ("Chờ duyệt", "Đã gửi đơn") và buổi đang mở điểm danh dùng nhãn "chờ".
@@ -353,6 +389,8 @@ Màn có danh sách và chi tiết (Duyệt chi) chia tờ giấy thành hai c�
 Bảng có độ rộng cột cố định (xem Components). Bảng rộng tối thiểu 960px; màn hẹp hơn thì bảng cuộn ngang, không đè chữ.
 
 **Điện thoại (thành viên).** Khung rộng tối đa 430px, căn giữa. Đầu khung cao 56px và thanh tab dưới cao 58px, cả hai dính và có nét kẻ 1px. Thanh tab có ba mục và chừa vùng an toàn của máy. Thanh tab không bắt buộc: màn quét mã (`/checkin`) dùng đầu khung chỉ có logo và chữ CampusHub, không có thanh tab, vì lúc đó chưa biết CLB nào (`PhoneFrame brand`). Nội dung lề 16px, các khối cách nhau 12px. Nút thao tác đẩy xuống cuối vùng nội dung.
+
+**Trang chung (điện thoại và laptop).** Màn của trang chung (`/feed`, `/explore`, và `/me` của người chưa ở CLB nào) dùng thanh tab của trang chung thay cho ba tab thành viên, và vùng nội dung có thêm lớp `hub` (`.l-pmain.hub`). Dưới 1024px thanh tab nằm đáy khung, cao 58px (`--l-tabbar-h`), nội dung chừa thêm chỗ phía dưới bằng 16px cộng bong bóng chat (56px) và khe 14px, để bong bóng không che dòng cuối. Từ 1024px thanh tab là thanh ngang ở đầu, mục theo vai dồn sang phải, và bong bóng cách mép phải và mép dưới 24px. Đầu khung điện thoại có tên CLB thì logo "C" bên trái là link về `/feed`, vùng bấm rộng ra 44px mà không đổi bố cục.
 
 **Điện thoại, màn không có thanh tab** (danh sách CLB, trang một CLB và đơn xin vào, lời mời). Đầu khung là logo và chữ CampusHub (`PhoneFrame brand`) hoặc link quay lại (`PhoneFrame back`; trang một CLB: "Danh sách CLB"). Ảnh đại diện đứng ở mép phải khi biết người đang xem. Màn mở bằng tờ lịch hôm nay cỡ vừa cạnh tiêu đề, căn theo đáy, cách 14px; dưới tiêu đề là dòng phụ 14px mực 2. Ba màn có thanh tab (Điểm danh, Quỹ, Của tôi) không có tờ lịch hôm nay ở đầu. Danh sách CLB là một tờ giấy, mỗi CLB một dòng, không tách thẻ.
 
@@ -458,11 +496,23 @@ Phẳng, chắc, không bóng.
 - **Thanh bên (laptop):** nền giấy, nét kẻ bên phải. Trên cùng là logo và tên, rồi ô tên CLB nền xám, rồi danh sách mục. Mục cao 40px, chữ 15px mực 2, bo 10px. Rê chuột: nền xám. Đang chọn: nền blue-tint, chữ xanh mực đậm. Số đếm bên phải dùng Barlow Condensed đậm trên ô xám bo 6px. Nhãn nhóm 12.5px mực 3. Cuối thanh là người dùng, ngăn bằng nét kẻ mờ.
 - **Thanh bên nhà trường** (`SchoolFrame`): cùng kiểu thanh bên. Ô tên là "[Tên trường]" và "Ban quản lý CLB · <học kỳ>". Mục chưa làm ("Dự trù và báo cáo") là mục khóa, cuối mục có chữ "chưa có" 12.5px 500 mực 3, nối bằng `aria-describedby`. Dưới tên người là chức danh 13px mực 3.
 - **Thanh tab (điện thoại):** ba tab (Điểm danh, Quỹ, Của tôi), biểu tượng 22px trên nhãn 13px. Tab thường mực 3; tab đang chọn xanh mực đậm. Màn quét mã, danh sách CLB, trang một CLB và lời mời không có thanh tab (xem Layout).
+- **Thanh tab của trang chung** (`HubNav`, `l-tabs hub`): hai mục chung cho mọi vai ("Trang chung", "Khám phá"; biểu tượng 22px, chia đều chỗ), rồi các mục theo vai do `web/src/lib/hub.ts` chọn: cán bộ trường "Nhà trường"; ban điều hành "Quản lý CLB"; thành viên hoặc người chưa ở CLB nào "Của tôi"; người chưa ở CLB nào thêm "Tạo CLB". Tin nhắn không còn là tab mà là bong bóng chat. Đang tải thì mục theo vai giữ chỗ bằng một thanh giữ chỗ, nên thanh không nhảy.
+- **Nút theo vai** (`.l-tab.role`): nút bo 12px, viền 1.5px, chữ 14.5px đậm 700, không xuống dòng, biểu tượng cạnh chữ cách 8px. Mục đầu là nút đặc xanh mực chữ trắng (rê chuột blue-hover), cao 44px, lề ngoài 7px 5px; từ 1024px cao 40px, lề trái 6px, lề ngang trong 16px. Mục thứ hai trở đi ("Tạo CLB") nền giấy, viền và chữ xanh mực, rê chuột nền blue-tint. Đang ở đúng trang của mục (`aria-current="page"`) thì nền và viền mực, chữ trắng. Dưới 360px biểu tượng của nút ẩn để hai mục chung đủ chỗ cho chữ. Theo The One Solid Blue Rule.
 - **Link quay lại:** mũi tên trái 18px và chữ 15px 600 mực 2, cách 4px; rê chuột thì chữ mực. Trên đầu khung điện thoại cao tối thiểu 44px. Dùng ở trang một CLB (điện thoại) và trang chi tiết CLB (nhà trường).
 - **Thanh trên của trang đầu:** link chữ 600 mực 2, lề 10px 8px; rê chuột thì xanh mực và gạch dưới. Nút "Đăng ký" là nút chính.
 - **Tab trong tờ giấy:** hàng tab sát trên một phần, gạch dưới bằng rule. Chữ 600 14.5px mực 3; rê chuột và đang chọn thì mực. Tab đang chọn có gạch mực 2px đè lên nét kẻ. Cuộn ngang khi hẹp.
 - **Dải chọn đợt thu:** hàng tab trong tờ giấy, lề 4px 12px 0. Mỗi đợt là một link sang trang của đợt đó. Đợt đang xem có `aria-current="page"`, chữ mực và gạch mực 2px. Mục cuối "Tạo đợt thu" (biểu tượng cộng 16px) đẩy sang phải và tô xanh mực vì là thao tác; chỉ hiện cho người có quyền về tiền.
 - **Danh sách chọn bên trái** (Duyệt chi): mỗi mục là một nút rộng hết cột, lề 12px 16px, ngăn bằng rule-soft. Dòng trên là tên khoản (600) và số tiền (Barlow Condensed 17px) ở hai đầu; dưới là dòng phụ và nhãn trạng thái. Rê chuột: nền xám rất nhạt. Đang mở (`aria-pressed="true"`): nền blue-tint.
+
+### Dòng tin (trang chung)
+Danh sách `.l-posts`, mỗi tin là một liên kết `.l-post` cả dòng. Lưới ba ô: ô trái 64px (tờ lịch thường cho tin sự kiện, hoặc nhãn loại tin), nội dung ở giữa, mũi tên 20px mực 3 bên phải; cột cách 14px, dòng lề 14px trên dưới, ngăn bằng rule-soft, dòng cuối không có nét. Nội dung xếp dọc cách 3px: dòng tên CLB 13.5px mực 3, tiêu đề 16px 600 cao dòng 1.3, vài dòng đầu 14px mực 2 cắt ở hai dòng. Rê chuột: tiêu đề gạch dưới. Dữ liệu là tin mẫu, nên màn có dòng "Dữ liệu mẫu: …" thấy được (`.l-placeholder` ở danh sách, `.l-note` ở chi tiết tin).
+
+### Bong bóng chat và khung chat (mẫu)
+Chưa dùng được, nên mọi thứ đều nói rõ "đang phát triển" ngay trên màn.
+- **Bong bóng** (`.l-chatfab`): nút tròn 56px (`--l-fab`), nền giấy, viền 1.5px xanh mực, biểu tượng xanh mực 26px, cố định góc phải dưới. Dưới 1024px nằm cách mép phải 16px, ngay trên thanh tab (khe `--l-fab-gap` 14px cộng cao thanh tab `--l-tabbar-h` và vùng an toàn của máy); từ 1024px cách mép 24px. Rê chuột: tô xanh mực, biểu tượng trắng (150ms); bấm xuống nhỏ lại còn 95%. Không bóng. Nhãn đọc cố định "Tin nhắn", trạng thái mở nằm ở `aria-expanded`; mở thì biểu tượng đổi thành dấu đóng.
+- **Khung chat** (`.l-chatw`): hộp thoại không chặn trang (`role="dialog"`, `aria-modal="false"`), rộng tối đa 360px (hẹp hơn thì chừa 16px mỗi bên), cao tối đa 460px, bo 14px, viền 1px mực 3, mở lên phía trên bong bóng, cách 10px. Chừa 72px trống ở trên cho đầu màn; chiều cao khai báo bằng `vh` trước rồi `dvh`, vì trình duyệt trong Zalo có thể chưa hiểu `dvh`. Đầu khung là dải mực chữ trắng như dải tháng của tờ lịch: tiêu đề 16px đậm ("Tin nhắn", hoặc "Nhắn cho <CLB>" khi mở từ nút `ChatButton`), nhãn hổ phách "Đang phát triển", nút đóng 44px.
+- **Thân và ô viết:** thân có câu "Tính năng nhắn tin đang phát triển" và một câu nói hiện tại liên hệ CLB bằng cách nào. Ô viết và nút "Gửi" bị khóa, nối bằng `aria-describedby` tới dòng "Chưa gửi được: tính năng đang phát triển." thấy được ngay dưới (theo luật khóa nút ở mục Buttons).
+- **Chuyển động và focus:** hiện bằng mờ dần, phóng từ 94% và nhích 8px trong 200ms (gốc ở góc dưới phải); giảm chuyển động thì không có. Mở thì focus vào khung; Esc hoặc nút đóng thì đóng và focus về chỗ đã mở (không còn thì về bong bóng). Khi in, bong bóng và khung ẩn.
 
 ### Chi tiết một khoản
 Cột phải của Duyệt chi. Lề 18px 22px 22px, các khối cách nhau 18px. Đầu là tiêu đề 22px bên trái và số tiền Barlow Condensed 34px bên phải. Thông tin là danh sách định nghĩa hai cột: nhãn 140px mực 3, giá trị bên phải, chữ 14.5px. Lịch sử là danh sách thời gian: ngày giờ 96px mực 3, việc đã làm bên phải, 14px. Đổi trạng thái thì nhãn mới mờ dần và nhích 4px (200ms).
@@ -567,11 +617,25 @@ Mã QR trong khung giấy rộng 160px, viền rule, bo 10px. Ngay dưới mã l
 **The Real Role Rule.** Người nhận tiền luôn ghi vai trò thật trong CLB (`ROLE_LABEL`), không viết cứng "thủ quỹ". Không rõ vai trò thì ghi "Người nhận quỹ của <CLB>".
 
 ### Chuyển động
-Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 150–250ms, ease-out. Code ở `web/src/components/lich/motion.tsx` và cuối `lich.css`.
+Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 150–250ms, ease-out. Luật này có đúng ba ngoại lệ có tên (The Time Indicator Exemption, The Scroll Position Exemption, The Authored Scene Exemption) và một lớp riêng cho màn làm việc (The Cascade Layer), mỗi cái có giới hạn ghi ngay dưới. Thứ gì ngoài danh sách đó thì theo luật 150–250ms. Màu vẫn theo Lịch bloc: hiệu ứng không thêm màu, bóng hay gradient, và đỏ vẫn chỉ cho hôm nay và việc gấp. Mọi ngoại lệ và lớp này đều tắt khi máy bật giảm chuyển động. Code ở `web/src/components/lich/motion.tsx`, `web/src/components/lich/fx/` và cuối `lich.css`.
 
 **The Time Indicator Exemption.** Ba thứ chỉ báo thời gian không theo luật 150–250ms: vòng xoay (700ms một vòng), nhấp nháy của khung xương (1,1s), và thanh đếm giờ của mã QR (`transform 1s linear`, mỗi giây rút một nấc). Chúng đo thời gian, không phải hiệu ứng đổi trạng thái. Không dùng ngoại lệ này cho thứ khác.
 
-**The Scroll Position Exemption.** Ở trang đầu, khối trượt theo vị trí cuộn chứ không theo thời gian, nên không có thời lượng và không theo luật 150–250ms (Hiệu duyệt 05/10/2026; `ScrollFade` trong `web/src/app/(landing)/demo-video.tsx`). Khối tiếp theo trượt 72px từ trái vào và rõ dần, rõ hẳn khi mép trên lên tới 70% màn hình (khối nhỏ cuối trang: khi nằm trọn trong màn hình). Khối đã xem trượt sang phải và mờ đi, bắt đầu khi mép dưới lên quá 35% màn hình, nên phần đang đọc không mờ. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay. Trang cắt tràn ngang bằng `overflow-x: clip` (giữ được thanh trên dính); khi in, mọi khối hiện rõ. Giảm chuyển động thì tắt hẳn. Chỉ dùng ở trang đầu, không dùng trong màn làm việc.
+**The Scroll Position Exemption.** Ở trang đầu, khối trượt theo vị trí cuộn chứ không theo thời gian, nên không có thời lượng và không theo luật 150–250ms (Hiệu duyệt 05/10/2026; `ScrollFade` trong `web/src/app/(landing)/demo-video.tsx`). Khối tiếp theo trượt 72px từ trái vào và rõ dần, rõ hẳn khi mép trên lên tới 70% màn hình (khối nhỏ cuối trang: khi nằm trọn trong màn hình). Khối đã xem trượt sang phải và mờ đi, bắt đầu khi mép dưới lên quá 35% màn hình, nên phần đang đọc không mờ. Khối nằm sẵn trong màn hình lúc mở trang thì rõ ngay. Trang cắt tràn ngang bằng `overflow-x: clip` (giữ được thanh trên dính); khi in, mọi khối hiện rõ. Giảm chuyển động thì tắt hẳn. Giới hạn: chỉ `ScrollFade`, chỉ opacity và transform, chỉ ở trang đầu, không bao giờ trong màn làm việc. Cảnh 3D của trang đầu cũng gắn với cuộn nhưng theo luật riêng (The Authored Scene Exemption).
+
+**The Authored Scene Exemption.** Trang đầu có đúng một cảnh 3D nhỏ: cuốn lịch treo tường bảy tờ bên phải tiêu đề (Hiệu duyệt 29/10/2026; `LeafScene` và `LeafStage` trong `web/src/components/lich/fx/`, kiểu `.l-land-stage`). Cuộn trong 240px đầu thì tờ lịch bị xé dần, theo vị trí cuộn (GSAP ScrollTrigger, độ trễ theo 0,6s); con trỏ làm cuốn lịch nghiêng nhẹ; lúc vào chạy 0,9s; khung hiện dần 500ms. Nên không theo luật 150–250ms. Giới hạn cứng:
+- Một cảnh duy nhất, chỉ ở trang đầu. Không thêm cảnh cho trang khác hay màn làm việc.
+- Vật liệu phẳng, không đèn; màu đọc từ biến `--l-*`; không bóng đổ, không gradient, không màu mới. Đỏ chỉ ở tờ hôm nay (The Red Day Rule). Cảnh không vẽ số tiền, và tờ lịch hôm nay thật (`TodayLeaf`, tên `l-today`) giữ nguyên.
+- Chỉ vẽ khi có thay đổi (không có vòng lặp liên tục), dọn sạch bộ nhớ khi tháo, và tự ẩn khi mất ngữ cảnh WebGL.
+- Cổng tải: chỉ nạp (lazy) khi bề rộng từ 1100px, có chuột (`hover: hover`), không bật giảm chuyển động, có WebGL, và bộ nhớ máy từ 4GB trở lên khi trình duyệt cho biết; rồi chờ 600ms rảnh. Không đủ một điều kiện thì không nạp gì và trang y như cũ. Dưới 1100px khung ẩn.
+- Chỉ để trang trí (`aria-hidden`, không nhận chuột). Không chứa thông tin, không là thao tác duy nhất của thứ gì, và không bao giờ bắt người dùng chờ: trang và nút chính hiện đủ trước khi cảnh nạp.
+
+**The Cascade Layer.** Lớp hiệu ứng của màn làm việc (Hiệu duyệt 29/10/2026; cuối `lich.css`, trong `prefers-reduced-motion: no-preference`). Chỉ đổi opacity và transform, nên khung xương và màn đã tải trùng vị trí. Giới hạn cứng:
+- Các phần của tờ giấy (`.l-sheet > .l-sec`) hiện lần lượt: mờ dần và nhích lên 8px, mỗi phần 200ms, trễ 0, 32, 64, 96ms (phần thứ tư trở đi cùng 96ms), nên xong trong 296ms.
+- Tờ lịch hạn (không phải tờ hôm nay, không phải khung xương) lật xuống từ mép trên trong 240ms.
+- Không chạy trong khung xương (`aria-busy`). Dòng bảng và dòng việc cần làm không chạy, vì bảng dài mà từng dòng chạy thì chậm và rối.
+- Số tiền và số liệu tiền không bao giờ chạy hay đếm lên.
+- Màn làm việc không bao giờ bắt người dùng chờ hiệu ứng: nội dung có trong DOM và bấm được ngay, hiệu ứng chỉ là lớp phủ trên cùng một vị trí. Không thêm hiệu ứng vào lớp này nếu tổng thời gian vượt 300ms.
 
 - **Đang tải: khung xương, không chữ "Đang tải…".** Khung xương có đúng bố cục màn. Chữ không phụ thuộc dữ liệu (tiêu đề trang và phần, nhãn ô số, tiêu đề cột, tên bộ lọc, mục menu, tab, tờ lịch hôm nay) hiện thật ngay. Chỉ số liệu là thanh giữ chỗ `.l-skel`: màu rule-soft, nhấp nháy chậm 1,1s, không dùng dải màu chuyển. Trình đọc màn hình nghe "Đang tải…".
 - **The Zero Shift Rule.** Khung xương phải khớp màn đã tải theo cả chiều ngang và chiều dọc; dữ liệu tới thì không gì nhảy. Cách làm:
@@ -592,7 +656,7 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 - **Đổi trạng thái tại chỗ:** báo đã chuyển xong thì nút "Mình đã chuyển khoản" thu lại (200ms), rồi nhãn "Chờ thủ quỹ xác nhận" mờ dần và nhích 8px vào đúng chỗ đó. Duyệt hay từ chối khoản chi thì nhãn mới mờ dần và nhích 4px. Chép nội dung chuyển khoản thì biểu tượng đổi thành dấu tích trong 1,5 giây. Màn chiếu: mã QR mới mờ chồng lên mã cũ (200ms); số điểm danh mới nhích 6px vào chỗ (200ms); người mới mờ dần vào danh sách (200ms). Dấu đã điểm danh hiện bằng mờ dần và phóng to (220ms).
 - **Form mở tại chỗ** (Các buổi): form tạo hay sửa buổi cao dần và hiện dần (200ms), đóng thì thu lại. Mở thì focus vào ô đầu; đóng thì focus về nút đã mở, hoặc về tiêu đề "Sắp tới" khi nút đó không còn. Xóa buổi thì dòng thu lại (200ms).
 - **Rê chuột:** mũi tên của dòng việc cần làm nhích sang 3px.
-- **Giảm chuyển động:** khi máy bật giảm chuyển động thì tắt đổi màu dần, nhấp nháy, vòng xoay, mọi dịch chuyển, hiệu ứng của hộp hỏi lại, việc dời tờ lịch, và cả việc chạy dần của thanh đếm giờ (thanh nhảy từng nấc). Chuyển trang chỉ còn mờ qua trong 150ms. Trang đầu: khối không trượt, video không tự chạy, thanh của bước nhảy thẳng. Motion dùng `reducedMotion="user"`.
+- **Giảm chuyển động:** khi máy bật giảm chuyển động thì tắt đổi màu dần, nhấp nháy, vòng xoay, mọi dịch chuyển, hiệu ứng của hộp hỏi lại, việc dời tờ lịch, và cả việc chạy dần của thanh đếm giờ (thanh nhảy từng nấc). Chuyển trang chỉ còn mờ qua trong 150ms. Trang đầu: khối không trượt, video không tự chạy, thanh của bước nhảy thẳng. Motion dùng `reducedMotion="user"`. Cảnh 3D của trang đầu không được nạp (không tải thư viện, không vẽ), nên trang y như chưa có cảnh. Lớp The Cascade Layer không chạy: các phần của tờ giấy và tờ lịch hạn hiện ngay, đúng chỗ.
 
 ## Do's and Don'ts
 
@@ -613,6 +677,10 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 - **Do** đặt mọi kiểu mới của màn dưới lớp `.lich` (thành phần đưa ra ngoài trang, như hộp hỏi, tự đặt chữ và màu); biến màu tiền tố `--l-` khai báo ở `:root`, lớp tiền tố `l-`. Tìm trong `lich.css` trước khi đặt tên lớp mới: `.l-steps`/`.l-step` là dải bước bàn giao (trang chọn vai cũ từng dùng `.l-demo*`), nên trang đầu dùng `l-land*`, `l-vid*`, `l-vstep*`.
 - **Do** cho video tự chạy không tiếng chỉ khi đang thấy, luôn hiện nút dừng, và đứng yên với nút "Phát video" khi máy bật giảm chuyển động.
 - **Do** giữ chỗ chữ phụ thuộc dữ liệu bằng `.l-hold` rồi hiện dần, thay vì đổi chữ trước mắt người xem.
+- **Do** chặn hiệu ứng nặng (WebGL) bằng bề rộng, có chuột, giảm chuyển động và năng lực máy, nạp lazy sau khi trang rảnh, vẽ khi có thay đổi chứ không lặp liên tục, và dọn sạch khi tháo. Máy không đủ điều kiện thì không nạp gì.
+- **Do** giữ một thứ đặc xanh mực mỗi vùng: nút theo vai đầu tiên ở thanh tab của trang chung. Bong bóng chat và mục theo vai thứ hai trở đi chỉ viền xanh.
+- **Do** ghi rõ trên màn khi tính năng là mẫu ("Dữ liệu mẫu: …", nhãn "Đang phát triển"), và khóa thao tác chưa có kèm lý do thấy được, nối bằng `aria-describedby`.
+- **Do** để hộp thoại không chặn trang (như khung chat) có tên, Esc đóng được, đưa focus vào khi mở và trả focus về chỗ đã mở khi đóng.
 - **Do** viết chữ giao diện bằng tiếng Việt.
 
 ### Don't:
@@ -624,7 +692,12 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 - **Don't** dùng kiểu nút khóa (xám) cho trạng thái đang gửi, hay khóa nút mà không nói lý do.
 - **Don't** để khung xương lệch bố cục màn thật, hay thay chữ cố định bằng thanh giữ chỗ.
 - **Don't** dùng emoji, hay font Inter, Roboto, Arial.
-- **Don't** để chuyển động dài hơn 250ms, chạy để trang trí, hay chạy khi máy bật giảm chuyển động. Chỉ vòng xoay, nhấp nháy của khung xương và thanh đếm giờ được ngoại lệ (The Time Indicator Exemption), cùng hiệu ứng theo vị trí cuộn của trang đầu (The Scroll Position Exemption).
+- **Don't** để chuyển động dài hơn 250ms, chạy để trang trí, hay chạy khi máy bật giảm chuyển động, trừ bốn chỗ có tên và có giới hạn: vòng xoay, nhấp nháy của khung xương và thanh đếm giờ (The Time Indicator Exemption); hiệu ứng theo vị trí cuộn của trang đầu (The Scroll Position Exemption); một cảnh 3D ở trang đầu (The Authored Scene Exemption); lớp hiện lần lượt của màn làm việc (The Cascade Layer). Không mở rộng chúng sang thứ khác.
+- **Don't** tô đặc xanh mực cho bong bóng chat, hay cho hơn một nút theo vai ở cùng thanh tab. Không đặt bóng đổ dưới bong bóng.
+- **Don't** để bong bóng che dòng cuối của màn: màn có bong bóng chừa chỗ ở cuối nội dung.
+- **Don't** làm tính năng mẫu trông như đã chạy được (ô gửi mở, tin mẫu không ghi "Dữ liệu mẫu").
+- **Don't** làm số tiền chạy hay đếm lên, thêm cảnh 3D thứ hai hay cảnh ngoài trang đầu, hay bắt người dùng ở màn làm việc chờ hiệu ứng.
+- **Don't** để hiệu ứng phá luật màu: không bóng, không gradient, không màu mới, không đỏ ngoài hôm nay và việc gấp.
 - **Don't** đặt nhãn nhỏ phía trên tiêu đề (như "Lời mời tham gia" trên tên CLB). Nhãn như vậy trong bản vẽ thì bỏ, hoặc đổi thành đầu phần: tiêu đề phần và ghi chú bên phải. Ở trang đầu, người dùng của khối nằm ngay trong tiêu đề.
 - **Don't** hiện chữ lấy từ đường dẫn (như lỗi đăng nhập); đổi mã thành câu có sẵn.
 - **Don't** lấy màu hay kiểu từ bản vẽ trong `design/screens/` (hệ tím cũ, đã bỏ). Bản vẽ chỉ cho nội dung, chữ và luật. Component thêm bằng `npx shadcn add` dùng biến theme đã nối vào Lịch bloc; không thêm màu riêng cho nó.
@@ -634,4 +707,4 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 Ba ý sau chưa được quyết. Cần Hiệu đồng ý thì mới thành luật:
 - Thêm dòng ngày âm lịch trên tờ lịch hôm nay.
 - Mép xé của tập lịch (mép răng cưa ở đầu tờ lịch hoặc tờ giấy).
-- Chuyển động lật tờ lịch khi sang ngày hoặc khi đổi trạng thái.
+- Chuyển động lật tờ lịch khi sang ngày hoặc khi đổi trạng thái. (Tờ lịch hạn đã lật xuống lúc hiện ra, xem The Cascade Layer; lúc sang ngày hay đổi trạng thái thì chưa có.)
