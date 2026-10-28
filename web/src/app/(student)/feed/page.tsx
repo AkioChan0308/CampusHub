@@ -1,31 +1,36 @@
 "use client";
 
-// Bảng tin chung: KHUNG RỖNG (22/10/2026). Mô tả đang chờ Hiệu duyệt ở docs/mo-ta-bang-tin-chung.md; chưa có API, chưa có dữ liệu.
-// Có sẵn: đường dẫn /feed, khung xương lúc tải, hai nút chọn phần (Tin chung, CLB của tôi) và trạng thái rỗng.
-// Chưa có: danh sách tin, lọc theo lĩnh vực, ô tìm, lối vào từ menu hay thanh tab (chờ Hiệu chọn, câu hỏi 5 của bản mô tả).
-// Về sau chỉ cần thay <FeedList> bằng danh sách thật (GET /feed) và thêm bộ lọc ở chỗ đã ghi; khung xương, tab, trang chặn đã đủ.
+// Trang chung (Hiệu yêu cầu 29/10/2026): nơi các CLB đăng sự kiện, quảng bá, tin tức; ai đã đăng nhập cũng vào được, logo CampusHub ở mọi màn dẫn về đây.
+// KHUNG MẪU: tin lấy từ lib/feed-sample.ts (dữ liệu mẫu, chưa có API), màn ghi rõ như vậy. Mô tả đầy đủ: docs/mo-ta-bang-tin-chung.md.
+// Làm thật có hai chỗ cần thay: danh sách `posts` (GET /feed) và việc lọc theo CLB của tôi (làm ở máy chủ).
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMe } from "@/api/queries";
 import { ErrorGate } from "@/components/lich/Gate";
-import { LeafSkel, LichPage, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
 import { TodayLeaf } from "@/components/lich/Leaf";
+import { LeafSkel, LichPage, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
+import { PostRow } from "@/components/lich/Post";
+import { POST_KIND_LABEL, samplePosts, type PostKind } from "@/lib/feed-sample";
 
 type Scope = "all" | "mine";
 const SCOPES: { key: Scope; label: string }[] = [
   { key: "all", label: "Tin chung" },
   { key: "mine", label: "CLB của tôi" },
 ];
+const KINDS: { key: PostKind | "all"; label: string }[] = [
+  { key: "all", label: "Tất cả" },
+  ...(Object.keys(POST_KIND_LABEL) as PostKind[]).map((k) => ({ key: k, label: POST_KIND_LABEL[k] })),
+];
 
-/** Đầu màn: tờ lịch hôm nay, tiêu đề, hai nút chọn phần. Dùng chung cho màn thật và khung xương để vị trí luôn khớp. */
+/** Đầu màn: tờ lịch hôm nay và tiêu đề. Dùng chung cho màn thật và khung xương để vị trí luôn khớp. */
 function Top({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div className="l-ptop">
         <TodayLeaf size="md" />
-        <div className="l-ptop-text"><h1 className="l-phone-title">Bảng tin</h1></div>
+        <div className="l-ptop-text"><h1 className="l-phone-title">Trang chung</h1><span className="l-ptop-sub">Tin của các CLB</span></div>
       </div>
       {children}
     </>
@@ -34,10 +39,11 @@ function Top({ children }: { children: React.ReactNode }) {
 
 function FeedSkeleton() {
   return (
-    <PhoneFrame brand>
+    <PhoneFrame brand tab="feed">
       <div className="l-pay-body">
         <Top>
           <div className="l-seg" aria-hidden="true">{SCOPES.map((s) => <span key={s.key} className="l-chip">{s.label}</span>)}</div>
+          <div className="l-seg" aria-hidden="true">{KINDS.map((k) => <span key={k.key} className="l-chip">{k.label}</span>)}</div>
         </Top>
         <Loading className="l-pay-card l-att-rows">
           {[0, 1, 2].map((i) => (
@@ -52,44 +58,45 @@ function FeedSkeleton() {
   );
 }
 
-/** Chỗ đắp nội dung: nhận phần đang chọn, trả danh sách tin. Hiện chỉ có trạng thái rỗng. */
-function FeedList({ scope, inClub }: { scope: Scope; inClub: boolean }) {
-  if (scope === "mine" && !inClub) {
-    return (
-      <section className="l-pay-card">
-        <p className="l-fine">Bạn chưa ở CLB nào, nên chưa có tin của CLB mình.</p>
-        <Link className="l-btn2 l-lg" href="/explore">Tìm CLB</Link>
-      </section>
-    );
-  }
-  return (
-    <section className="l-pay-card" aria-live="polite">
-      <p className="l-fine">Chưa có tin nào.</p>
-      <p className="l-note">Bảng tin đang được dựng. Tin công khai của các CLB sẽ hiện ở đây.</p>
-    </section>
-  );
-}
-
 export default function FeedPage() {
   const me = useMe();
   const [scope, setScope] = useState<Scope>("all");
+  const [kind, setKind] = useState<PostKind | "all">("all");
   const saw = useSawPending(me.isPending);
+  const posts = useMemo(() => samplePosts(), []);
 
   if (me.isError) return <ErrorGate error={me.error} onRetry={() => void me.refetch()} />;
   if (me.isPending) return <LichPage><FeedSkeleton /></LichPage>;
-  const inClub = me.data.memberships.some((m) => m.invite === "accepted");
+  const mine = new Set(me.data.memberships.filter((m) => m.invite === "accepted").map((m) => m.clubId));
+  const shown = posts.filter((p) => (scope === "all" || mine.has(p.clubId)) && (kind === "all" || p.kind === kind));
 
   return (
     <LichPage>
-      <PhoneFrame brand personName={me.data.person.name} fade={saw}>
+      <PhoneFrame brand personName={me.data.person.name} tab="feed" fade={saw}>
         <div className="l-pay-body">
           <Top>
-            <div className="l-seg" role="group" aria-label="Chọn phần của bảng tin">
+            <div className="l-seg" role="group" aria-label="Chọn phần của trang chung">
               {SCOPES.map((s) => <button key={s.key} type="button" className="l-chip" aria-pressed={scope === s.key} onClick={() => setScope(s.key)}>{s.label}</button>)}
             </div>
+            <div className="l-seg" role="group" aria-label="Lọc theo loại tin">
+              {KINDS.map((k) => <button key={k.key} type="button" className="l-chip" aria-pressed={kind === k.key} onClick={() => setKind(k.key)}>{k.label}</button>)}
+            </div>
           </Top>
-          {/* Về sau: ô tìm và bộ lọc lĩnh vực đặt ở đây, dùng lại FIELDS của Tìm CLB. */}
-          <Reveal from={saw} className="l-pay-body"><FeedList scope={scope} inClub={inClub} /></Reveal>
+          <Reveal from={saw} className="l-pay-body">
+            <p className="l-placeholder">Dữ liệu mẫu: trang chung đang phát triển. Tin dưới đây do nhóm viết để minh họa; chưa đăng được tin thật.</p>
+            <section className="l-pay-card l-rows" aria-live="polite" aria-label="Tin của các CLB">
+              {scope === "mine" && mine.size === 0 ? (
+                <>
+                  <p className="l-fine">Bạn chưa ở CLB nào, nên chưa có tin của CLB mình.</p>
+                  <Link className="l-btn2 l-lg" href="/explore">Khám phá CLB</Link>
+                </>
+              ) : shown.length === 0 ? (
+                <p className="l-fine">{scope === "mine" ? "CLB của bạn chưa có tin nào." : "Không có tin nào khớp bộ lọc."}</p>
+              ) : (
+                <ul className="l-posts">{shown.map((p) => <PostRow key={p.id} post={p} />)}</ul>
+              )}
+            </section>
+          </Reveal>
         </div>
       </PhoneFrame>
     </LichPage>

@@ -1067,6 +1067,46 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
   html:has(.l-phead) { scroll-padding-top: 112px; scroll-padding-bottom: 24px; }
 }
 
+/* ---------- Trang chung (Hiệu yêu cầu 29/10/2026): thanh tab, logo ở khung điện thoại, dòng tin, khung chat mẫu ----------
+   Thanh tab của trang chung (HubNav): hai mục chung chia đều chỗ, mục theo vai theo độ rộng chữ và là nút đặc xanh mực (khối ngay dưới); từ 1024px chúng dồn sang phải. */
+.l-tabs.hub { display: flex; }
+.l-tabs.hub .l-tab { min-width: 0; padding-inline: 2px; text-align: center; }
+.l-tabs.hub .l-tab:not(.role) { flex: 1 1 0; }
+.l-tabs.hub .l-tab.role { flex: 0 1 auto; }
+/* Mục theo vai: nút đặc xanh mực chữ trắng (hành động chính của thanh công cụ); mục phụ (.sec, ví dụ Tạo CLB) viền xanh;
+   đang ở đúng trang đó (.on) thì đổi sang mực, cùng nghĩa với nút lọc đang chọn. Từ 1024px dồn sang phải của thanh ngang. */
+.l-tabs.hub .l-tab.role { flex-direction: row; gap: 8px; min-height: 44px; margin: 7px 5px; padding-inline: 8px; border: 1.5px solid transparent; border-radius: 12px; font-size: 14.5px; font-weight: 700; white-space: nowrap; }
+.lich a.l-tab.role { border-color: var(--l-blue); background: var(--l-blue); color: #FFFFFF; }
+.lich a.l-tab.role:hover, .lich a.l-tab.role:active { border-color: var(--l-blue-hover); background: var(--l-blue-hover); }
+.lich a.l-tab.role.sec { border-color: var(--l-blue); background: var(--l-paper); color: var(--l-blue); }
+.lich a.l-tab.role.sec:hover, .lich a.l-tab.role.sec:active { background: var(--l-blue-tint); }
+.lich a.l-tab.role.on { border-color: var(--l-ink); background: var(--l-ink); color: #FFFFFF; }
+.l-tabs.hub span.l-tab.role { background: var(--l-rule-soft); }
+/* Màn rất hẹp (320px): nút theo vai bỏ biểu tượng để hai mục chung còn đủ chỗ cho chữ. */
+@media (max-width: 359px) { .l-tabs.hub .l-tab.role svg { display: none; } }
+@media (min-width: 1024px) {
+  .l-tabs.hub { align-items: center; }
+  .l-tabs.hub .l-tab.role { min-height: 40px; margin: 4px 0 4px 6px; padding-inline: 16px; border-bottom-width: 1.5px; }
+  .lich a.l-tab.role.on { border-bottom-color: var(--l-ink); }
+  .l-tabs.hub .l-tab:not(.role) + .l-tab.role { margin-left: auto; }
+}
+/* Logo CampusHub trong đầu màn điện thoại có tên CLB: link về trang chung; vùng bấm rộng ra 44px mà không đổi bố cục. */
+.l-phead-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lich a.l-phead-logo { position: relative; flex-shrink: 0; color: #FFFFFF; text-decoration: none; }
+.l-phead-logo::before { content: ""; position: absolute; inset: -7px; }
+/* Dòng tin: tờ lịch nhỏ (sự kiện) hoặc nhãn loại tin, tên CLB, tiêu đề, vài dòng đầu. */
+.l-posts { list-style: none; margin: 0; padding: 0; }
+.lich a.l-post { display: grid; grid-template-columns: 64px minmax(0, 1fr) 20px; align-items: start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--l-rule-soft); color: var(--l-ink); text-decoration: none; }
+.l-posts > li:last-child > a.l-post { border-bottom: 0; }
+.l-post:hover .l-post-title { text-decoration: underline; text-underline-offset: 3px; }
+.l-post-lead { display: flex; justify-content: center; }
+.l-post-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.l-post-club { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13.5px; color: var(--l-ink-3); }
+.l-post-title { font-size: 16px; font-weight: 600; line-height: 1.3; }
+.l-post-sum { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; color: var(--l-ink-2); }
+.l-post-arrow { padding-top: 2px; color: var(--l-ink-3); }
+.l-top-lock { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.l-club-about { font-size: 15.5px; line-height: 1.5; color: var(--l-ink-2); text-wrap: pretty; }
 /* Bong bóng chat (components/lich/ChatBubble): nút tròn viền xanh nền giấy ở góc phải dưới, một bậc nhẹ hơn nút theo vai (nút đặc xanh duy nhất của
    thanh công cụ), không bóng đổ. Khung chat mở lên phía trên nó, dải mực ở đầu như tờ lịch, viền 1px mực 3. Trên điện thoại bong bóng nằm ngay trên
    thanh tab dưới đáy, nên phần cuối của màn trang chung chừa chỗ (.l-pmain.hub). Khung chat mẫu: chưa gửi được. */

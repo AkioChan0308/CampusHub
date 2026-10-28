@@ -16,7 +16,7 @@ import { ErrorGate, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
 /** Mục đang chọn trên thanh bên. */
-export type BoardNav = "home" | "members" | "checkin" | "collection" | "reconcile" | "expenses" | "budget" | "handover" | "kit" | "tasks";
+export type BoardNav = "home" | "members" | "checkin" | "collection" | "reconcile" | "expenses" | "budget" | "handover" | "kit" | "tasks" | "posts";
 
 const Ctx = createContext<BoardRes | null>(null);
 const SawCtx = createContext(false);
@@ -47,6 +47,8 @@ const NAV: NavItem[] = [
   // Danh sách buổi (tạo buổi, mở QR từng buổi); CLB chưa có buổi nào thì trang đó mời tạo buổi.
   { key: "checkin", icon: "qr", label: "Điểm danh", href: (base) => `${base}/events` },
   { key: "tasks", icon: "check", label: "Việc cần làm", href: (base) => `${base}/tasks` },
+  // Tin công khai của CLB trên trang chung (khung mẫu, 29/10/2026).
+  { key: "posts", icon: "feed", label: "Bảng tin của CLB", href: (base) => `${base}/posts` },
   { key: "handover", icon: "swap", label: "Bàn giao", href: (base) => `${base}/handover`, group: "Nhiệm kỳ" },
   { key: "kit", icon: "doc", label: "Kho bàn giao", href: (base) => `${base}/handover-kit` },
   // Nhóm "Quỹ" ở dưới cùng, đóng mặc định (phần tiền là vùng rủi ro pháp lý, không đưa lên đầu). Xem FUND bên dưới.
@@ -97,7 +99,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
         <div className="lich">
           <div className="l-board">
             <aside className="l-side">
-              <Link className="l-brand" href={base}><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
+              <Link className="l-brand" href="/feed" aria-label="CampusHub, trang chung"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
               {board ? (
                 <div className={`l-club${fade}`}>
                   <strong>{board.club.name}</strong>
@@ -107,6 +109,10 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
                 <Loading className="l-club"><Skel w="78%" h={15} /><Skel w="52%" h={12} /></Loading>
               )}
               <nav aria-label="Menu ban điều hành" className="l-navlist">
+                {/* Trang chung là của mọi vai (Hiệu yêu cầu 29/10/2026), nên đứng trên các mục của riêng CLB. */}
+                <div className="l-navgroup">
+                  <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Trang chung</Link>
+                </div>
                 {nav.map((n) => {
                   if (FUND.includes(n.key) && n.key !== "collection") return null; // nằm trong khối của nhóm Quỹ
                   if (n.key === "collection") {

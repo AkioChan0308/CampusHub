@@ -20,7 +20,7 @@ import { LichConfirm } from "@/components/lich/Confirm";
 import { ErrorGate, NOT_IN_MVP, useLogout } from "@/components/lich/Gate";
 import { dueLabel, isUrgent, Leaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, Spinner, useSawPending } from "@/components/lich/motion";
-import { NoClubGate } from "@/components/lich/NoClub";
+import { MeLocked, NoClubGate } from "@/components/lich/NoClub";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { SponsoredSlot } from "@/components/lich/SponsoredSlot";
 import { downloadCsv } from "@/lib/csv";
@@ -44,7 +44,11 @@ export default function MePage() {
 
   const error = me.error ?? club.error;
   if (error) return <ErrorGate error={error} onRetry={() => { void me.refetch(); void club.refetch(); }} />;
-  if (me.data && !membership) return <NoClubGate me={me.data} />;
+  if (me.data && !membership) {
+    // Sinh viên chưa ở CLB nào: vẫn xem được thông tin, tính năng cần CLB bị khóa. Cán bộ trường và người có lời mời chờ vẫn qua trang chặn.
+    const invited = me.data.memberships.some((x) => x.invite === "pending");
+    return me.data.person.kind === "staff" || invited ? <NoClubGate me={me.data} /> : <MeLocked me={me.data} />;
+  }
 
   const data = club.data;
   return (

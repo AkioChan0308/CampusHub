@@ -33,7 +33,7 @@ export default function ExplorePage() {
 
   return (
     <LichPage>
-      <PhoneFrame brand personName={me.data?.person.name} fade={saw}>
+      <PhoneFrame brand personName={me.data?.person.name} tab="explore" fade={saw}>
         <div className="l-pay-body">
           <div className="l-ptop">
             <TodayLeaf size="md" />

@@ -35,12 +35,14 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
     <div className="lich">
       <div className="l-board">
         <aside className="l-side">
-          <Link className="l-brand" href="/school"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
+          <Link className="l-brand" href="/feed" aria-label="CampusHub, trang chung"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
           <div className="l-club">
             <strong>[Tên trường]</strong>
             {data ? <span className={fade.trim() || undefined}>{data.term ? `Ban quản lý CLB · ${data.term}` : "Ban quản lý CLB"}</span> : <Loading><Skel w="72%" h={12} /></Loading>}
           </div>
           <nav aria-label="Menu nhà trường" className="l-navlist">
+            {/* Trang chung là của mọi vai (Hiệu yêu cầu 29/10/2026). */}
+            <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Trang chung</Link>
             {/* Trang chi tiết một CLB nằm trong mục "Các CLB", nên mục này luôn sáng. */}
             <Link className="l-nav on" href="/school" aria-current={active === "clubs" ? "page" : undefined}><LinkIcon name="users" />Các CLB</Link>
             <button type="button" className="l-nav" aria-disabled="true" aria-describedby="budget-report-unavailable" onClick={() => toast(NOT_IN_MVP)}>

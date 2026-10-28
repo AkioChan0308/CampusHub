@@ -8,20 +8,22 @@ import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { ApplicationRes, ApplyBody, ClubCardDto, MeRes } from "@contract";
 import { ApiError, apiPost } from "@/api/client";
 import { errorText, keys, useClubCard, useMe } from "@/api/queries";
+import { ChatButton } from "@/components/lich/ChatBubble";
 import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
+import { PostRow } from "@/components/lich/Post";
+import { sampleAbout, samplePosts } from "@/lib/feed-sample";
 import { dm } from "@/lib/format";
 import { ClubTag } from "../application-status";
 
 const BACK = { href: "/explore", label: "Danh sách CLB" };
-const INTRO = "[Giới thiệu do CLB tự viết: CLB làm gì, ai nên tham gia, có thu quỹ không]";
 const FOOTNOTE = "Ban điều hành thấy đơn của bạn ngay ở trang chủ của họ. Bạn nhận email khi đơn được duyệt hoặc bị từ chối.";
 
 export default function ClubPage() {
@@ -35,7 +37,7 @@ export default function ClubPage() {
 
   return (
     <LichPage>
-      <PhoneFrame back={BACK} personName={me.data?.person.name} fade={saw}>
+      <PhoneFrame back={BACK} personName={me.data?.person.name} tab="explore" fade={saw}>
         {card.data && me.data ? <Club club={card.data.club} me={me.data} fade={saw} /> : <ClubSkeleton />}
       </PhoneFrame>
     </LichPage>
@@ -61,7 +63,7 @@ function ClubSkeleton() {
     <Loading className="l-pay-body">
       <ClubTop name={<SkelLine w="80%" />} meta={<SkelLine w={190} />} />
       <span className="l-meta"><SkelLine w="94%" /><br /><SkelLine w="30%" /></span>
-      <p className="l-placeholder">{INTRO}</p>
+      <p className="l-club-about"><SkelLine w="96%" /><br /><SkelLine w="62%" /></p>
       <div className="l-pay-card l-form l-inert">
         <div className="l-field"><h2 className="l-subhead">Đơn xin vào</h2><span className="l-note"><SkelLine w={230} /></span></div>
         <div className="l-field"><span className="l-flabel">Họ tên</span><span className="l-input l-input-ro"><SkelLine w={150} /></span></div>
@@ -91,7 +93,9 @@ function Club({ club, me, fade }: { club: ClubCardDto; me: MeRes; fade: boolean 
     <Reveal from={fade} className="l-pay-body">
       <ClubTop name={club.name} meta={`${club.field} · ${club.members} thành viên`} />
       <span className="l-meta">{[club.schedule, place].filter(Boolean).join(", ")}</span>
-      <p className="l-placeholder">{INTRO}</p>
+      <p className="l-club-about">{sampleAbout(club.id)}</p>
+      <p className="l-note">Giới thiệu mẫu: ban điều hành CLB sẽ tự viết phần này.</p>
+      <div className="l-row-actions"><ChatButton className="l-btn2 l-lg" to={{ id: club.id, name: club.name }}>Nhắn cho CLB</ChatButton></div>
 
       {showStatus && (
         <m.section ref={statusRef} tabIndex={-1} className="l-pay-card l-status-card" aria-label="Đơn của bạn"
@@ -107,6 +111,7 @@ function Club({ club, me, fade }: { club: ClubCardDto; me: MeRes; fade: boolean 
           </m.div>
         )}
       </AnimatePresence>
+      <ClubPosts clubId={club.id} />
     </Reveal>
   );
 }
@@ -197,5 +202,25 @@ function ApplyForm({ club, me, onSent }: { club: ClubCardDto; me: MeRes; onSent:
       <button type="submit" className="l-btn l-lg" aria-busy={apply.isPending || undefined}>Gửi đơn</button>
       <p className="l-fine">{FOOTNOTE}</p>
     </form>
+  );
+}
+
+/** Tin gần đây của CLB (DỮ LIỆU MẪU, lib/feed-sample.ts) và lối liên hệ qua Zalo, Facebook (CLB tự dán link ở phần giới thiệu, chưa làm). */
+function ClubPosts({ clubId }: { clubId: string }) {
+  const posts = useMemo(() => samplePosts().filter((p) => p.clubId === clubId).slice(0, 3), [clubId]);
+  return (
+    <>
+      <section className="l-pay-card" aria-labelledby="club-contact">
+        <h2 id="club-contact" className="l-subhead">Liên hệ CLB</h2>
+        <p className="l-fine">Link Zalo và Facebook do ban điều hành CLB dán ở đây. Khung mẫu: chưa có link thật.</p>
+      </section>
+      {posts.length > 0 && (
+        <section className="l-pay-card l-rows" aria-labelledby="club-posts">
+          <h2 id="club-posts" className="l-subhead">Tin gần đây của CLB</h2>
+          <ul className="l-posts">{posts.map((p) => <PostRow key={p.id} post={p} />)}</ul>
+          <Link className="l-rowlink" href="/feed">Xem trang chung<LinkIcon name="chevronRight" size={16} /></Link>
+        </section>
+      )}
+    </>
   );
 }
