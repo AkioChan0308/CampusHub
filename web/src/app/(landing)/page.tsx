@@ -5,10 +5,12 @@
 // Bố cục xếp chồng như framer.com (Hiệu chọn): câu chính và hai nút ở trên, ngay dưới là video thành viên dùng trên điện thoại;
 // cuộn xuống là video ban điều hành dùng trên laptop. Hai video quay từ bản demo bằng e2e/record-demo-videos.cjs.
 // Cuộn xuống thì khối tiếp theo trượt từ trái vào, khối đã xem trượt sang phải và mờ đi (ScrollFade, Hiệu yêu cầu).
+// Bên phải tiêu đề có cuốn lịch 3D, cuộn thì xé từng tờ (LeafStage, Hiệu yêu cầu 29/10/2026); thiếu điều kiện thì không có gì.
 
 import Link from "next/link";
 import { useHealth } from "@/api/queries";
 import { TodayLeaf } from "@/components/lich/Leaf";
+import { LeafStage } from "@/components/lich/fx/LeafStage";
 import { LichPage, LinkIcon } from "@/components/lich/motion";
 import { DemoVideo, ScrollFade, type DemoStep } from "./demo-video";
 
@@ -43,6 +45,8 @@ export default function Landing() {
           </nav>
         </header>
         <main className="l-land">
+          {/* Nằm ngoài ScrollFade để không mờ theo khối hero khi đang xé lịch. */}
+          <LeafStage />
           <ScrollFade className="l-land-hero" labelledBy="land-title">
             <div className="l-land-head">
               <TodayLeaf />

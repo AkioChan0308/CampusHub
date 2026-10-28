@@ -844,6 +844,12 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 .lich a.l-land-link:hover { color: var(--l-blue); text-decoration: underline; }
 .l-land { flex: 1; width: 100%; max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; padding: 64px 40px 72px; }
 .l-land-hero { display: flex; flex-direction: column; gap: 28px; }
+/* Cảnh 3D cuốn lịch (components/lich/fx/LeafScene): nằm trong chỗ trống bên phải tiêu đề, không đẩy chữ. Chỉ có từ 1100px, tắt khi giảm chuyển động. */
+.l-land { position: relative; }
+.l-land-stage { position: absolute; top: 58px; right: 40px; width: min(33%, 420px); height: 300px; pointer-events: none; opacity: 0; transition: opacity 500ms ease-out; }
+.l-land-stage.on { opacity: 1; }
+.l-land-stage canvas { display: block; width: 100%; height: 100%; }
+@media (max-width: 1099px) { .l-land-stage { display: none; } }
 .l-land-head { display: flex; align-items: flex-end; gap: 28px; }
 .l-land-head h1 { padding-bottom: 2px; font-size: clamp(40px, 5.2vw, 76px); line-height: 1; letter-spacing: -0.03em; }
 .l-land-sub { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
@@ -1058,4 +1064,19 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
   .lich a.l-tab.on { border-bottom-color: var(--l-blue); }
   .l-pmain { width: 100%; max-width: 760px; align-self: center; padding: 24px 24px 40px; gap: 16px; }
   html:has(.l-phead) { scroll-padding-top: 112px; scroll-padding-bottom: 24px; }
+}
+
+/* ---------- Hiệu ứng ở các màn làm việc (29/10/2026, Hiệu yêu cầu giao diện "ảo" hơn, vẫn theo luật màu của Lịch bloc) ----------
+   Chỉ đổi opacity và transform (không đổi bố cục, không làm nội dung nhảy), nên khung xương và màn đã tải vẫn trùng vị trí.
+   Hai hiệu ứng: các phần của tờ giấy hiện lần lượt (mỗi phần 200ms, trễ tối đa 96ms, nên xong trong 296ms), và tờ lịch hạn lật xuống
+   từ mép trên như xé lịch (240ms). Không áp cho dòng việc và dòng bảng: bảng dài mà từng dòng chạy thì chậm và rối. Không chạy trong
+   khung xương (aria-busy), và tắt hẳn khi máy bật giảm chuyển động. */
+@keyframes l-cascade { from { opacity: 0; transform: translateY(8px); } }
+@keyframes l-flip { from { opacity: 0; transform: perspective(300px) rotateX(-70deg); } }
+@media (prefers-reduced-motion: no-preference) {
+  .l-sheet > .l-sec:not([aria-busy="true"] *) { animation: l-cascade 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .l-sheet > .l-sec:not([aria-busy="true"] *):nth-child(2) { animation-delay: 32ms; }
+  .l-sheet > .l-sec:not([aria-busy="true"] *):nth-child(3) { animation-delay: 64ms; }
+  .l-sheet > .l-sec:not([aria-busy="true"] *):nth-child(n + 4) { animation-delay: 96ms; }
+  .l-leaf:not(.today):not(.l-leaf-skel) { transform-origin: 50% 0; animation: l-flip 240ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 }

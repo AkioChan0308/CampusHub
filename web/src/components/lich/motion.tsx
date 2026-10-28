@@ -1,7 +1,8 @@
 "use client";
 
-// Chuyển động của thế giới "Lịch bloc": chỉ để cho thấy cái gì vừa đổi, 150–250 ms, tắt khi máy bật giảm chuyển động
+// Chuyển động của thế giới "Lịch bloc": ở màn làm việc chỉ để cho thấy cái gì vừa đổi, 150–250 ms, tắt khi máy bật giảm chuyển động
 // (lich.css có luật prefers-reduced-motion; Motion dùng reducedMotion="user" trong MotionProvider).
+// Ngoại lệ có chủ đích (Hiệu yêu cầu 29/10/2026): lớp hiệu ứng cuối lich.css, và cuốn lịch 3D của trang đầu trong ./fx/.
 
 import { useLinkStatus } from "next/link";
 import * as m from "motion/react-m";
