@@ -1,6 +1,6 @@
 # Tiến độ MVP CampusHub (Phần A)
 
-*Cập nhật ngày 23/10/2026. Mỗi khi xong một nhóm việc, sửa file này trước khi báo xong.*
+*Cập nhật ngày 29/10/2026 (thêm mục "Checkpoint 3: tình hình"; số test chạy lại ngày 29/10). Mỗi khi xong một nhóm việc, sửa file này trước khi báo xong.*
 
 File này có hai phần: **Phần A** (ngay dưới đây): tiến độ, cách làm việc, cách kiểm tra. **Phần B** (cuối file): bản mô tả gốc của đợt chỉnh sửa và bổ sung prototype sau Checkpoint 2 (giao ngày 22/10/2026). Số mục (1, 2, 5.2...) của mỗi phần đứng riêng; nơi khác trỏ tới thì ghi rõ "phần B, mục 5.2".
 
@@ -12,6 +12,30 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 5. `web/README.md`: bản đồ web, mục "Chỗ code khác bản vẽ".
 6. `server/README.md`: bản đồ máy chủ, danh sách thay đổi để báo Khoa.
 7. `docs/api.md`: hợp đồng API.
+
+---
+
+## Checkpoint 3: tình hình (29/10/2026)
+
+**Đề bài CP3 (tuần 7):**
+1. Mô hình kinh doanh: gọi tên mô hình, nguồn thu **có giá**, cơ cấu chi phí, trình bày bằng Business Model Canvas (5/10 điểm).
+2. Prototype dùng AI, kinh doanh được (5/10 điểm). Chỉ vẽ giao diện thì dừng ở điểm trung bình. Cô khuyến khích dùng công cụ AI như Lovable, Stitch, Figma.
+3. Thử prototype với **ít nhất 20 người** đúng chân dung khách hàng ở CP2, bằng khảo sát hoặc focus group.
+
+| Việc | Tình hình | Còn thiếu |
+|---|---|---|
+| Gọi tên mô hình | **Freemium**: lõi bộ bàn giao miễn phí, gói nâng cao trả phí. Hiệu yêu cầu 26/10: BMC chỉ ghi Freemium. Input Hub, gói thành viên, add-on, quảng cáo, nhà trường trả tiền chỉ là giả thuyết, để ngoài BMC. | Cập nhật slide BMC của CP2 cho khớp. |
+| BMC | Đã vẽ bản Freemium thành trang web để xem (26/10); Hiệu chưa duyệt bản cuối. | Chưa đưa vào slide. |
+| Nguồn thu có giá | **Chưa có giá.** Bằng chứng gần nhất: 3/7 ban điều hành đã trả khoản nhỏ cho công cụ khác; cố vấn Esports ước 400.000–800.000 ₫ mỗi kỳ; mentor gợi ý dưới 100 thành viên thì miễn phí. | Nhóm chốt mức giá giả định (ghi rõ là giả định), hoặc hỏi thêm CLB về lần trả tiền gần nhất. |
+| Cơ cấu chi phí | Bảng `CP3/Du toan chi tieu CampusHub.xlsx` có đơn giá kèm nguồn. Phương án hạ tầng A (Render): web 7 + API 7 + cơ sở dữ liệu 6 + 1 GB lưu 0,3 USD mỗi tháng, tên miền .com 429.000 ₫ mỗi năm; HTTPS, đăng nhập Google, VietQR miễn phí. Nhân sự: 6 thành viên làm không lương (Hiệu chốt 05/10). | Còn 6 khoản chưa có giá (sao lưu phương án B, tư vấn luật, in ấn, quà cảm ơn, đi lại, quảng cáo fanpage). **Chưa có dòng chi phí AI.** Phương án A hay B, tên miền .com hay .vn chưa chốt. |
+| Prototype chạy được | Có. Web Next.js, máy chủ Express, PostgreSQL tùy chọn; đủ luồng bàn giao 7 bước, Kho bàn giao, việc cần làm, điểm danh QR, sổ quỹ, đối soát. Test 29/10: server 97/97, web 56/56, typecheck sạch cả hai. Bấm thử `npm run e2e` 23/10: 256/256 (chưa chạy lại). | Chưa đưa lên mạng; dữ liệu vẫn là dữ liệu mẫu; chưa tạo khóa đăng nhập Google. |
+| Tính năng AI | Chỉ có **trợ lý bàn giao bản mẫu** (`AI_MODE=mock`): tính từ dữ liệu của CLB, màn ghi rõ là bản mẫu. | **Chưa nối AI thật** (chưa chọn nhà cung cấp, chưa có khóa, chưa có chi phí). Cô dặn không có tính năng AI thì CP3 tối đa 5 điểm; bản mẫu tính từ dữ liệu có được cô coi là AI hay không thì chưa biết, cần hỏi cô. |
+| Bản trả phí | Chỉ là trang mô tả và khung khóa "Thống kê tham gia", không có giá, không có thanh toán. | Chưa có gì để kiểm người dùng chịu trả tiền. |
+| Thử với 20 người | **Chưa bắt đầu.** `CP3/Danh sach 20 nguoi test prototype.xlsx` (tạo 06/10) vẫn trống: 0/20 dòng, chưa mời ai. Nguồn người đã có sẵn (Google Form, các CLB ở FPT). Chưa thấy phiếu khảo sát hay kịch bản focus group cho buổi thử. | Chốt số người từng nhóm (ban điều hành, thành viên, ban quản lý CLB), mời, soạn phiếu, chạy thử, ghi kết quả. |
+
+**Việc cần Hiệu quyết:** có nối AI thật không và AI làm việc gì (đề xuất giữ hai việc đang có: tóm tắt cho ban mới, hỏi đáp trong Kho bàn giao); mức giá giả định cho gói nâng cao; thử bằng focus group hay khảo sát; hạn nộp CP3 chính xác (các ghi chú cũ ghi 24–25/10, bảng đề bài ghi tuần 7).
+
+**Nhánh `main` còn ở commit đầu (05/10)**; mọi việc từ 05/10 tới nay nằm ở `develop`.
 
 ---
 
@@ -38,7 +62,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
   - **Nhóm B xong (chờ Hiệu duyệt):** Bàn giao đủ 7 bước (thêm bước "Kiểm tra kho bàn giao"; chủ nhiệm mới xác nhận ở bước 6 kể cả khi đang là thành viên thường; bước 7 là biên bản, xuất CSV và in được) và Việc cần làm (`/clubs/[clubId]/tasks` cho ban điều hành, `/me/tasks` cho thành viên).
   - **Nhóm C xong (chờ Hiệu duyệt):** trợ lý bàn giao bản mẫu (hỏi đáp trong kho, tóm tắt lưu vào biên bản; `AI_MODE=mock`), thẻ khóa "Thống kê tham gia" và trang Bản trả phí, trang chủ ban điều hành đổi thứ tự (việc cần làm, bàn giao, sự kiện, quỹ thu gọn ở cuối; tiêu đề đổi từ "Việc cần làm" thành "Trang chủ"), menu gom nhóm Quỹ (đóng mặc định), chữ trang đầu và README theo định vị "bộ bàn giao", khung quảng cáo mẫu ở `/me` và `/explore`.
   - **Hướng đi (Hiệu chốt 22/10/2026): web trước, chưa làm app.** Khung thành viên trên laptop đã đổi thành trang web thường (từ 1024px); đăng nhập không còn đưa ban điều hành vào `/me` vì `next` sót lại. Chi tiết ở `web/README.md`, mục cuối.
-  - **Ý tưởng chờ duyệt (chưa code):** Bảng tin chung để các CLB thấy tin công khai của nhau (Hiệu đề xuất 22/10/2026). Bản mô tả ở `docs/mo-ta-bang-tin-chung.md`, có 8 câu hỏi cần Hiệu quyết. Đã dựng khung rỗng `/feed` và `/clubs/[clubId]/posts` (đường dẫn, khung xương, trạng thái rỗng; chưa có API, chưa có lối vào); chưa kiểm trên trình duyệt.
+  - **Trang chung (29/10/2026, Hiệu yêu cầu; đã làm khung mẫu, chờ Hiệu duyệt):** điều hướng làm thật (logo về trang chung, thanh tab theo vai, thành viên đăng nhập xong vào trang chung, `/me` giới hạn cho người chưa vào CLB, quyền đăng tin `post`); tin, giới thiệu CLB, nhắn tin và đăng tin chỉ là khung dữ liệu mẫu ghi "đang phát triển". Chi tiết ở `docs/mo-ta-bang-tin-chung.md` mục 8 và `web/README.md`. Bản mô tả gốc của ý tưởng: Trang chung cho mọi vai, nơi các CLB đăng tin, quảng bá, giao lưu và nhắn tin với admin CLB (Hiệu đề xuất 22/10/2026, mở rộng 29/10/2026: logo về trang chung, mục theo vai trên thanh trên, thành viên đăng nhập xong vào thẳng trang chung). Bản mô tả 2 ở `docs/mo-ta-bang-tin-chung.md`, có 9 câu hỏi cần Hiệu quyết và đề xuất làm theo 4 bước. Đã dựng khung rỗng `/feed` và `/clubs/[clubId]/posts` (đường dẫn, khung xương, trạng thái rỗng; chưa có API, chưa có lối vào); chưa kiểm trên trình duyệt.
   - **Nhóm D chưa làm:** hồ sơ hoạt động của thành viên; quay lại hai video demo của trang đầu (video hiện vẫn quay bản cũ, chưa có Kho bàn giao). Ảnh buổi sinh hoạt: Hiệu chọn bỏ lần này.
   - **Chưa qua kiểm:** agent `impeccable-finish-reviewer` đã duyệt nhóm A và B (22/10/2026, 8 điểm, đã sửa 7) và nhóm C (22/10/2026, 8 mục, đã sửa phần lớn: thứ tự hook ở menu, nhãn bản mẫu, trợ năng, khung quảng cáo, Quỹ xuống cuối trang chủ; còn lại: ngày trong dữ liệu mẫu của "Sự kiện sắp tới" vẫn theo 03/10/2026; đã chụp và xem bố cục ở 1100 và 1280px, ổn; trang ban điều hành tràn ngang bằng đúng thanh cuộn ở 1100px do `.l-board` có `min-width: 1100px`, có từ trước); chưa duyệt lại sau khi sửa; `DESIGN.md` chưa cập nhật bởi `impeccable-documenter`; `CLAUDE.md` đã sửa ngày 22/10/2026 sau khi hỏi Hiệu (định vị sản phẩm, danh sách màn, ngoại lệ khung quảng cáo mẫu, Input Hub và gói VIP vào "Không làm trong MVP").
   - **Kiểm tra bấm thử (23/10/2026):** `npm run e2e` chạy 10 script, 256 kiểm tra, **đạt hết** (smoke 40, money-flows 11, members-qr-handover 15, member-student-school 42, club-setup 27, handover-kit-tasks 41, assistant-dashboard 31, feed-shell 8, regressions 12, auth 29). Ba kiểm tra cũ từng lệch vì dùng ngày thật của máy đã sửa để tính số mong đợi theo hôm nay (`inactiveClubsToday`, `collectionSizeAfterApproval` trong `web/e2e/common.cjs`). Chưa chạy lại bộ đo khung xương (`npm run e2e:skeleton`) sau lần đổi khung thành viên và menu.
@@ -62,10 +86,10 @@ cd web && npm install && npm run dev      # http://localhost:3000
 
 | Ở đâu | Lệnh | Kết quả lúc cập nhật file này |
 |---|---|---|
-| `server/` | `npm test` | 96/96 |
+| `server/` | `npm test` | 97/97 (29/10) |
 | `server/` | `npm run test:db` (cùng các test, lưu bằng PostgreSQL chạy trong Node) | 96/96 |
 | `server/` | `npm run typecheck` | sạch |
-| `web/` | `npm test` | 53/53 |
+| `web/` | `npm test` | 56/56 (29/10) |
 | `web/` | `npm run typecheck`, `npm run build` | sạch |
 | `web/` | `npm run e2e` (bấm thử mọi luồng; cần web đang chạy và máy chủ chạy bằng `npm start`) | smoke 40/40, nhóm tiền 11/11, nhóm 2 15/15, nhóm 3–4 42/42, tạo dữ liệu 27/27, sửa lỗi 12/12, đăng nhập 29/29 |
 

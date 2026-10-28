@@ -69,12 +69,13 @@ Mỗi thư mục có `page.tsx` (nội dung trang) và `layout.tsx` (tên trên 
 | `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm; chủ nhiệm mới ở bước 6 | BDH-BanGiao, 7 bước |
 | `/clubs/[clubId]/handover-kit` | `…/handover-kit/` | ban điều hành xem và sửa | Kho bàn giao: biểu mẫu, quy trình, tài khoản (chưa có bản vẽ) |
 | `/clubs/[clubId]/tasks` | `…/tasks/` | ban điều hành | Việc cần làm (chưa có bản vẽ) |
-| `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: khung rỗng, chờ duyệt |
+| `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: khung mẫu, nút Đăng tin báo đang phát triển (`docs/mo-ta-bang-tin-chung.md`) |
 | `/clubs/[clubId]/paid-plan` | `…/paid-plan/` | ban điều hành | Bản trả phí: trang mô tả một ý tưởng, chưa có giá (chưa có bản vẽ) |
 | `/me` | `(member)/me/` | thành viên, điện thoại | TV-CuaToi ("Của tôi") |
 | `/me/attendance` | `(member)/me/attendance/` | thành viên | Tab Điểm danh, lịch sử điểm danh |
 | `/me/tasks` | `(member)/me/tasks/` | thành viên | Việc của tôi (chưa có bản vẽ) |
-| `/feed` | `(student)/feed/` | mọi người đã đăng nhập | Bảng tin chung: khung rỗng, chờ duyệt (`docs/mo-ta-bang-tin-chung.md`) |
+| `/feed` | `(student)/feed/` | mọi người đã đăng nhập | Trang chung: tin của các CLB, dữ liệu mẫu; logo CampusHub ở mọi màn dẫn về đây |
+| `/feed/[postId]` | `(student)/feed/[postId]/` | mọi người đã đăng nhập | Chi tiết một tin (dữ liệu mẫu) |
 | `/me/pay`, `/me/pay/[collectionId]` | `(member)/me/pay/` | thành viên | TV-DongQuy (tab Quỹ) |
 | `/invite/[code]` | `(member)/invite/[code]/` | người được mời | TV-LoiMoi |
 | `/checkin` | `(member)/checkin/` | thành viên quét mã | TV-DiemDanh (link trong mã QR) |
