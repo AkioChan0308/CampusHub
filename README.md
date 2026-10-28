@@ -33,6 +33,7 @@ Mỗi luồng kể từng bước ai làm gì, kèm luật cần nhớ, ở [doc
 8. **Bàn giao nhiệm kỳ:** 7 bước: chọn ban mới, chốt số dư, kiểm tra Kho bàn giao, đổi tài khoản nhận quỹ, chuyển quyền quản trị, ban mới xác nhận, biên bản. Kho bàn giao giữ biểu mẫu, quy trình, tài khoản (không lưu mật khẩu). Có trợ lý bản mẫu tóm tắt cho ban mới và trả lời câu hỏi trong kho; việc cần làm giao cho từng người.
 9. **Dữ liệu cá nhân:** thành viên tự tải dữ liệu của mình, rút đồng ý, gửi yêu cầu xóa dữ liệu.
 10. **Phía nhà trường:** xem các CLB có hoạt động không, dự trù và số đã chi, duyệt khoản chi lớn.
+11. **Trang chung (khung mẫu, đang phát triển):** mọi vai đã đăng nhập đều vào được; bấm logo CampusHub ở góc trái trên của bất kỳ màn nào để về đây. Các CLB đăng sự kiện, quảng bá, tin tức; bấm vào tin hoặc vào CLB để xem chi tiết; có bong bóng chat ở góc phải dưới để nhắn với ban điều hành CLB. Tin và khung chat hiện là **dữ liệu mẫu**, chưa có máy chủ đứng sau. Mỗi vai có một nút riêng trên thanh công cụ (Quản lý CLB, Của tôi, Nhà trường) dẫn tới trang việc của vai đó. Thành viên đăng nhập xong vào thẳng trang chung. Mô tả: [docs/mo-ta-bang-tin-chung.md](docs/mo-ta-bang-tin-chung.md).
 
 ## CampusHub không làm gì
 
@@ -57,7 +58,7 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000. Trang đầu là trang giới thiệu, có hai video demo ngắn (thành viên trên điện thoại, ban điều hành trên laptop) và nút Đăng nhập, Đăng ký. Bấm **Đăng nhập**: dưới ô đăng nhập có bảng **tài khoản mẫu** cho 7 vai (chỉ có ở bản demo). Bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", là điền sẵn tên tài khoản và mật khẩu (mật khẩu chung `CauLong#2026`), rồi bấm Đăng nhập. Đổi vai thì Đăng xuất rồi đăng nhập tài khoản khác. Nút "Đặt lại dữ liệu mẫu" nằm dưới bảng.
+Mở http://localhost:3000. Trang đầu là trang giới thiệu, có hai video demo ngắn (thành viên trên điện thoại, ban điều hành trên laptop) và nút Đăng nhập, Đăng ký. Bấm **Đăng nhập**: dưới ô đăng nhập có bảng **tài khoản mẫu** cho 7 vai (chỉ có ở bản demo). Bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", là điền sẵn tên tài khoản và mật khẩu (mật khẩu chung `CauLong#2026`), rồi bấm Đăng nhập. Đổi vai thì Đăng xuất rồi đăng nhập tài khoản khác: ban điều hành và nhà trường bấm "Đăng xuất" ở thanh bên; thành viên và sinh viên bấm avatar ở góc phải trên rồi chọn "Đăng xuất". Nút "Đặt lại dữ liệu mẫu" nằm dưới bảng.
 
 Người mới vào code: đọc `docs/cay-thu-muc.md` để biết thư mục nào làm gì và trang nào nằm ở đâu.
 
@@ -67,6 +68,8 @@ Thử nhanh các luồng chính:
 3. Đăng nhập **Thủ quỹ**, gán tay các giao dịch chưa khớp ở Đối soát sao kê: Đợt thu và Trang chủ đổi số theo.
 4. Đăng nhập **Trưởng ban**, duyệt khoản "Mua 2 ống cầu" do chủ nhiệm đề xuất. Chủ nhiệm không tự duyệt được khoản của mình.
 5. Đăng nhập **Ban quản lý CLB của trường**, duyệt khoản chi đang chờ mentor. Sau đó thủ quỹ ghi đã chi, và Dự trù kỳ đổi theo.
+6. Đăng nhập **Thành viên**: bạn vào thẳng Trang chung. Bấm một tin để xem chi tiết, bấm "Nhắn cho CLB" hoặc bong bóng chat ở góc phải dưới để thấy khung chat mẫu (ghi tính năng đang phát triển). Nút xanh đặc "Của tôi" trên thanh công cụ dẫn tới trang việc của thành viên.
+7. Đăng nhập **Sinh viên chưa vào CLB**, bấm "Của tôi": vẫn thấy thông tin, các tính năng của thành viên bị khóa kèm câu "Cần tham gia một CLB".
 
 ### Lưu dữ liệu vào PostgreSQL (Docker)
 
