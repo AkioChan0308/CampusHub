@@ -56,3 +56,28 @@ test("mentor từ chối phải ghi lý do; khoản không chờ mentor thì kh�
   assert.equal(r.body.expense.status, "rejected");
   assert.equal((await srv.call("POST", "/school/expenses/chi-1/approve", { as: "p-thu-trang" })).status, 409);
 });
+
+test("mentor xác nhận biên bản bàn giao: chỉ cán bộ trường, chỉ sau khi ban mới xác nhận, chỉ một lần", async () => {
+  const confirm = (as: string) => srv.call("POST", `/school/clubs/${CLUB}/handover/confirm`, { as });
+  assert.equal((await confirm("a001")).status, 403, "ban điều hành không xác nhận hộ mentor");
+  assert.equal((await srv.call("POST", `/school/clubs/${CLUB}/handover/confirm`, {})).status, 401, "chưa đăng nhập");
+  assert.equal((await confirm("p-thu-trang")).status, 409, "ban mới chưa xác nhận nhận bàn giao");
+  const before = (await srv.call("GET", `/school/clubs/${CLUB}`, { as: "p-thu-trang" })).body.detail.handover;
+  assert.deepEqual([before.accepted, before.mentorConfirmed], [false, undefined]);
+
+  // Đi tới cuối: bước 4 và 5 qua API của ban điều hành, rồi chủ nhiệm mới xác nhận.
+  const H = `/clubs/${CLUB}/handover`;
+  await srv.call("PUT", `${H}/receiver`, { as: "a001", body: { personId: "a006", bank: "[Ngân hàng thử]", account: "0123456789" } });
+  for (const a of ["kit-fanpage", "kit-drive", "kit-email", "kit-ngan-hang"]) await srv.call("POST", `${H}/accounts/${a}/transfer`, { as: "a001", body: { holderId: "a017" } });
+  await srv.call("POST", `${H}/transfer-done`, { as: "a001" });
+  await srv.call("POST", `${H}/accept`, { as: "a017" });
+
+  const done = await confirm("p-thu-trang");
+  assert.equal(done.status, 200);
+  assert.deepEqual([done.body.handover.accepted, done.body.handover.mentorConfirmed.by.personId], [true, "p-thu-trang"]);
+  assert.ok(done.body.handover.mentorConfirmed.at);
+  assert.equal((await confirm("p-thu-trang")).status, 409, "xác nhận rồi thì không xác nhận lại");
+  const record = (await srv.call("GET", H, { as: "a017" })).body;
+  assert.equal(record.mentorConfirmed.by.personId, "p-thu-trang");
+  assert.match(record.history.at(-1).text, /\(mentor\) xác nhận biên bản bàn giao/);
+});

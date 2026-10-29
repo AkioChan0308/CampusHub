@@ -88,6 +88,8 @@ Mọi lỗi trả về cùng một dạng. `message` là câu tiếng Việt, we
 | Sửa và gửi dự trù | Chủ nhiệm, phó chủ nhiệm, thủ quỹ |
 | Bàn giao | Chủ nhiệm |
 | Mở, đóng điểm danh; điểm danh tay | Cả ban điều hành |
+| Đăng tin của CLB lên Cộng đồng | Chủ nhiệm, phó chủ nhiệm, trưởng ban (chờ cán bộ trường duyệt mới hiện) |
+| Duyệt, từ chối tin của CLB | Cán bộ của trường |
 | Xem trang chủ, thành viên, đợt thu, đối soát, sổ quỹ, khoản chi, dự trù, bàn giao | Cả ban điều hành |
 
 Bảng quyền nằm ở `web/src/lib/selectors.ts` (`RIGHTS`); server dùng lại đúng bảng đó.
@@ -212,6 +214,20 @@ Thêm ngày 22/10/2026 (mô tả ở `docs/tien-do-mvp.md`, phần B, mục 5.5)
 | `POST /clubs/:clubId/ai/summary` | Ban điều hành | Trợ lý bàn giao | Bản nháp tóm tắt cho ban mới: việc còn dở, hạn sắp tới, kho còn thiếu, tài khoản chưa chuyển, ai hỏi lại. Không lưu gì; lưu vào biên bản bằng `PUT /clubs/:clubId/handover/summary` |
 | `POST /clubs/:clubId/ai/ask` | Thành viên đã nhận lời mời | Trợ lý bàn giao | `question`. Chỉ trả lời từ nội dung kho mà người hỏi được thấy và luôn kèm `sources` (mục để mở). Không có trong kho thì `found: false`, "Không tìm thấy trong kho bàn giao." Thành viên thường không nhận gì từ phần tài khoản. Câu hỏi về tiền, sổ quỹ, mật khẩu, dữ liệu cá nhân thì từ chối. Mỗi lần hỏi tính một lượt; có `AI_FREE_ASKS_PER_TERM` thì hết lượt trả 409 |
 
+### Cộng đồng: tin của CLB (duyệt trước, hiện sau)
+
+Chỉ tin đã được cán bộ trường duyệt mới hiện cho mọi người. Tin mới luôn ở trạng thái `pending`; người đăng thấy tin của mình (web hiện mờ), ban điều hành CLB đó thấy ở Bảng tin của CLB, cán bộ trường thấy ở hàng chờ. Người đăng không được nêu tên ở Cộng đồng chung (`author` chỉ có ở màn của ban điều hành và của cán bộ trường).
+
+| API | Ai gọi | Màn | Ghi chú |
+|---|---|---|---|
+| `GET /feed` | Người đã đăng nhập | Cộng đồng | Mọi tin đã duyệt, cộng tin `pending` hoặc `rejected` của chính người xem; mới nhất trước. Tin bị từ chối kèm `rejectReason` |
+| `GET /posts/:postId` | Người đã đăng nhập | Cộng đồng | Tin chưa duyệt chỉ người đăng, ban điều hành CLB đó và cán bộ trường xem được; người khác nhận 404 (không lộ là có tin) |
+| `GET /clubs/:clubId/posts` | Ban điều hành | Bảng tin của CLB | Mọi trạng thái, mới nhất trước, kèm `author`, `reviewedBy`, `reviewedAt` |
+| `POST /clubs/:clubId/posts` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Bảng tin của CLB | `kind` (`event`, `promo`, `news`), `title` (1–120), `body` (1–2000); `eventAt` bắt buộc khi `event`, `place` (tối đa 120) chỉ khi `event`. Tin luôn vào `pending`. Quyền khác thì 403 |
+| `PUT /clubs/:clubId/posts/:postId` | Chủ nhiệm, phó chủ nhiệm, trưởng ban | Bảng tin của CLB | Sửa tin bị từ chối rồi gửi lại: cùng dữ liệu như đăng tin. Tin quay về `pending`, xóa lý do và người duyệt cũ, tính lại giờ gửi. Tin không bị từ chối thì 409 |
+| `GET /school/posts` | Cán bộ của trường | Duyệt tin | `pending` (chờ lâu nhất trước) và `reviewed` (10 tin xem xét gần nhất) |
+| `POST /school/posts/:postId/review` | Cán bộ của trường | Duyệt tin | `decision`: `approve` hoặc `reject`; từ chối thì bắt buộc `reason` (tối đa 300). Tin không còn `pending` thì 409 |
+
 ### Việc cần làm
 
 Thêm ngày 22/10/2026 (bản vẽ chưa có; mô tả ở `docs/tien-do-mvp.md`, phần B, mục 5.3). Ban điều hành tạo, giao, sửa việc. Người được giao đổi được trạng thái việc của mình. Mọi đổi trạng thái lưu lịch sử (ai, lúc nào). Không có thông báo hay nhắc việc tự động.
@@ -247,6 +263,7 @@ Thêm ngày 22/10/2026 (bản vẽ chưa có; mô tả ở `docs/tien-do-mvp.md`
 |---|---|---|---|
 | `GET /school/clubs` | Cán bộ của trường | NT-TongQuan | Học kỳ đang xem (`term`). Mỗi CLB một dòng: thành viên, buổi có điểm danh, hoạt động gần nhất, có hoạt động trong 30 ngày không, dự trù, số khoản đang chờ mentor (`waitingMentor`) |
 | `GET /school/clubs/:clubId` | Cán bộ của trường | NT-ChiTietCLB | Dự trù và đã chi theo hoạt động, sinh hoạt kỳ này, khoản chờ mentor, đề nghị hỗ trợ, bàn giao. Không có danh sách thành viên |
+| `POST /school/clubs/:clubId/handover/confirm` | Cán bộ của trường (mentor) | NT-ChiTietCLB | Xác nhận biên bản bàn giao của CLB. Chỉ sau khi ban mới đã xác nhận nhận bàn giao (chưa thì 409), và chỉ một lần (xác nhận rồi thì 409). Ghi người xác nhận, lúc nào, vào lịch sử bàn giao |
 | `POST /school/expenses/:expenseId/approve` | Cán bộ của trường (mentor) | NT-ChiTietCLB | Chỉ khoản đang chờ mentor. Gửi `note` (không bắt buộc) thì ghi chú vào lịch sử |
 | `POST /school/expenses/:expenseId/reject` | Cán bộ của trường (mentor) | NT-ChiTietCLB | Bắt buộc gửi `note` |
 

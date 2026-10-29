@@ -215,6 +215,28 @@ export const taskBody = z.object({
   processId: id.optional(),
 }) satisfies z.ZodType<C.TaskBody>;
 
+const POST_KINDS = ["event", "promo", "news"] as const;
+
+/** Tin của CLB: sự kiện phải có ngày giờ diễn ra; loại khác không có ngày giờ và nơi diễn ra. */
+export const postBody = z.object({
+  kind: z.enum(POST_KINDS, { error: "Cần chọn loại tin." }),
+  title: text(120, "Cần ghi tiêu đề."),
+  body: text(2000, "Cần ghi nội dung."),
+  eventAt: time("Cần ghi ngày giờ diễn ra.").optional(),
+  place: z.string().trim().max(120, { error: "Tối đa 120 ký tự." }).optional(),
+}).superRefine((v, ctx) => {
+  if (v.kind === "event" && !v.eventAt) ctx.addIssue({ code: "custom", path: ["eventAt"], message: "Sự kiện cần ghi ngày giờ diễn ra." });
+  if (v.kind !== "event" && (v.eventAt || v.place)) ctx.addIssue({ code: "custom", path: ["eventAt"], message: "Chỉ sự kiện mới có ngày giờ và nơi diễn ra." });
+}) satisfies z.ZodType<C.PostBody>;
+
+/** Từ chối thì bắt buộc có lý do, như luật duyệt chi. */
+export const postReviewBody = z.object({
+  decision: z.enum(["approve", "reject"], { error: "Cần chọn duyệt hoặc từ chối." }),
+  reason: z.string().trim().max(300, { error: "Tối đa 300 ký tự." }).optional(),
+}).superRefine((v, ctx) => {
+  if (v.decision === "reject" && !v.reason) ctx.addIssue({ code: "custom", path: ["reason"], message: "Từ chối thì cần ghi lý do." });
+}) satisfies z.ZodType<C.PostReviewBody>;
+
 export const aiAskBody = z.object({
   question: text(300, "Cần gõ câu hỏi.").pipe(z.string().min(3, { error: "Câu hỏi quá ngắn." })),
 }) satisfies z.ZodType<C.AiAskBody>;

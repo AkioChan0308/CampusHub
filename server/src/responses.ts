@@ -7,7 +7,7 @@ import {
   handConfirmedTransfers, heldSessions, kitSummary, latestStatement, ledgerOf, membershipOf, nextSession, isTaskOverdue, openManualAll, openTasks, participationStats, paymentsOf,
   pendingApplications, pendingExpenses, personName, recentLedger, statementsOf, tasksOf, upcomingEvents,
   type AppState, type Application, type Attendance, type Club, type ClubEvent, type Collection, type ExpenseRequest,
-  type ClubTask, type KitAccount, type KitDocument, type KitProcess, type Membership, type Payment, type Person, type StatementTxn,
+  type ClubPost, type ClubTask, type Handover, type KitAccount, type KitDocument, type KitProcess, type Membership, type Payment, type Person, type StatementTxn,
 } from "./domain.ts";
 
 export const CONSENT_VERSION = "chinh-sach-du-lieu-v1";
@@ -275,6 +275,14 @@ export function budgetRes(s: AppState, club: Club): C.BudgetRes {
 }
 
 /** Bàn giao. me: người đang xem, để biết có phải chủ nhiệm mới (được bấm xác nhận ở bước 6) không. */
+/** Bàn giao của một CLB nhìn từ phía trường (không có tên thành viên ngoài người mentor xác nhận). */
+export function schoolHandoverDto(s: AppState, h: Handover): C.SchoolHandoverDto {
+  return {
+    toTerm: h.toTerm, step: h.step, accepted: !!h.acceptedAt,
+    ...(h.mentorConfirmedBy && h.mentorConfirmedAt ? { mentorConfirmed: { by: personRef(s, h.mentorConfirmedBy), at: h.mentorConfirmedAt } } : {}),
+  };
+}
+
 export function handoverRes(s: AppState, club: Club, meId: string): C.HandoverRes | undefined {
   const h = s.handovers.find((x) => x.clubId === club.id);
   if (!h) return undefined;
@@ -302,6 +310,7 @@ export function handoverRes(s: AppState, club: Club, meId: string): C.HandoverRe
       id: a.id, service: a.service, label: a.label, holder: ref(a.holderId), ownership: a.ownership, required: a.required, transferred: h.transferred.includes(a.id),
     })),
     acceptedAt: h.acceptedAt, acceptedBy: ref(h.acceptedBy),
+    mentorConfirmed: h.mentorConfirmedBy && h.mentorConfirmedAt ? { by: personRef(s, h.mentorConfirmedBy), at: h.mentorConfirmedAt } : undefined,
     history: h.history.map((x) => ({ at: x.at, by: personRef(s, x.by), text: x.text })),
     mentor: club.mentor,
     canAccept: !!b && b.president === meId,
@@ -327,6 +336,23 @@ export function tasksRes(s: AppState, club: Club): C.TasksRes {
     assignees: clubMembers(s, club.id).filter((m) => m.invite === "accepted").sort(byCode).map((m) => personRef(s, m.personId)),
     events: s.events.filter((e) => e.clubId === club.id).map((e) => ({ id: e.id, title: e.title })),
     processes: s.kitProcesses.filter((p) => p.clubId === club.id).map((p) => ({ id: p.id, name: p.name })),
+  };
+}
+
+// ---------- Tin của CLB trên Cộng đồng ----------
+
+/**
+ * internal: màn của ban điều hành CLB và của cán bộ trường, có tên người đăng và người duyệt. Cộng đồng chung không nêu tên người đăng.
+ * Lý do từ chối chỉ đi kèm tin bị từ chối, mà tin chưa duyệt vốn chỉ đến tay người đăng, ban điều hành CLB đó và cán bộ trường.
+ */
+export function postDto(s: AppState, p: ClubPost, internal = false): C.PostDto {
+  const club = s.clubs.find((c) => c.id === p.clubId)!;
+  return {
+    id: p.id, club: clubRef(club), kind: p.kind, title: p.title, body: p.body,
+    ...(p.eventAt ? { eventAt: p.eventAt } : {}), ...(p.place ? { place: p.place } : {}),
+    status: p.status, createdAt: p.createdAt,
+    ...(p.rejectReason ? { rejectReason: p.rejectReason } : {}),
+    ...(internal ? { author: personRef(s, p.createdBy), ...(p.reviewedBy ? { reviewedBy: personRef(s, p.reviewedBy) } : {}), ...(p.reviewedAt ? { reviewedAt: p.reviewedAt } : {}) } : {}),
   };
 }
 
@@ -488,7 +514,7 @@ export function schoolClubRes(s: AppState, club: Club, now: number): C.SchoolClu
           receipt: e.receipt,
         };
       }),
-      handover: handover ? { toTerm: handover.toTerm, step: handover.step } : undefined,
+      handover: handover ? schoolHandoverDto(s, handover) : undefined,
     },
   };
 }

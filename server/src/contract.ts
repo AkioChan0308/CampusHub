@@ -499,6 +499,8 @@ export interface HandoverRes {
   accounts: { id: string; service: string; label: string; holder?: PersonRef; ownership: "club" | "personal"; required: boolean; transferred: boolean }[];
   acceptedAt?: IsoTime;
   acceptedBy?: PersonRef;
+  /** Mentor (cán bộ trường) đã xác nhận biên bản. */
+  mentorConfirmed?: { by: PersonRef; at: IsoTime };
   /** Nội dung biên bản: mỗi bước đã làm một dòng. */
   history: { at: IsoTime; by: PersonRef; text: string }[];
   mentor?: string;
@@ -536,6 +538,46 @@ export interface TaskRes {
 
 export interface MyTasksRes {
   tasks: (TaskDto & { club: ClubRef })[];
+}
+
+export type PostKind = "event" | "promo" | "news";
+/** Duyệt trước, hiện sau: chỉ tin đã duyệt hiện cho mọi người (Hiệu chốt 29/10/2026). */
+export type PostStatus = "pending" | "approved" | "rejected";
+
+export interface PostDto {
+  id: string;
+  club: ClubRef;
+  kind: PostKind;
+  title: string;
+  body: string;
+  eventAt?: IsoTime; // sự kiện: ngày giờ diễn ra
+  place?: string; // sự kiện: nơi diễn ra
+  status: PostStatus;
+  createdAt: IsoTime;
+  /** Chỉ có khi chưa duyệt hoặc bị từ chối (người xem được những tin này vốn là người đăng, ban điều hành CLB đó hoặc cán bộ trường). */
+  rejectReason?: string;
+  /** Người đăng và người duyệt: chỉ có ở màn của ban điều hành CLB và của cán bộ trường, không có ở Cộng đồng chung. */
+  author?: PersonRef;
+  reviewedBy?: PersonRef;
+  reviewedAt?: IsoTime;
+}
+
+export interface FeedRes {
+  /** Mọi tin đã duyệt, cộng tin chưa duyệt hoặc bị từ chối của chính người xem (hiện mờ); mới nhất trước. */
+  posts: PostDto[];
+}
+
+export interface PostRes {
+  post: PostDto;
+}
+
+export interface ClubPostsRes {
+  posts: PostDto[]; // mọi trạng thái, mới nhất trước
+}
+
+export interface SchoolPostsRes {
+  pending: PostDto[]; // chờ lâu nhất trước
+  reviewed: PostDto[]; // đã duyệt hoặc từ chối gần đây, mới nhất trước, tối đa 10
 }
 
 export interface KitDocumentDto {
@@ -638,8 +680,20 @@ export interface SchoolClubRes {
     budget: { submittedAt?: IsoTime; items: { id: string; name: string; planned: Money; spent: Money }[]; totals: { planned: Money; spent: Money }; support?: SupportDto };
     sessions: { count: number; averageAttendance: number; lastSessionStart?: IsoTime };
     waitingMentor: { id: string; title: string; amount: Money; boardApproval?: { by: PersonRef; at: IsoTime }; budgetItem?: { name: string; planned: Money }; receipt?: string }[];
-    handover?: { toTerm: string; step: number };
+    handover?: SchoolHandoverDto;
   };
+}
+
+/** Bàn giao của một CLB nhìn từ phía trường: accepted là ban mới đã xác nhận nhận; mentor chỉ xác nhận được sau đó. */
+export interface SchoolHandoverDto {
+  toTerm: string;
+  step: number;
+  accepted: boolean;
+  mentorConfirmed?: { by: PersonRef; at: IsoTime };
+}
+
+export interface SchoolHandoverRes {
+  handover: SchoolHandoverDto;
 }
 
 export interface HealthRes {
@@ -775,6 +829,19 @@ export interface TaskStatusBody {
   status: TaskStatus;
 }
 
+export interface PostBody {
+  kind: PostKind;
+  title: string; // 1–120 ký tự
+  body: string; // 1–2000 ký tự
+  eventAt?: IsoTime; // bắt buộc khi kind là event, không có ở loại khác
+  place?: string; // chỉ khi kind là event, tối đa 120 ký tự
+}
+
+export interface PostReviewBody {
+  decision: "approve" | "reject";
+  reason?: string; // bắt buộc khi từ chối, tối đa 300 ký tự
+}
+
 export interface AiAskBody {
   question: string; // 3–300 ký tự
 }
@@ -881,6 +948,8 @@ export const ENDPOINTS = {
   withdrawPhoneConsent: { method: "POST", path: "/me/clubs/:clubId/consents/phone/withdraw", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   requestDeletion: { method: "POST", path: "/me/clubs/:clubId/deletion-request", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   exportMyData: { method: "GET", path: "/me/export", auth: "user", who: "Người đã đăng nhập", screen: "TV-CuaToi" },
+  listFeed: { method: "GET", path: "/feed", auth: "user", who: "Người đã đăng nhập", screen: "Cộng đồng (chưa có bản vẽ)" },
+  getPost: { method: "GET", path: "/posts/:postId", auth: "user", who: "Người đã đăng nhập (tin chưa duyệt chỉ người đăng, ban điều hành CLB đó và cán bộ trường xem được)", screen: "Cộng đồng (chưa có bản vẽ)" },
   getMyTasks: { method: "GET", path: "/me/tasks", auth: "user", who: "Người đã đăng nhập", screen: "Việc của tôi (chưa có bản vẽ)" },
   getMyPayment: { method: "GET", path: "/me/collections/:collectionId", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DongQuy" },
   reportTransfer: { method: "POST", path: "/me/collections/:collectionId/report-transfer", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DongQuy" },
@@ -936,6 +1005,9 @@ export const ENDPOINTS = {
   transferHandoverAccount: { method: "POST", path: "/clubs/:clubId/handover/accounts/:itemId/transfer", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
   finishHandoverTransfer: { method: "POST", path: "/clubs/:clubId/handover/transfer-done", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
   acceptHandover: { method: "POST", path: "/clubs/:clubId/handover/accept", auth: "user", who: "Chủ nhiệm mới", screen: "BDH-BanGiao" },
+  resubmitPost: { method: "PUT", path: "/clubs/:clubId/posts/:postId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Bảng tin của CLB (chưa có bản vẽ)" },
+  listClubPosts: { method: "GET", path: "/clubs/:clubId/posts", auth: "user", who: "Ban điều hành", screen: "Bảng tin của CLB (chưa có bản vẽ)" },
+  createPost: { method: "POST", path: "/clubs/:clubId/posts", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Bảng tin của CLB (chưa có bản vẽ)" },
   listTasks: { method: "GET", path: "/clubs/:clubId/tasks", auth: "user", who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
   createTask: { method: "POST", path: "/clubs/:clubId/tasks", auth: "user", status: 201, who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
   updateTask: { method: "PUT", path: "/clubs/:clubId/tasks/:taskId", auth: "user", who: "Ban điều hành", screen: "Việc cần làm (chưa có bản vẽ)" },
@@ -955,8 +1027,11 @@ export const ENDPOINTS = {
   updateKitAccount: { method: "PUT", path: "/clubs/:clubId/handover-kit/accounts/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
   deleteKitAccount: { method: "DELETE", path: "/clubs/:clubId/handover-kit/accounts/:itemId", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Kho bàn giao (chưa có bản vẽ)" },
 
+  listSchoolPosts: { method: "GET", path: "/school/posts", auth: "user", who: "Cán bộ của trường", screen: "Duyệt tin (chưa có bản vẽ)" },
+  reviewPost: { method: "POST", path: "/school/posts/:postId/review", auth: "user", who: "Cán bộ của trường", screen: "Duyệt tin (chưa có bản vẽ)" },
   listSchoolClubs: { method: "GET", path: "/school/clubs", auth: "user", who: "Cán bộ của trường", screen: "NT-TongQuan" },
   getSchoolClub: { method: "GET", path: "/school/clubs/:clubId", auth: "user", who: "Cán bộ của trường", screen: "NT-ChiTietCLB" },
+  confirmHandover: { method: "POST", path: "/school/clubs/:clubId/handover/confirm", auth: "user", who: "Cán bộ của trường (mentor)", screen: "NT-ChiTietCLB" },
   mentorApproveExpense: { method: "POST", path: "/school/expenses/:expenseId/approve", auth: "user", who: "Cán bộ của trường (mentor)", screen: "NT-ChiTietCLB" },
   mentorRejectExpense: { method: "POST", path: "/school/expenses/:expenseId/reject", auth: "user", who: "Cán bộ của trường (mentor)", screen: "NT-ChiTietCLB" },
 } as const satisfies Record<string, EndpointMeta>;
@@ -987,6 +1062,8 @@ export interface Api {
   withdrawPhoneConsent: { params: Club; body: NoBody; res: ConsentRes };
   requestDeletion: { params: Club; body: NoBody; res: MyClubRes };
   exportMyData: { params: {}; body: NoBody; res: MyExportRes };
+  listFeed: { params: {}; body: NoBody; res: FeedRes };
+  getPost: { params: { postId: string }; body: NoBody; res: PostRes };
   getMyTasks: { params: {}; body: NoBody; res: MyTasksRes };
   getMyPayment: { params: { collectionId: string }; body: NoBody; res: MyPaymentRes };
   reportTransfer: { params: { collectionId: string }; body: NoBody; res: MyPaymentRes };
@@ -1043,6 +1120,9 @@ export interface Api {
   transferHandoverAccount: { params: Club & Item; body: TransferAccountBody; res: HandoverRes };
   finishHandoverTransfer: { params: Club; body: NoBody; res: HandoverRes };
   acceptHandover: { params: Club; body: NoBody; res: HandoverRes };
+  resubmitPost: { params: Club & { postId: string }; body: PostBody; res: PostRes };
+  listClubPosts: { params: Club; body: NoBody; res: ClubPostsRes };
+  createPost: { params: Club; body: PostBody; res: PostRes };
   listTasks: { params: Club; body: NoBody; res: TasksRes };
   createTask: { params: Club; body: TaskBody; res: TaskRes };
   updateTask: { params: Club & { taskId: string }; body: TaskBody; res: TaskRes };
@@ -1062,8 +1142,11 @@ export interface Api {
   updateKitAccount: { params: Club & Item; body: KitAccountBody; res: KitAccountRes };
   deleteKitAccount: { params: Club & Item; body: NoBody; res: OkRes };
 
+  listSchoolPosts: { params: {}; body: NoBody; res: SchoolPostsRes };
+  reviewPost: { params: { postId: string }; body: PostReviewBody; res: PostRes };
   listSchoolClubs: { params: {}; body: NoBody; res: SchoolClubsRes };
   getSchoolClub: { params: Club; body: NoBody; res: SchoolClubRes };
+  confirmHandover: { params: Club; body: NoBody; res: SchoolHandoverRes };
   mentorApproveExpense: { params: { expenseId: string }; body: ApproveBody; res: ExpenseRes };
   mentorRejectExpense: { params: { expenseId: string }; body: RejectBody; res: ExpenseRes };
 }

@@ -1,13 +1,13 @@
 // Ban quản lý CLB của trường, mentor: chỉ thấy số tổng hợp, không thấy danh sách thành viên hay từng khoản đóng quỹ.
 
 import { findClub, requireStaff } from "../access.ts";
-import { approveExpense, rejectExpense, type AppState } from "../domain.ts";
+import { approveExpense, confirmHandoverByMentor, rejectExpense, type AppState } from "../domain.ts";
 import { conflict, HttpError, notFound } from "../errors.ts";
 import { approveBody, parseBody, rejectBody } from "../schemas.ts";
-import { expenseDto, schoolClubRes, schoolRowDto } from "../responses.ts";
+import { expenseDto, schoolClubRes, schoolHandoverDto, schoolRowDto } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
-type Keys = "listSchoolClubs" | "getSchoolClub" | "mentorApproveExpense" | "mentorRejectExpense";
+type Keys = "listSchoolClubs" | "getSchoolClub" | "confirmHandover" | "mentorApproveExpense" | "mentorRejectExpense";
 
 /** Khoản đang chờ mentor duyệt (đã qua ban điều hành, trên mức mentor). */
 /** Khoản đang chờ mentor, và người bấm không phải người đề xuất (không ai tự duyệt hay tự từ chối khoản của mình). */
@@ -33,6 +33,18 @@ export const schoolHandlers: Pick<Handlers, Keys> = {
   getSchoolClub: (ctx) => {
     requireStaff(ctx.me);
     return schoolClubRes(ctx.state, findClub(ctx.state, ctx.params.clubId), ctx.now());
+  },
+
+  /** Mentor xác nhận biên bản: chỉ sau khi ban mới đã xác nhận nhận bàn giao, và chỉ một lần. */
+  confirmHandover: (ctx) => {
+    requireStaff(ctx.me);
+    const club = findClub(ctx.state, ctx.params.clubId);
+    const h = ctx.state.handovers.find((x) => x.clubId === club.id);
+    if (!h) throw notFound("CLB chưa khởi tạo bàn giao.");
+    if (!h.acceptedAt) throw conflict("Ban mới chưa xác nhận nhận bàn giao nên chưa xác nhận biên bản được.");
+    if (h.mentorConfirmedAt) throw conflict("Biên bản này đã được xác nhận rồi.");
+    const s = ctx.update(confirmHandoverByMentor(club.id, ctx.me.id, ctx.nowIso()));
+    return { handover: schoolHandoverDto(s, s.handovers.find((x) => x.clubId === club.id)!) };
   },
 
   mentorApproveExpense: (ctx) => {

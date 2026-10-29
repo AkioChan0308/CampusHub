@@ -2,7 +2,7 @@
 // Mỗi bảng: tên cột theo đúng thứ tự, cột khóa, cách lấy các dòng từ AppState và cách dựng lại đối tượng từ một dòng.
 // Thứ tự các bảng trong TABLES là thứ tự thêm dòng (bảng cha trước bảng con); xóa thì đi ngược lại.
 
-import { nowIso, STATE_VERSION, type AppState, type Budget, type Club, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
+import { nowIso, STATE_VERSION, type AppState, type Budget, type Club, type ClubPost, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
 
 export type Val = string | number | boolean | null;
 type Row = Record<string, unknown>;
@@ -98,10 +98,10 @@ export const TABLES: TableDef[] = [
   {
     name: "handovers", source: "handovers", keyCount: 2,
     cols: ["club_id", "from_term", "to_term", "step", "locked_balance", "new_receiver_person_id", "new_receiver_bank", "new_receiver_account", "transfer_ref",
-      "locked_at", "new_board", "transferred", "accepted_at", "accepted_by", "history", "summary"],
+      "locked_at", "new_board", "transferred", "accepted_at", "accepted_by", "history", "summary", "mentor_confirmed_by", "mentor_confirmed_at"],
     rows: (s) => s.handovers.map((h) => [h.clubId, h.fromTerm, h.toTerm, h.step, h.lockedBalance, n(h.newReceiver?.personId), n(h.newReceiver?.bank), n(h.newReceiver?.account), n(h.transferRef),
       n(h.lockedAt), h.newBoard ? JSON.stringify(h.newBoard) : null, JSON.stringify(h.transferred), n(h.acceptedAt), n(h.acceptedBy), JSON.stringify(h.history),
-      h.summary ? JSON.stringify(h.summary) : null]),
+      h.summary ? JSON.stringify(h.summary) : null, n(h.mentorConfirmedBy), n(h.mentorConfirmedAt)]),
   },
   {
     name: "kit_documents", source: "kitDocuments", keyCount: 1,
@@ -127,6 +127,11 @@ export const TABLES: TableDef[] = [
     name: "task_history", source: "tasks", keyCount: 2,
     cols: ["task_id", "pos", "at", "by_person_id", "note"],
     rows: (s) => s.tasks.flatMap((t) => t.history.map((h, i) => [t.id, i, h.at, h.by, h.text])),
+  },
+  {
+    name: "posts", source: "posts", keyCount: 1,
+    cols: ["id", "club_id", "kind", "title", "body", "event_at", "place", "status", "created_by", "created_at", "reviewed_by", "reviewed_at", "reject_reason"],
+    rows: (s) => s.posts.map((p) => [p.id, p.clubId, p.kind, p.title, p.body, n(p.eventAt), n(p.place), p.status, p.createdBy, p.createdAt, n(p.reviewedBy), n(p.reviewedAt), n(p.rejectReason)]),
   },
   {
     name: "ai_usage", source: "aiUsage", keyCount: 2,
@@ -242,6 +247,7 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
       transferRef: opt<string>(r.transfer_ref),
       lockedAt: optTime(r.locked_at), newBoard: r.new_board === null || r.new_board === undefined ? undefined : json<Handover["newBoard"]>(r.new_board),
       transferred: json<string[]>(r.transferred), acceptedAt: optTime(r.accepted_at), acceptedBy: opt<string>(r.accepted_by),
+      mentorConfirmedBy: opt<string>(r.mentor_confirmed_by), mentorConfirmedAt: optTime(r.mentor_confirmed_at),
       history: json<Handover["history"]>(r.history).map((h) => ({ ...h, at: time(h.at) })),
       summary: r.summary === null || r.summary === undefined ? undefined : (() => { const v = json<NonNullable<Handover["summary"]>>(r.summary); return { ...v, at: time(v.at) }; })(),
     })),
@@ -261,6 +267,11 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
     tasks: t.tasks.map((r) => clean<ClubTask>({
       id: str(r.id), clubId: str(r.club_id), title: str(r.title), assigneeId: str(r.assignee_id), due: time(r.due), status: r.status as ClubTask["status"],
       eventId: opt<string>(r.event_id), processId: opt<string>(r.process_id), createdBy: str(r.created_by), createdAt: time(r.created_at), history: taskHistory.get(str(r.id)) ?? [],
+    })),
+    posts: t.posts.map((r) => clean<ClubPost>({
+      id: str(r.id), clubId: str(r.club_id), kind: r.kind as ClubPost["kind"], title: str(r.title), body: str(r.body), eventAt: optTime(r.event_at), place: opt<string>(r.place),
+      status: r.status as ClubPost["status"], createdBy: str(r.created_by), createdAt: time(r.created_at),
+      reviewedBy: opt<string>(r.reviewed_by), reviewedAt: optTime(r.reviewed_at), rejectReason: opt<string>(r.reject_reason),
     })),
     aiUsage: t.ai_usage.map((r) => ({ clubId: str(r.club_id), term: str(r.term), asks: num(r.asks), summaries: num(r.summaries) })),
     consents: t.consents.map((r) => clean<Consent>({

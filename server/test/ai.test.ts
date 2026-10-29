@@ -209,7 +209,8 @@ test("lưu bản tóm tắt vào biên bản: chỉ chủ nhiệm, ghi ai lưu v
   for (const a of ["kit-fanpage", "kit-drive", "kit-email", "kit-ngan-hang"]) await call("POST", `/accounts/${a}/transfer`, "a001", { holderId: "a017" });
   await call("POST", "/transfer-done", "a001");
   await call("POST", "/accept", "a017");
-  assert.equal((await srv.call("PUT", H, { as: "a001", body: { text: "Muộn rồi" } })).status, 409);
+  assert.equal((await srv.call("PUT", H, { as: "a001", body: { text: "Muộn rồi" } })).status, 403, "ban cũ đã về thành viên sau khi ban mới xác nhận");
+  assert.equal((await srv.call("PUT", H, { as: "a017", body: { text: "Muộn rồi" } })).status, 409, "chủ nhiệm mới cũng không sửa được: biên bản đã khóa");
 });
 
 test("trang chủ: việc cần làm, bàn giao, kho và thống kê tham gia", async () => {

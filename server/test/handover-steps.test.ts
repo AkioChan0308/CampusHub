@@ -95,10 +95,16 @@ test("đi hết 7 bước, biên bản ghi từng bước, ban mới xác nhận
   assert.equal(done.step, 7);
   assert.equal(done.acceptedBy.personId, "a017");
   assert.ok(done.acceptedAt);
-  assert.match(done.history.at(-1).text, /xác nhận đã nhận bàn giao/);
+  assert.match(done.history.at(-2).text, /xác nhận đã nhận bàn giao/);
+  assert.match(done.history.at(-1).text, /đổi vai trò theo ban mới: 2 người nhận vai trong ban điều hành, 3 người ban cũ về thành viên/);
 
-  // Bước 7: biên bản không sửa được.
-  assert.equal((await call("PUT", "/step", "a001", { step: 5 })).status, 409);
+  // Đổi vai theo ban mới: chủ nhiệm, thủ quỹ cũ và trưởng ban không có tên trong ban mới về thành viên; ai đã giữ đúng vai thì giữ.
+  const role = (id: string) => srv.store.state.memberships.find((m) => m.clubId === CLUB && m.personId === id)?.role;
+  assert.deepEqual(["a017", "a003", "a006", "a005", "a008", "a001", "a002", "a007"].map(role), ["president", "vice", "treasurer", "head", "head", "member", "member", "member"]);
+
+  // Bước 7: biên bản không sửa được; ban cũ đã về thành viên nên không còn quyền bàn giao.
+  assert.equal((await call("PUT", "/step", "a001", { step: 5 })).status, 403);
+  assert.equal((await call("PUT", "/step", "a017", { step: 5 })).status, 409);
   assert.equal((await call("POST", "/accept", "a017")).status, 409);
   assert.ok(done.history.length >= 10);
 });
