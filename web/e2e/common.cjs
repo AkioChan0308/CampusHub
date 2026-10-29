@@ -8,10 +8,21 @@ const { chromium } = require("playwright-core");
 const BASE = process.env.BASE || "http://localhost:3000";
 
 /** Mở Chrome đã cài trên máy (Playwright tự tìm). Máy không có Chrome thì đặt CHROME_PATH tới file chạy của Chrome hoặc Chromium. */
-function launch() {
-  return process.env.CHROME_PATH
+async function launch() {
+  const browser = await (process.env.CHROME_PATH
     ? chromium.launch({ executablePath: process.env.CHROME_PATH, headless: true })
-    : chromium.launch({ channel: "chrome", headless: true });
+    : chromium.launch({ channel: "chrome", headless: true }));
+  // Hướng dẫn nhanh của ban điều hành tự mở lần đầu và chặn bấm vào màn phía sau. Mọi cửa sổ thử coi như đã xem, trừ script tour.cjs (đặt window.__tourOn).
+  const newContext = browser.newContext.bind(browser);
+  browser.newContext = async (...args) => {
+    const ctx = await newContext(...args);
+    await ctx.addInitScript(() => {
+      const get = Storage.prototype.getItem;
+      Storage.prototype.getItem = function (k) { return !window.__tourOn && String(k).startsWith("campushub.tour.board.") ? "1" : get.call(this, k); };
+    });
+    return ctx;
+  };
+  return browser;
 }
 
 /** Thư mục ảnh chụp của một script: web/e2e/screenshots/<tên>. Thư mục screenshots/ không đưa vào repo. */

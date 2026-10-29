@@ -1067,28 +1067,12 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
   html:has(.l-phead) { scroll-padding-top: 112px; scroll-padding-bottom: 24px; }
 }
 
-/* ---------- Trang chung (Hiệu yêu cầu 29/10/2026): thanh tab, logo ở khung điện thoại, dòng tin, khung chat mẫu ----------
-   Thanh tab của trang chung (HubNav): hai mục chung chia đều chỗ, mục theo vai theo độ rộng chữ và là nút đặc xanh mực (khối ngay dưới); từ 1024px chúng dồn sang phải. */
+/* ---------- Cộng đồng (tên cũ: Trang chung; Hiệu yêu cầu 29/10/2026): thanh tab, logo ở khung điện thoại, dòng tin, khung chat mẫu ----------
+   Thanh tab của Cộng đồng (HubNav): hai mục chung chia đều chỗ. Mục theo vai (Của tôi, Nhà trường, Tạo CLB) nằm trong menu avatar (AccountMenu), không còn trên thanh này. */
 .l-tabs.hub { display: flex; }
-.l-tabs.hub .l-tab { min-width: 0; padding-inline: 2px; text-align: center; }
-.l-tabs.hub .l-tab:not(.role) { flex: 1 1 0; }
-.l-tabs.hub .l-tab.role { flex: 0 1 auto; }
-/* Mục theo vai: nút đặc xanh mực chữ trắng (hành động chính của thanh công cụ); mục phụ (.sec, ví dụ Tạo CLB) viền xanh;
-   đang ở đúng trang đó (.on) thì đổi sang mực, cùng nghĩa với nút lọc đang chọn. Từ 1024px dồn sang phải của thanh ngang. */
-.l-tabs.hub .l-tab.role { flex-direction: row; gap: 8px; min-height: 44px; margin: 7px 5px; padding-inline: 8px; border: 1.5px solid transparent; border-radius: 12px; font-size: 14.5px; font-weight: 700; white-space: nowrap; }
-.lich a.l-tab.role { border-color: var(--l-blue); background: var(--l-blue); color: #FFFFFF; }
-.lich a.l-tab.role:hover, .lich a.l-tab.role:active { border-color: var(--l-blue-hover); background: var(--l-blue-hover); }
-.lich a.l-tab.role.sec { border-color: var(--l-blue); background: var(--l-paper); color: var(--l-blue); }
-.lich a.l-tab.role.sec:hover, .lich a.l-tab.role.sec:active { background: var(--l-blue-tint); }
-.lich a.l-tab.role.on { border-color: var(--l-ink); background: var(--l-ink); color: #FFFFFF; }
-.l-tabs.hub span.l-tab.role { background: var(--l-rule-soft); }
-/* Màn rất hẹp (320px): nút theo vai bỏ biểu tượng để hai mục chung còn đủ chỗ cho chữ. */
-@media (max-width: 359px) { .l-tabs.hub .l-tab.role svg { display: none; } }
+.l-tabs.hub .l-tab { flex: 1 1 0; min-width: 0; padding-inline: 2px; text-align: center; }
 @media (min-width: 1024px) {
   .l-tabs.hub { align-items: center; }
-  .l-tabs.hub .l-tab.role { min-height: 40px; margin: 4px 0 4px 6px; padding-inline: 16px; border-bottom-width: 1.5px; }
-  .lich a.l-tab.role.on { border-bottom-color: var(--l-ink); }
-  .l-tabs.hub .l-tab:not(.role) + .l-tab.role { margin-left: auto; }
 }
 /* Logo CampusHub trong đầu màn điện thoại có tên CLB: link về trang chung; vùng bấm rộng ra 44px mà không đổi bố cục. */
 .l-phead-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -1160,3 +1144,25 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
   .l-sheet > .l-sec:not([aria-busy="true"] *):nth-child(n + 4) { animation-delay: 96ms; }
   .l-leaf:not(.today):not(.l-leaf-skel) { transform-origin: 50% 0; animation: l-flip 240ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 }
+
+/* ---------- Hướng dẫn nhanh cho ban điều hành (components/lich/Tour, 29/10/2026, Hiệu duyệt) ----------
+   Lớp tối phủ màn bằng mặt nạ SVG (không bóng đổ), khung sáng viền giấy ôm phần tử cần chỉ, tờ chú thích viền 1px mực 3.
+   Khung và tờ chú thích trượt sang bước kế trong 220 ms; tắt hẳn khi máy bật giảm chuyển động. Một nút xanh đặc mỗi tờ. */
+.l-tour { position: fixed; inset: 0; z-index: 90; font-family: var(--l-body); animation: l-fade 200ms ease-out both; }
+.l-tour-veil { position: absolute; inset: 0; width: 100%; height: 100%; }
+.l-tour-shade { fill: var(--l-ink); fill-opacity: 0.72; }
+.l-tour-ring { fill: none; stroke: var(--l-paper); stroke-width: 2px; pointer-events: none; }
+.l-tour-hole, .l-tour-ring { transition: x 220ms cubic-bezier(0.16, 1, 0.3, 1), y 220ms cubic-bezier(0.16, 1, 0.3, 1), width 220ms cubic-bezier(0.16, 1, 0.3, 1), height 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+.l-tour-box { position: absolute; width: 320px; max-width: calc(100vw - 24px); padding: 16px; background: var(--l-paper); border: 1px solid var(--l-ink-3); border-radius: var(--l-r); color: var(--l-ink); outline: none; transition: left 220ms cubic-bezier(0.16, 1, 0.3, 1), top 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+.l-tour-count { font: 700 13px/1 var(--l-num); letter-spacing: 0.06em; color: var(--l-ink-3); }
+.l-tour-box h2 { margin: 6px 0 6px; font: 700 18px/1.25 var(--l-body); text-wrap: balance; }
+.l-tour-box p { margin: 0; color: var(--l-ink-2); font-size: 15px; line-height: 1.45; }
+.l-tour-box .l-tour-note { margin-top: 8px; font-size: 13px; color: var(--l-ink-3); }
+.l-tour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+/* Hai nút ở hàng trên, hai link "Thoát" và "Bỏ qua phần này" xuống hàng dưới (cùng một hàng thì nút bị đẩy xuống lẻ loi). */
+.l-tour-links { order: 2; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .l-tour { animation: none; }
+  .l-tour-hole, .l-tour-ring, .l-tour-box { transition: none; }
+}
+@media print { .l-tour { display: none; } }

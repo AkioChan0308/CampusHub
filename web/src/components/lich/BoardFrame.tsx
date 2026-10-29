@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import type { BoardRes } from "@contract";
 import { useBoardQuery } from "@/api/queries";
 import { Icon, type IconName } from "@/components/Icon";
-import { initials } from "@/lib/format";
 import { ROLE_LABEL } from "@/lib/types";
+import { BoardAccountMenu } from "./AccountMenu";
 import { ErrorGate, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
@@ -87,7 +87,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
     if (!href) return <button type="button" className="l-nav" aria-disabled="true" onClick={() => toast(n.reason)}>{label}</button>;
     const count = n.count?.(board) ?? 0;
     return (
-      <Link className={`l-nav${on ? " on" : ""}`} href={href} aria-current={on ? "page" : undefined}>
+      <Link className={`l-nav${on ? " on" : ""}`} href={href} aria-current={on ? "page" : undefined} data-tour={`nav-${n.key}`}>
         <LinkIcon name={n.icon} />{n.label}{count > 0 && <span className={`l-cnt${fade}`}>{count}</span>}
       </Link>
     );
@@ -99,7 +99,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
         <div className="lich">
           <div className="l-board">
             <aside className="l-side">
-              <Link className="l-brand" href="/feed" aria-label="CampusHub, trang chung"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
+              <Link className="l-brand" href="/feed" aria-label="CampusHub, Cộng đồng" data-tour="brand"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
               {board ? (
                 <div className={`l-club${fade}`}>
                   <strong>{board.club.name}</strong>
@@ -111,14 +111,14 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
               <nav aria-label="Menu ban điều hành" className="l-navlist">
                 {/* Trang chung là của mọi vai (Hiệu yêu cầu 29/10/2026), nên đứng trên các mục của riêng CLB. */}
                 <div className="l-navgroup">
-                  <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Trang chung</Link>
+                  <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Cộng đồng</Link>
                 </div>
                 {nav.map((n) => {
                   if (FUND.includes(n.key) && n.key !== "collection") return null; // nằm trong khối của nhóm Quỹ
                   if (n.key === "collection") {
                     return (
                       <div key="fund" className="l-navgroup">
-                        <button type="button" className="l-navlab l-navtoggle" aria-expanded={fundOpen} aria-controls={fundOpen ? "nav-fund" : undefined} onClick={() => setFundOpen((v) => !v)}>
+                        <button type="button" className="l-navlab l-navtoggle" data-tour="nav-fund" aria-expanded={fundOpen} aria-controls={fundOpen ? "nav-fund" : undefined} onClick={() => setFundOpen((v) => !v)}>
                           <span>Quỹ</span>
                           <Icon name={fundOpen ? "chevronDown" : "chevronRight"} size={14} />
                           {!fundOpen && fundCount > 0 && <span className={`l-cnt${fade}`}>{fundCount}<span className="l-sr"> việc đang chờ trong nhóm Quỹ</span></span>}
@@ -138,7 +138,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
               <div className="l-who">
                 {board ? (
                   <>
-                    <span className={`l-avatar${fade}`} aria-hidden="true">{initials(board.me.name)}</span>
+                    <BoardAccountMenu name={board.me.name} fade={saw} />
                     <div className={`l-who-text${fade}`}>
                       <strong>{board.me.name}</strong>
                       <div className="l-who-links">
