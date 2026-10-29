@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { BASE, launch, outDir, inactiveClubsToday, collectionSizeAfterApproval } = require("./common.cjs");
+const { BASE, launch, outDir, inactiveClubsAfterCheckin, collectionSizeAfterApproval } = require("./common.cjs");
 const OUT = outDir("smoke");
 fs.mkdirSync(OUT, { recursive: true });
 const errors = [];
@@ -213,7 +213,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     // ===== Nhà trường duyệt khoản trên 2 triệu (đã nối máy chủ) =====
     await choose("Ban quản lý CLB của trường");
     await page.waitForURL("**/school");
-    check(`Nhà trường: 6 CLB, ${inactiveClubsToday()} không hoạt động`, await waitText(new RegExp(String.raw`Tất cả \(6\)[\s\S]*Không hoạt động 30 ngày \(${inactiveClubsToday()}\)`)));
+    check(`Nhà trường: 6 CLB, ${inactiveClubsAfterCheckin()} không hoạt động`, await waitText(new RegExp(String.raw`Tất cả \(6\)[\s\S]*Không hoạt động 30 ngày \(${inactiveClubsAfterCheckin()}\)`)));
     await shot("09-school.png");
     await page.locator("table a", { hasText: "Xem" }).first().click();
     await page.waitForURL("**/school/clubs/cau-long-san-nha");

@@ -27,7 +27,7 @@ const LAPTOP = { width: 1440, height: 900 };
   // Sinh viên chưa vào CLB nào
   let p = await as("p-bao-chau", PHONE);
   await p.goto(`${BASE}/feed`);
-  ok(await waitText(p, /Cộng đồng[\s\S]*Tin chung[\s\S]*CLB của tôi[\s\S]*Dữ liệu mẫu[\s\S]*Giải cầu lông nội bộ/), "Cộng đồng: có tiêu đề, hai nút chọn phần, ghi dữ liệu mẫu và danh sách tin");
+  ok(await waitText(p, /Cộng đồng[\s\S]*Tin chung[\s\S]*CLB của tôi[\s\S]*Giải cầu lông nội bộ/), "Cộng đồng: có tiêu đề, hai nút chọn phần và danh sách tin");
   ok((await tabs(p)) === "Cộng đồng|Khám phá", "Thanh công cụ: chỉ hai mục chung, cân đối", await tabs(p));
   await p.getByRole("button", { name: /tài khoản/ }).click();
   ok(await p.getByRole("menuitem", { name: "Của tôi" }).isVisible() && await p.getByRole("menuitem", { name: "Tạo CLB" }).isVisible(), "Menu avatar: sinh viên chưa vào CLB có Của tôi và Tạo CLB");
@@ -89,11 +89,11 @@ const LAPTOP = { width: 1440, height: 900 };
   // Ban điều hành: mục menu, nút Đăng tin, logo
   p = await as("a001", LAPTOP);
   await p.goto(`${BASE}/clubs/cau-long-san-nha/posts`);
-  ok(await waitText(p, /Bảng tin của CLB[\s\S]*Tin đã đăng[\s\S]*Dữ liệu mẫu[\s\S]*Giải cầu lông nội bộ/), "Bảng tin của CLB: ban điều hành thấy danh sách tin mẫu");
+  ok(await waitText(p, /Bảng tin của CLB[\s\S]*Tin đã đăng[\s\S]*Đổi giờ sinh hoạt tuần sau[\s\S]*Chờ trường duyệt[\s\S]*Giải cầu lông nội bộ/), "Bảng tin của CLB: ban điều hành thấy tin đã duyệt và tin chờ trường duyệt");
   const menu = await p.getByRole("navigation", { name: "Menu ban điều hành" }).innerText();
   ok(menu.includes("Cộng đồng") && menu.includes("Bảng tin của CLB"), "Menu ban điều hành: có Cộng đồng và Bảng tin của CLB");
   await p.getByRole("button", { name: "Đăng tin" }).click();
-  ok(await waitText(p, /Tính năng đăng tin đang phát triển/), "Bảng tin của CLB: nút Đăng tin báo đang phát triển");
+  ok(await waitText(p, /Loại tin[\s\S]*Tiêu đề[\s\S]*Nội dung[\s\S]*cho tới khi cán bộ trường duyệt/), "Bảng tin của CLB: nút Đăng tin mở form, ghi rõ tin chờ trường duyệt");
   ok(await p.getByRole("button", { name: "Đăng xuất" }).isVisible(), "Đăng xuất: ban điều hành có nút ở thanh bên");
   await p.getByRole("link", { name: "CampusHub, Cộng đồng" }).click();
   ok(await toPath(p, "/feed"), "Logo CampusHub ở trang ban điều hành dẫn về trang chung");

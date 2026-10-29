@@ -48,9 +48,18 @@ function inactiveClubsToday() {
 }
 
 /**
+ * Như inactiveClubsToday, nhưng cho script đã điểm danh ở CLB Cầu lông (CLB đầu tiên) trong chính lần chạy: CLB đó hoạt động hôm nay nên không còn
+ * trong số CLB không hoạt động. smoke.cjs mở điểm danh và cho thành viên quét mã trước khi mở màn nhà trường.
+ */
+function inactiveClubsAfterCheckin() {
+  const today = dayNumber(Date.now());
+  return SEED_LAST_ACTIVITY.slice(1).filter((d) => today - dayNumber(Date.parse(`${d}T12:00:00+07:00`)) > 30).length;
+}
+
+/**
  * Số người trong đợt thu mẫu sau khi duyệt một đơn xin vào: người mới chỉ có khoản phải đóng khi đợt thu chưa quá hạn (luật openCollections).
  * Đợt thu mẫu hết hạn 23:59 ngày 10/10/2026: trước hạn là 43, sau hạn là 42.
  */
 const collectionSizeAfterApproval = () => (Date.now() <= Date.parse("2026-10-10T23:59:00+07:00") ? 43 : 42);
 
-module.exports = { BASE, launch, outDir, inactiveClubsToday, collectionSizeAfterApproval };
+module.exports = { BASE, launch, outDir, inactiveClubsToday, inactiveClubsAfterCheckin, collectionSizeAfterApproval };

@@ -104,7 +104,7 @@ const API = `${BASE}/api/v1/clubs/cau-long-san-nha`;
   await confirm(a017b, "Tôi đã nhận bàn giao");
   ok(await waitText(a017b, /Biên bản bàn giao[\s\S]*Bản tóm tắt cho ban mới[\s\S]*Bản đã sửa tay[\s\S]*lưu bản tóm tắt cho ban mới vào biên bản \(bản mẫu, chưa dùng AI thật\)/), "Biên bản: có bản tóm tắt và dòng lưu bản tóm tắt");
   const locked = await a017b.request.put(`${API}/handover/summary`, { data: { text: "Muộn rồi" } });
-  ok(locked.status() === 403, "Biên bản: người không phải ban điều hành không lưu được bản tóm tắt");
+  ok(locked.status() === 409, "Biên bản: đã khóa sau khi ban mới xác nhận, chủ nhiệm mới cũng không lưu được bản tóm tắt");
   await a017b.context().close();
 
   // ---- Khung quảng cáo mẫu ----

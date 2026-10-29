@@ -162,7 +162,7 @@ async function readDownload(page, click) {
   await p.fill("textarea", "Cần thêm báo giá của sân thứ hai để so.");
   await p.getByRole("button", { name: "Từ chối", exact: true }).click();
   ok(await waitText(p, /Không có khoản nào chờ bạn duyệt/), "Chi tiết CLB: từ chối xong, khoản rời danh sách chờ");
-  ok(await p.evaluate(() => !document.querySelector(".l-side .l-cnt")), "Chi tiết CLB: số đếm trên menu về 0");
+  ok(await p.evaluate(() => ![...document.querySelectorAll(".l-side .l-nav")].find((e) => e.textContent.includes("Khoản chờ duyệt"))?.querySelector(".l-cnt")), "Chi tiết CLB: số đếm của mục Khoản chờ duyệt về 0 (mục Duyệt tin có số đếm riêng)");
   await tall(p, "10-club-detail-done.png", LAPTOP);
   await p.goto(`${BASE}/school/clubs/vong-lap`);
   ok(await waitText(p, /Bản demo chỉ có dữ liệu chi tiết của/), "Chi tiết CLB: CLB chỉ có số tổng");
