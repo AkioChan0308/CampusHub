@@ -4,7 +4,7 @@ import { findClub, requireStaff } from "../access.ts";
 import { approveExpense, rejectExpense, type AppState } from "../domain.ts";
 import { conflict, HttpError, notFound } from "../errors.ts";
 import { approveBody, parseBody, rejectBody } from "../schemas.ts";
-import { expenseDto, schoolClubRes, schoolRowDto } from "../views.ts";
+import { expenseDto, schoolClubRes, schoolRowDto } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys = "listSchoolClubs" | "getSchoolClub" | "mentorApproveExpense" | "mentorRejectExpense";

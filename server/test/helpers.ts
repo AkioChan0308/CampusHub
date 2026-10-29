@@ -8,6 +8,8 @@ import { loadConfig } from "../src/config.ts";
 import type { ExchangeGoogleCode } from "../src/google.ts";
 import { qrStep, qrToken } from "../src/qr.ts";
 import type { Db } from "../src/db/client.ts";
+import { createAccounts, type Accounts } from "../src/accounts.ts";
+import { createDbAccounts } from "../src/db/accounts.ts";
 import { createDbSessions } from "../src/db/sessions.ts";
 import { createDbStore } from "../src/db/store.ts";
 import { createSessions, type Sessions } from "../src/sessions.ts";
@@ -37,8 +39,9 @@ export async function startServer(opts: { env?: Record<string, string>; exchange
   const db = opts.db ?? (WITH_DB ? await createPgliteDb() : undefined);
   const store: Store = db ? await createDbStore(db) : createStore();
   const sessions: Sessions = db ? await createDbSessions(db, () => NOW) : createSessions(() => NOW);
+  const accounts: Accounts = db ? await createDbAccounts(db) : createAccounts();
   const config = loadConfig({ AUTH_MODE: "demo", QR_SECRET: "khoa-chi-de-test", WEB_ORIGIN: "http://localhost:3000", ...opts.env });
-  const app = createApp({ config, store, sessions, now: () => NOW, exchangeGoogleCode: opts.exchangeGoogleCode });
+  const app = createApp({ config, store, sessions, accounts, now: () => NOW, exchangeGoogleCode: opts.exchangeGoogleCode });
   const server = await new Promise<Server>((resolve) => {
     const s = app.listen(0, () => resolve(s));
   });
@@ -60,6 +63,7 @@ export async function startServer(opts: { env?: Record<string, string>; exchange
   return {
     store,
     sessions,
+    accounts,
     db,
     config,
     base,
@@ -72,7 +76,7 @@ export async function startServer(opts: { env?: Record<string, string>; exchange
         server.close(() => resolve());
       });
       // Chờ các lần ghi đang dở; cơ sở dữ liệu do test truyền vào thì test tự đóng.
-      await Promise.allSettled([store.persisted(), sessions.persisted()]);
+      await Promise.allSettled([store.persisted(), sessions.persisted(), accounts.persisted()]);
       if (db && !opts.db) await db.close();
     },
   };

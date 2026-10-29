@@ -6,8 +6,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
-  ApplicationsRes, BoardRes, BudgetRes, ClubRes, ClubsRes, CollectionRes, CollectionsRes, DashboardRes, EventsRes, EventDetailRes, ExpensesRes, HandoverRes, HealthRes, InviteRes,
-  LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes,
+  AiStatusRes, ApplicationsRes, BoardRes, BudgetRes, ClubRes, ClubsRes, CollectionRes, CollectionsRes, DashboardRes, EventsRes, EventDetailRes, ExpensesRes, HandoverRes, HealthRes, InviteRes,
+  KitRes, LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, MyTasksRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes, TasksRes,
 } from "@contract";
 import { ApiError, apiGet } from "./client";
 
@@ -28,6 +28,10 @@ export const keys = {
   event: (clubId: string, eventId: string) => ["clubs", clubId, "events", eventId] as const,
   eventQr: (clubId: string, eventId: string) => ["clubs", clubId, "events", eventId, "qr"] as const,
   handover: (clubId: string) => ["clubs", clubId, "handover"] as const,
+  kit: (clubId: string) => ["clubs", clubId, "handover-kit"] as const,
+  ai: (clubId: string) => ["clubs", clubId, "ai"] as const,
+  tasks: (clubId: string) => ["clubs", clubId, "tasks"] as const,
+  myTasks: ["me", "tasks"] as const,
   ledger: (clubId: string) => ["clubs", clubId, "ledger"] as const,
   myPayment: (collectionId: string) => ["me", "collections", collectionId] as const,
   myClub: (clubId: string) => ["me", "clubs", clubId] as const,
@@ -65,6 +69,10 @@ export const useApplications = (clubId: string) => useQuery({ queryKey: keys.app
 export const useEvents = (clubId: string) => useQuery({ queryKey: keys.events(clubId), queryFn: () => apiGet<EventsRes>(`/clubs/${clubId}/events`) });
 export const useCollections = (clubId: string) => useQuery({ queryKey: keys.collections(clubId), queryFn: () => apiGet<CollectionsRes>(`/clubs/${clubId}/collections`) });
 export const useHandover = (clubId: string) => useQuery({ queryKey: keys.handover(clubId), queryFn: () => apiGet<HandoverRes>(`/clubs/${clubId}/handover`) });
+export const useTasks = (clubId: string) => useQuery({ queryKey: keys.tasks(clubId), queryFn: () => apiGet<TasksRes>(`/clubs/${clubId}/tasks`) });
+export const useMyTasks = () => useQuery({ queryKey: keys.myTasks, queryFn: () => apiGet<MyTasksRes>("/me/tasks") });
+export const useAiStatus = (clubId: string) => useQuery({ queryKey: keys.ai(clubId), queryFn: () => apiGet<AiStatusRes>(`/clubs/${clubId}/ai`) });
+export const useKit = (clubId: string) => useQuery({ queryKey: keys.kit(clubId), queryFn: () => apiGet<KitRes>(`/clubs/${clubId}/handover-kit`) });
 export const ledgerQuery = (clubId: string) => ({ queryKey: keys.ledger(clubId), queryFn: () => apiGet<LedgerRes>(`/clubs/${clubId}/ledger`) });
 export const membersQuery = (clubId: string) => ({ queryKey: keys.members(clubId), queryFn: () => apiGet<MembersRes>(`/clubs/${clubId}/members`) });
 export const budgetQuery = (clubId: string) => ({ queryKey: keys.budget(clubId), queryFn: () => apiGet<BudgetRes>(`/clubs/${clubId}/budget`) });

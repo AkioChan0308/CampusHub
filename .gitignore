@@ -25,20 +25,30 @@ data-that/
 *.csv
 *.xlsx
 *.xls
-!**/mau/*.csv
-!**/mau/*.xlsx
-!**/mau/*.xls
+!**/samples/*.csv
+!**/samples/*.xlsx
+!**/samples/*.xls
 # File sao lưu PostgreSQL (pg_dump) có dữ liệu thành viên
 sao-luu*.sql
 *.dump
 
 # Ảnh chụp và file tạm của các script bấm thử (web/e2e)
-web/e2e/anh/
+web/e2e/screenshots/
 
 # Skill và cấu hình Claude Code (karpathy-guidelines, Impeccable): mỗi người tự cài theo docs/tien-do-mvp.md, không commit.
 .claude/
+# Ghi chú riêng cho Claude Code trên từng máy (skill bắt buộc, cách cài): Claude Code tự đọc, không commit.
+CLAUDE.local.md
 # File skill Impeccable tạo ra (design.json, mô tả bề mặt, ảnh review, log). Luật thiết kế cho cả nhóm nằm ở DESIGN.md và PRODUCT.md.
 .impeccable/
+# Đồ thị tri thức do skill Graphify tạo ra trên từng máy: tạo lại bằng /graphify, không commit.
+graphify-out/
+# Sơ đồ do skill Archify tạo ra trên từng máy: tạo lại bằng /archify, không commit.
+.archify/
+# Log và ảnh chụp trang do công cụ Playwright (MCP) tạo ra khi Claude Code bấm thử: có thể chứa nội dung trang, không commit.
+.playwright-mcp/
+# Khóa phiên bản của các skill cài bằng `npx skills`: skill không nằm trong repo nên khóa này cũng không đưa vào.
+skills-lock.json
 
 # Log, file hệ điều hành, cấu hình riêng của trình soạn mã
 *.log

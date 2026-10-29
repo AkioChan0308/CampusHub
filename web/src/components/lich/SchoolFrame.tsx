@@ -8,18 +8,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { schoolRows } from "@/api/exports";
+import { schoolRows } from "@/api/excel-rows";
 import { useMe, useSchoolClubs } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { downloadCsv } from "@/lib/csv";
 import { initials } from "@/lib/format";
-import { ErrorGate, NOT_IN_MVP, useDemoMode, useLogout } from "./Gate";
+import { ErrorGate, NOT_IN_MVP, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
 export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; children: ReactNode }) {
   const me = useMe();
   const list = useSchoolClubs();
-  const demo = useDemoMode();
   const { logout, pending: leaving } = useLogout();
   const saw = useSawPending(!list.data || !me.data);
   const fade = saw ? " l-fade-in" : "";
@@ -36,16 +35,18 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
     <div className="lich">
       <div className="l-board">
         <aside className="l-side">
-          <Link className="l-brand" href="/school"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
+          <Link className="l-brand" href="/feed" aria-label="CampusHub, trang chung"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
           <div className="l-club">
             <strong>[Tên trường]</strong>
             {data ? <span className={fade.trim() || undefined}>{data.term ? `Ban quản lý CLB · ${data.term}` : "Ban quản lý CLB"}</span> : <Loading><Skel w="72%" h={12} /></Loading>}
           </div>
           <nav aria-label="Menu nhà trường" className="l-navlist">
+            {/* Trang chung là của mọi vai (Hiệu yêu cầu 29/10/2026). */}
+            <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Trang chung</Link>
             {/* Trang chi tiết một CLB nằm trong mục "Các CLB", nên mục này luôn sáng. */}
             <Link className="l-nav on" href="/school" aria-current={active === "clubs" ? "page" : undefined}><LinkIcon name="users" />Các CLB</Link>
-            <button type="button" className="l-nav" aria-disabled="true" aria-describedby="du-tru-bao-cao-chua-co" onClick={() => toast(NOT_IN_MVP)}>
-              <Icon name="calendar" />Dự trù và báo cáo<span id="du-tru-bao-cao-chua-co" className="l-nav-note">chưa có</span>
+            <button type="button" className="l-nav" aria-disabled="true" aria-describedby="budget-report-unavailable" onClick={() => toast(NOT_IN_MVP)}>
+              <Icon name="calendar" />Dự trù và báo cáo<span id="budget-report-unavailable" className="l-nav-note">chưa có</span>
             </button>
             {data ? (
               <Link className="l-nav" href={firstWaiting ? `/school/clubs/${firstWaiting.id}` : "/school"}>
@@ -64,7 +65,6 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
                   <strong>{person.name}</strong>
                   {person.staffTitle && <span className="l-who-title">{person.staffTitle}</span>}
                   <div className="l-who-links">
-                    {demo && <Link href="/">Đổi vai (bản demo)</Link>}
                     <button type="button" className="l-linkbtn" aria-busy={leaving || undefined} onClick={() => logout()}>Đăng xuất</button>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { ApiError, apiPost, setTabDemoUser } from "@/api/client";
 import { keys, useHealth } from "@/api/queries";
-import { useStore } from "@/lib/store";
+import { useStore } from "@/lib/browser-state";
 import { TodayLeaf } from "./Leaf";
 import { Loading, Skel } from "./motion";
 
@@ -54,7 +54,7 @@ export function useLogout() {
   return { logout, pending };
 }
 
-/** Bản demo còn trang chọn vai; bản đăng nhập Google thì không. */
+/** Máy chủ chạy bản demo (AUTH_MODE=demo): có tài khoản mẫu, nút đặt lại dữ liệu mẫu, phần thử của bản demo. */
 export function useDemoMode(): boolean {
   return useHealth().data?.authMode === "demo";
 }
@@ -98,11 +98,10 @@ const here = () => window.location.pathname + window.location.search;
 /** Lỗi khi tải dữ liệu của màn. Chưa đăng nhập thì chuyển sang trang đăng nhập, xong quay lại đúng trang này. */
 export function ErrorGate({ error, onRetry, inline = false, back }: {
   error: unknown; onRetry: () => void; inline?: boolean;
-  /** Lối về khi không tìm thấy hoặc không xem được, thay cho trang chọn vai, trang của tôi. Ví dụ "Về trang chủ CLB". */
+  /** Lối về khi không tìm thấy hoặc không xem được, thay cho trang của tôi. Ví dụ "Về trang chủ CLB". */
   back?: { href: string; label: string };
 }) {
   const router = useRouter();
-  const demo = useDemoMode();
   const { logout, pending: leaving } = useLogout();
   const status = error instanceof ApiError ? error.status : 0;
 
@@ -121,9 +120,8 @@ export function ErrorGate({ error, onRetry, inline = false, back }: {
     );
   }
 
-  // Lối về: trang chọn vai ở bản demo, trang của tôi ở bản thật. Là nút chính khi không có việc nào hợp hơn.
-  const home = (cls: string) => back ? <Link className={cls} href={back.href}>{back.label}</Link>
-    : demo ? <Link className={cls} href="/">Chọn vai khác (bản demo)</Link> : <Link className={cls} href="/me">Về trang của tôi</Link>;
+  // Lối về: trang được truyền vào, không có thì trang của tôi. Là nút chính khi không có việc nào hợp hơn.
+  const home = (cls: string) => back ? <Link className={cls} href={back.href}>{back.label}</Link> : <Link className={cls} href="/me">Về trang của tôi</Link>;
   const other = <button type="button" className="l-btn2" aria-busy={leaving || undefined} onClick={() => logout(here())}>Đăng nhập tài khoản khác</button>;
 
   if (error instanceof ApiError && error.code === "NOT_MEMBER") {

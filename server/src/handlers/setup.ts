@@ -9,7 +9,7 @@ import {
 import { conflict, HttpError, invalid, notFound } from "../errors.ts";
 import { addMembersBody, createClubBody, createCollectionBody, eventBody, parseBody, updateCollectionBody, updateMemberBody } from "../schemas.ts";
 import { randomToken } from "../sessions.ts";
-import { clubRef, collectionDto, collectionsRes, eventDto, memberRow } from "../views.ts";
+import { clubRef, collectionDto, collectionsRes, eventDto, memberRow } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys = "createClub" | "addMembers" | "updateMember" | "createEvent" | "updateEvent" | "deleteEvent" | "listCollections" | "createCollection" | "updateCollection";

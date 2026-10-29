@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Db } from "../src/db/client.ts";
+import { createDbAccounts } from "../src/db/accounts.ts";
 import { createDbSessions } from "../src/db/sessions.ts";
 import { createDbStore } from "../src/db/store.ts";
 import { createSeed, type AppState } from "../src/domain.ts";
@@ -66,15 +67,32 @@ test("làm việc qua API rồi khởi động lại máy chủ: dữ liệu cò
     await ok("POST", "/school/expenses/chi-3/approve", { as: "p-thu-trang", body: {} });
     await ok("POST", `${C}/budget/items`, { as: "a002", body: { name: "Mua lưới", planned: 1_500_000 } });
     await ok("POST", `${C}/budget/submit`, { as: "a002" });
+    await ok("POST", `${C}/handover-kit/documents`, { as: "a001", body: { name: "Mẫu thử", category: "other", link: "https://example.com/thu", holderId: "a003" } });
+    await ok("POST", `${C}/handover-kit/processes`, { as: "a001", body: { name: "Quy trình thử", steps: [{ text: "Một", who: "" }, { text: "Hai", who: "Thủ quỹ" }], leadDays: 3, documentIds: ["kit-de-xuat-chi"] } });
+    await ok("PUT", `${C}/handover-kit/accounts/kit-email`, { as: "a001", body: { service: "Email của CLB", label: "clb.caulong.mau@example.com", ownership: "club", required: true, holderId: "a003" } });
+    await ok("DELETE", `${C}/handover-kit/documents/kit-ke-hoach-ky`, { as: "a001" });
+    await ok("POST", `${C}/ai/ask`, { as: "a001", body: { question: "Xin phòng họp" } });
+    await ok("POST", `${C}/ai/summary`, { as: "a001" });
+    await ok("PUT", `${C}/handover/summary`, { as: "a001", body: { text: "Tóm tắt thử đã sửa tay" } });
     await ok("PUT", `${C}/handover/receiver`, { as: "a001", body: { personId: "a006", bank: "[Ngân hàng thử]", account: "0123456789" } });
+    await ok("POST", `${C}/handover/accounts/kit-fanpage/transfer`, { as: "a001", body: { holderId: "a017" } });
+    const task = (await ok("POST", `${C}/tasks`, { as: "a001", body: { title: "Việc lưu thử", assigneeId: "a005", due: "2026-10-30T23:59:00+07:00", processId: "kit-xin-phong" } })).body.task;
+    await ok("POST", `${C}/tasks/${task.id}/status`, { as: "a005", body: { status: "doing" } });
+    await ok("PUT", `${C}/handover/step`, { as: "a001", body: { step: 3 } });
+    await ok("POST", `${C}/handover/kit-review`, { as: "a001" });
     await ok("POST", `/me/clubs/${CLUB}/consents/phone/withdraw`, { as: "a017" });
     await ok("POST", `/me/clubs/${CLUB}/deletion-request`, { as: "a017" });
+    await ok("PUT", "/me/account", { as: "a018", body: { name: "Võ Hoàng Long", username: "hoang.long", password: "Cau-Long-2026" } });
     const login = await ok("POST", "/auth/dev-login", { body: { personId: "a002" } });
     const cookie = login.cookies.find((c) => c.startsWith("ch_session="))!;
 
     // "Khởi động lại": kho và phiên mới đọc từ cùng cơ sở dữ liệu.
     const again = await createDbStore(db);
     assert.deepEqual(plain(again.state), plain(srv.store.state));
+    // Tài khoản đặt mật khẩu còn sau khi khởi động lại; bảng chỉ có mã băm.
+    const accounts = await createDbAccounts(db);
+    assert.equal(accounts.get("a018")?.username, "hoang.long");
+    assert.match(accounts.get("a018")!.passwordHash!, /^scrypt\$/);
     const sessions = await createDbSessions(db, () => NOW);
     assert.equal(sessions.personId(cookie.slice("ch_session=".length)), "a002");
     // Bảng phiên chỉ có mã băm, không có cookie.

@@ -1,17 +1,57 @@
-// Thành viên trên điện thoại: trang Của tôi, lịch sử điểm danh, đóng quỹ, quét QR điểm danh.
+// Thành viên trên điện thoại: trang Của tôi, lịch sử điểm danh, đóng quỹ, quét QR điểm danh; tên tài khoản và mật khẩu của mình.
 
 import { findClub, requireMember } from "../access.ts";
-import { checkIn, reportTransfer, requestDeletion, withdrawPhoneConsent } from "../domain.ts";
-import { conflict, HttpError, notFound } from "../errors.ts";
+import { checkIn, displayNameError, normalizeUsername, passwordError, reportTransfer, requestDeletion, setPersonName, usernameError, withdrawPhoneConsent } from "../domain.ts";
+import { conflict, HttpError, invalid, notFound } from "../errors.ts";
+import { hashPassword, verifyPassword } from "../password.ts";
 import { verifyQrToken } from "../qr.ts";
-import { checkinBody, parseBody } from "../schemas.ts";
-import { attendanceDto, meRes, myAttendanceRes, myClubRes, myExportRes, myPaymentRes } from "../views.ts";
+import { checkinBody, parseBody, updateAccountBody } from "../schemas.ts";
+import { attendanceDto, meRes, myAttendanceRes, myClubRes, myExportRes, myPaymentRes } from "../responses.ts";
+import { lockedError } from "./auth.ts";
 import type { Handlers } from "./types.ts";
 
-type Keys = "getMe" | "getMyClub" | "getMyAttendance" | "withdrawPhoneConsent" | "requestDeletion" | "exportMyData" | "getMyPayment" | "reportTransfer" | "checkIn";
+type Keys = "getMe" | "updateAccount" | "getMyClub" | "getMyAttendance" | "withdrawPhoneConsent" | "requestDeletion" | "exportMyData" | "getMyPayment" | "reportTransfer" | "checkIn";
 
 export const meHandlers: Pick<Handlers, Keys> = {
-  getMe: (ctx) => meRes(ctx.state, ctx.me),
+  getMe: (ctx) => meRes(ctx.state, ctx.me, ctx.auth.accounts.get(ctx.me.id)),
+
+  /**
+   * Đặt hoặc đổi tên hiển thị, tên tài khoản, mật khẩu. Đã có mật khẩu thì phải nhập mật khẩu hiện tại,
+   * trừ khi vừa đăng nhập Google (cách lấy lại mật khẩu khi quên). Nhập sai mật khẩu hiện tại cũng tính vào lần sai.
+   */
+  updateAccount: async (ctx) => {
+    const body = parseBody(updateAccountBody, ctx.body);
+    const me = ctx.me;
+    const username = normalizeUsername(body.username);
+    const fields: Record<string, string> = {};
+    const nameError = displayNameError(body.name);
+    if (nameError) fields.name = nameError;
+    const userError = usernameError(body.username);
+    if (userError) fields.username = userError;
+    const pwError = passwordError(body.password, { username, email: me.email });
+    if (pwError) fields.password = pwError;
+    const first = Object.values(fields)[0];
+    if (first) throw invalid(first, { fields });
+    const taken = ctx.auth.accounts.byUsername(username);
+    if (taken && taken.personId !== me.id) {
+      const message = "Tên tài khoản này đã có người dùng. Chọn tên khác.";
+      throw new HttpError(409, "CONFLICT", message, { fields: { username: message } });
+    }
+    const account = ctx.auth.accounts.get(me.id);
+    if (account?.passwordHash && !ctx.auth.accounts.googleLoginRecent(me.id, ctx.now())) {
+      if (account.lockedUntil && account.lockedUntil > ctx.now()) throw lockedError(account.lockedUntil);
+      if (!body.currentPassword || !(await verifyPassword(body.currentPassword, account.passwordHash))) {
+        const after = ctx.auth.accounts.recordFailure(me.id, ctx.now());
+        if (after.lockedUntil && after.lockedUntil > ctx.now()) throw lockedError(after.lockedUntil);
+        const message = body.currentPassword ? "Mật khẩu hiện tại không đúng." : "Cần nhập mật khẩu hiện tại.";
+        throw invalid(message, { fields: { currentPassword: message } });
+      }
+    }
+    ctx.auth.accounts.setCredentials(me.id, username, await hashPassword(body.password));
+    if (body.name.trim() !== me.name) ctx.update(setPersonName(me.id, body.name));
+    const person = ctx.state.persons.find((p) => p.id === me.id) ?? me;
+    return meRes(ctx.state, person, ctx.auth.accounts.get(me.id));
+  },
 
   getMyClub: (ctx) => {
     const { club, ms } = requireMember(ctx.state, ctx.params.clubId, ctx.me);

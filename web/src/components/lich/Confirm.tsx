@@ -7,18 +7,20 @@
 import { AlertDialog as D } from "radix-ui";
 import { useRef, useState, type ReactNode } from "react";
 
-export function LichConfirm({ className, children, title, description, confirm, onConfirm, disabled, describedBy, focusAfter, busy = false }: {
+export function LichConfirm({ className, children, title, description, confirm, onConfirm, disabled, describedBy, focusAfter, busy = false, label }: {
   className: string; children: ReactNode; title: string; description: string; confirm: string; onConfirm: () => void;
   disabled?: boolean; describedBy?: string; focusAfter?: () => void;
   /** Đang gửi lên máy chủ: nút hiện vòng xoay và không mở lại hộp hỏi. */
   busy?: boolean;
+  /** Tên đầy đủ của nút cho trình đọc màn hình, khi nhiều nút cùng chữ (ví dụ "Xóa biểu mẫu Mẫu báo cáo"). Chữ đầu nên trùng chữ hiển thị. */
+  label?: string;
 }) {
   const [open, setOpen] = useState(false);
   const confirmed = useRef(false);
   return (
     <D.Root open={open} onOpenChange={(next) => { if (next && busy) return; if (next) confirmed.current = false; setOpen(next); }}>
       <D.Trigger asChild>
-        <button type="button" className={className} disabled={disabled} aria-describedby={describedBy} aria-busy={busy || undefined}>{children}</button>
+        <button type="button" className={className} disabled={disabled} aria-label={label} aria-describedby={describedBy} aria-busy={busy || undefined}>{children}</button>
       </D.Trigger>
       <D.Portal>
         <D.Overlay className="l-dialog-overlay" />

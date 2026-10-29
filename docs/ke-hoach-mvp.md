@@ -22,17 +22,22 @@
   - gửi email;
   - xử lý yêu cầu xóa dữ liệu.
 
+**Hướng dẫn của cô ngày 05/10/2026 (ảnh hưởng tới CP3; Hiệu chọn ghi lại, bàn sau khi nộp CP2 ngày 17 hoặc 18/10):**
+- Sản phẩm **phải tích hợp AI**; không có thì Checkpoint 3 tối đa 5 điểm. Cô chấm độ phức tạp: kéo AI về làm chatbot khác với dùng AI để đánh giá, mô phỏng. Kế hoạch này hiện chưa có tính năng AI nào (mục 2 ghi "không hứa có AI dự báo").
+- **Prototype và test với 20 người đúng persona** (focus group hoặc survey) thuộc CP3 phần 2, nộp **24–25/10**. Kế hoạch này đang coi MVP là Checkpoint 4 với lộ trình 10 tuần, nên phải đối chiếu lại mốc.
+- Cô hướng tới **MMP** (bản người dùng sẵn sàng trả tiền), không chỉ MVP. Công cụ cô gợi ý để làm nhanh prototype: Lovable, Google AI Studio.
+- Nguồn: `../CP2/Checkpoint2_Huong_dan.md` mục 7–8; `../CP2/Meeting Transcription.pdf` (phút 01:14–01:17).
+
 ## Tóm tắt
 
 Làm thật ngay phần cho **ban điều hành CLB**: thành viên, điểm danh, sổ quỹ (kèm thanh toán VietQR và đối soát sao kê), bàn giao.
 
 Phần cho **ban quản lý CLB của trường** chỉ làm bản mỏng. Nhà trường là bên trả tiền chính, nhưng các giả thuyết về phía trường (H9–H11) chưa hỏi được ai.
 
-Thứ tự 4 hạng mục:
+Thứ tự 3 hạng mục:
 1. Luồng theo vai trò: làm trước, vì nó quyết định màn hình và phân quyền.
 2. MVP lõi.
 3. Thanh toán: nằm trong phần sổ quỹ.
-4. Dự báo chi tiêu: làm cuối, vì cần sổ quỹ có dữ liệu thật.
 
 ## Vì sao làm phần lõi được ngay
 
@@ -49,7 +54,7 @@ Dữ liệu thật đầu tiên của Checkpoint 2 (mẫu còn nhỏ, chi tiết
 
 ## Lộ trình 10 tuần
 
-Khớp mốc ở Checkpoint 1: tuần 1–6 làm MVP, tuần 7–10 chạy pilot. Tuần 1 là tuần bắt đầu code; khi chốt hạn nộp Checkpoint 3 thì đổi sang ngày cụ thể.
+Khớp mốc ở Checkpoint 1: tuần 1–6 làm MVP, tuần 7–10 chạy pilot. Tuần 1 là tuần bắt đầu code; khi chốt hạn nộp Checkpoint 4 (nộp MVP) thì đổi sang ngày cụ thể.
 
 | Tuần | Làm gì | Ai làm chính | Xong khi |
 |---|---|---|---|
@@ -72,7 +77,7 @@ Từ tuần 1, Nghĩa và Khang bắt đầu tìm CLB pilot. Đã có hai ngư�
 - Điểm danh sự kiện cấp trường (FPT đã có hệ thống điểm trải nghiệm).
 - App cài đặt.
 
-## 2. Dự báo chi tiêu: trong MVP là "dự trù kinh phí theo kỳ"
+## 2. Dự trù kinh phí theo kỳ (tính năng cho CLB)
 
 - CLB nhập các hoạt động dự kiến trong kỳ. Mỗi hoạt động có số tiền dự trù và nguồn tiền: quỹ thành viên, trường hỗ trợ hoặc tài trợ.
 - Số dư cuối kỳ dự kiến = số dư hiện tại + tiền thu dự kiến từ các đợt thu đang mở + hỗ trợ dự kiến − phần dự trù chưa chi. Không trừ tổng dự trù: tiền đã chi đã nằm trong số dư hiện tại, trừ tổng là trừ hai lần. Nếu ra số âm thì báo cho ban điều hành.
@@ -111,7 +116,7 @@ Từ tuần 1, Nghĩa và Khang bắt đầu tìm CLB pilot. Đã có hai ngư�
 
 ## Chưa chốt
 
-- Hạn nộp Checkpoint 3 và tuần bắt đầu code.
+- Hạn nộp Checkpoint 4 (MVP) và tuần bắt đầu code.
 - Stack phía máy chủ: khung server đã làm bằng Node.js + Express như CP1; còn chốt cơ sở dữ liệu (PostgreSQL theo CP1) và cách đăng nhập. Frontend đã làm bằng Next.js, khớp CP1.
 - Hợp đồng API (`docs/api.md`): duyệt bản nháp v0 rồi đổi thành v1.
 - "Khách hàng, staff, quản lý" có đúng như bảng ở mục 4 không.

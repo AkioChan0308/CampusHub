@@ -9,7 +9,7 @@ import {
 } from "../domain.ts";
 import { conflict, HttpError, invalid, notFound } from "../errors.ts";
 import { addBudgetItemBody, approveBody, createExpenseBody, parseBody, recordPaymentBody, rejectBody, resolveTxnBody, uploadStatementBody } from "../schemas.ts";
-import { budgetRes, collectionRes, expenseDto, paymentRowDto, reconciliationRes, reconRow } from "../views.ts";
+import { budgetRes, collectionRes, expenseDto, paymentRowDto, reconciliationRes, reconRow } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
 type Keys =

@@ -20,3 +20,4 @@ export const forbidden = (message: string) => new HttpError(403, "FORBIDDEN", me
 export const notFound = (message: string) => new HttpError(404, "NOT_FOUND", message);
 export const invalid = (message: string, details?: Record<string, unknown>) => new HttpError(400, "VALIDATION", message, details);
 export const conflict = (message: string) => new HttpError(409, "CONFLICT", message);
+export const tooManyAttempts = (message: string, until: string) => new HttpError(429, "TOO_MANY_ATTEMPTS", message, { until });

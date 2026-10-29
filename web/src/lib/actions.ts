@@ -3,8 +3,9 @@
 // Khi có backend, mỗi hàm ở đây ứng với một lời gọi API.
 
 import { classify, type MemberRef } from "./reconcile.ts";
-import { MENTOR_THRESHOLD, openCollections, personName } from "./selectors.ts";
-import type { AppState, BudgetItem, Club, ClubEvent, Collection, ExpenseRequest, Payment, Person, Role, Statement, StatementTxn } from "./types.ts";
+import { money } from "./format.ts";
+import { balance, kitSummary, MENTOR_THRESHOLD, openCollections, personName } from "./selectors.ts";
+import { TASK_STATUS_LABEL, type AppState, type BudgetItem, type Club, type ClubEvent, type ClubTask, type Collection, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type NewBoard, type Payment, type Person, type Role, type Statement, type StatementTxn, type TaskStatus } from "./types.ts";
 
 export type Update = (s: AppState) => AppState;
 
@@ -15,6 +16,12 @@ export function uid(prefix: string): string {
 }
 
 export const setPersona = (personId: string | null): Update => (s) => ({ ...s, persona: personId });
+
+/** Đổi tên hiển thị của một người (màn "Đặt tên tài khoản và mật khẩu"). Tên đã kiểm ở nơi gọi (displayNameError). */
+export const setPersonName = (personId: string, name: string): Update => (s) => ({
+  ...s,
+  persons: s.persons.map((p) => (p.id === personId ? { ...p, name: name.trim() } : p)),
+});
 
 // ---------- Thành viên, đơn xin vào, lời mời ----------
 
@@ -273,17 +280,119 @@ export const submitBudget = (clubId: string, term: string, at: string): Update =
   budgets: s.budgets.map((b) => (b.clubId === clubId && b.term === term ? { ...b, submittedAt: at } : b)),
 });
 
-// ---------- Bàn giao ----------
+// ---------- Bàn giao: 7 bước ----------
+// Mỗi bước chỉ làm được khi bàn giao đang đúng ở bước đó (nơi gọi kiểm tra), làm xong thì sang bước kế và ghi vào biên bản (history).
 
-export const saveHandoverAccount = (clubId: string, newReceiver: { personId: string; bank: string; account: string }, transferRef: string): Update => (s) => ({
+type HandoverChange = (h: Handover, s: AppState) => Partial<Handover>;
+
+const stepTo = (clubId: string, to: number, by: string, at: string, text: string | ((s: AppState) => string), change: HandoverChange = () => ({})): Update => (s) => ({
   ...s,
-  handovers: s.handovers.map((h) => (h.clubId === clubId ? { ...h, newReceiver, transferRef, step: Math.max(h.step, 4) } : h)),
+  handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : { ...h, ...change(h, s), step: to, history: [...h.history, { at, by, text: typeof text === "function" ? text(s) : text }] })),
 });
 
-export const setHandoverStep = (clubId: string, step: number): Update => (s) => ({
+/** Bước 1: chọn ban mới. */
+export const saveHandoverBoard = (clubId: string, board: NewBoard, by: string, at: string): Update =>
+  stepTo(clubId, 2, by, at, (s) => `chọn ban mới: chủ nhiệm ${personName(s, board.president)}`, () => ({ newBoard: board }));
+
+/** Bước 2: chốt số dư bằng số dư sổ quỹ lúc bấm. Sổ quỹ chỉ được thêm bút toán, nên số này không bị sửa lùi. */
+export const lockHandoverBalance = (clubId: string, by: string, at: string): Update =>
+  stepTo(clubId, 3, by, at, (s) => `chốt số dư ${money(balance(s, clubId))}`, (_h, s) => ({ lockedBalance: balance(s, clubId), lockedAt: at }));
+
+/** Bước 3: đã xem kho bàn giao. Không chặn nếu còn thiếu, chỉ ghi lại thiếu bao nhiêu. */
+export const reviewHandoverKit = (clubId: string, by: string, at: string): Update =>
+  stepTo(clubId, 4, by, at, (s) => {
+    const k = kitSummary(s, clubId);
+    return `kiểm tra kho bàn giao: ${k.documents} biểu mẫu, ${k.processes} quy trình, ${k.accounts} tài khoản, ${k.missing} mục thiếu`;
+  });
+
+/** Bước 4: tài khoản nhận quỹ mới. */
+export const saveHandoverAccount = (clubId: string, newReceiver: { personId: string; bank: string; account: string }, transferRef: string, by: string, at: string): Update =>
+  stepTo(clubId, 5, by, at, (s) => `đổi tài khoản nhận quỹ sang ${personName(s, newReceiver.personId)} (${newReceiver.bank})`, () => ({ newReceiver, transferRef }));
+
+/** Bước 5, từng dòng: người nhận mới giữ quyền quản trị của tài khoản. Việc đổi quyền làm ở chính dịch vụ; ở đây chỉ ghi lại. */
+export const transferHandoverAccount = (clubId: string, accountId: string, holderId: string, by: string, at: string): Update => (s) => {
+  const account = s.kitAccounts.find((a) => a.id === accountId);
+  if (!account) return s;
+  return {
+    ...s,
+    kitAccounts: s.kitAccounts.map((a) => (a.id === accountId ? { ...a, holderId, updatedAt: at } : a)),
+    handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : {
+      ...h,
+      transferred: h.transferred.includes(accountId) ? h.transferred : [...h.transferred, accountId],
+      history: [...h.history, { at, by, text: `chuyển quyền quản trị ${account.service} cho ${personName(s, holderId)}` }],
+    })),
+  };
+};
+
+export const finishHandoverTransfer = (clubId: string, by: string, at: string): Update => stepTo(clubId, 6, by, at, "chuyển xong quyền quản trị các tài khoản bắt buộc");
+
+/** Bước 6: chủ nhiệm mới xác nhận đã nhận. Sau đó biên bản không sửa được. */
+export const acceptHandover = (clubId: string, by: string, at: string): Update =>
+  stepTo(clubId, 7, by, at, (s) => `${personName(s, by)} xác nhận đã nhận bàn giao`, () => ({ acceptedAt: at, acceptedBy: by }));
+
+/** Quay lại bước trước (chỉ chủ nhiệm cũ, và chỉ khi ban mới chưa xác nhận). */
+export const setHandoverStep = (clubId: string, step: number, by: string, at: string): Update => stepTo(clubId, step, by, at, `quay lại bước ${step}`);
+
+/** Lưu bản tóm tắt vào biên bản (không đổi bước). Ghi ai lưu, lúc nào. */
+export const saveHandoverSummary = (clubId: string, text: string, mock: boolean, by: string, at: string): Update => (s) => ({
   ...s,
-  handovers: s.handovers.map((h) => (h.clubId === clubId ? { ...h, step } : h)),
+  handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : {
+    ...h, summary: { text, by, at, mock },
+    history: [...h.history, { at, by, text: `lưu bản tóm tắt cho ban mới vào biên bản${mock ? " (bản mẫu, chưa dùng AI thật)" : ""}` }],
+  })),
 });
+
+/** Ghi một lượt dùng trợ lý của CLB trong học kỳ. */
+export const countAiUse = (clubId: string, term: string, kind: "asks" | "summaries"): Update => (s) => {
+  const has = s.aiUsage.some((u) => u.clubId === clubId && u.term === term);
+  return {
+    ...s,
+    aiUsage: has
+      ? s.aiUsage.map((u) => (u.clubId === clubId && u.term === term ? { ...u, [kind]: u[kind] + 1 } : u))
+      : [...s.aiUsage, { clubId, term, asks: kind === "asks" ? 1 : 0, summaries: kind === "summaries" ? 1 : 0 }],
+  };
+};
+
+// ---------- Việc cần làm ----------
+
+export const createTask = (t: Omit<ClubTask, "status" | "history">): Update => (s) => ({
+  ...s,
+  tasks: [...s.tasks, { ...t, status: "todo", history: [{ at: t.createdAt, by: t.createdBy, text: `tạo việc, giao cho ${personName(s, t.assigneeId)}` }] }],
+});
+
+/** Sửa tên, người phụ trách, hạn. Đổi người phụ trách thì ghi "giao lại". */
+export const updateTask = (id: string, change: { title: string; assigneeId: string; due: string; eventId?: string; processId?: string }, by: string, at: string): Update => (s) => ({
+  ...s,
+  tasks: s.tasks.map((t) => {
+    if (t.id !== id) return t;
+    const { eventId: _e, processId: _p, ...rest } = t;
+    const note = change.assigneeId !== t.assigneeId ? `giao lại cho ${personName(s, change.assigneeId)}` : "sửa việc";
+    return { ...rest, ...change, history: [...t.history, { at, by, text: note }] };
+  }),
+});
+
+export const setTaskStatus = (id: string, status: TaskStatus, by: string, at: string): Update => (s) => ({
+  ...s,
+  tasks: s.tasks.map((t) => (t.id === id && t.status !== status ? { ...t, status, history: [...t.history, { at, by, text: `đổi trạng thái: ${TASK_STATUS_LABEL[status].toLowerCase()}` }] } : t)),
+});
+
+// ---------- Kho bàn giao: biểu mẫu, quy trình, tài khoản ----------
+
+/** Thêm mới, hoặc sửa nếu mã đã có. Nơi gọi đã kiểm tra dữ liệu và quyền. */
+const upsert = <T extends { id: string }>(list: T[], item: T): T[] => (list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [...list, item]);
+
+export const saveKitDocument = (d: KitDocument): Update => (s) => ({ ...s, kitDocuments: upsert(s.kitDocuments, d) });
+export const saveKitProcess = (p: KitProcess): Update => (s) => ({ ...s, kitProcesses: upsert(s.kitProcesses, p) });
+export const saveKitAccount = (a: KitAccount): Update => (s) => ({ ...s, kitAccounts: upsert(s.kitAccounts, a) });
+
+/** Xóa một biểu mẫu, và gỡ nó khỏi các quy trình đang dùng. */
+export const removeKitDocument = (id: string): Update => (s) => ({
+  ...s,
+  kitDocuments: s.kitDocuments.filter((d) => d.id !== id),
+  kitProcesses: s.kitProcesses.map((p) => (p.documentIds.includes(id) ? { ...p, documentIds: p.documentIds.filter((x) => x !== id) } : p)),
+});
+export const removeKitProcess = (id: string): Update => (s) => ({ ...s, kitProcesses: s.kitProcesses.filter((p) => p.id !== id) });
+export const removeKitAccount = (id: string): Update => (s) => ({ ...s, kitAccounts: s.kitAccounts.filter((a) => a.id !== id) });
 
 // ---------- Tạo dữ liệu từ đầu: CLB, thành viên, buổi, đợt thu (04/10/2026, mô tả được Hiệu duyệt) ----------
 

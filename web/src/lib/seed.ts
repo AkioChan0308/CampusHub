@@ -4,10 +4,10 @@
 import { classify, type MemberRef } from "./reconcile.ts";
 import { toAsciiUpper } from "./text.ts";
 import type {
-  AppState, Attendance, Club, ClubEvent, Consent, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
+  AppState, Attendance, Club, ClubEvent, ClubTask, Consent, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
 } from "./types.ts";
 
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 5;
 export const DEMO_CLUB_ID = "cau-long-san-nha";
 export const DEMO_COLLECTION_ID = "quy-fall-2026";
 export const DEMO_TERM = "Fall 2026";
@@ -75,6 +75,84 @@ const SESSIONS: [string, string][] = [
   ["tuan-3", "2026-09-19"],
   ["tuan-4", "2026-09-26"],
   ["tuan-5", "2026-10-03"],
+];
+
+// Kho bàn giao mẫu của CLB mẫu. Đường link dùng tên miền example.com (dành riêng cho ví dụ); không có mật khẩu nào.
+const KIT_DOCUMENTS: KitDocument[] = [
+  { id: "kit-mau-xin-phep", clubId: DEMO_CLUB_ID, name: "Mẫu xin phép tổ chức sự kiện", category: "permit", link: "https://example.com/mau-xin-phep-su-kien", holderId: "a001", updatedAt: "2026-08-20T09:00:00+07:00" },
+  { id: "kit-bao-cao-cuoi-ky", clubId: DEMO_CLUB_ID, name: "Mẫu báo cáo cuối kỳ", category: "permit", link: "https://example.com/mau-bao-cao-cuoi-ky", holderId: "a001", updatedAt: "2026-06-15T09:00:00+07:00" },
+  { id: "kit-de-xuat-chi", clubId: DEMO_CLUB_ID, name: "Mẫu đề xuất chi", category: "finance", link: "https://example.com/mau-de-xuat-chi", holderId: "a002", updatedAt: "2026-09-01T09:00:00+07:00" },
+  { id: "kit-dang-ky-thanh-vien", clubId: DEMO_CLUB_ID, name: "Đơn đăng ký thành viên", category: "other", link: "https://example.com/don-dang-ky-thanh-vien", holderId: "a003", updatedAt: "2026-08-25T09:00:00+07:00" },
+  { id: "kit-ke-hoach-ky", clubId: DEMO_CLUB_ID, name: "Kế hoạch học kỳ (mẫu)", category: "other", link: "https://example.com/ke-hoach-hoc-ky", holderId: "a003", updatedAt: "2026-08-25T09:00:00+07:00" },
+];
+
+const KIT_PROCESSES: KitProcess[] = [
+  {
+    id: "kit-xin-phong", clubId: DEMO_CLUB_ID, name: "Xin phòng họp", leadDays: 3, documentIds: [], updatedAt: "2026-08-20T09:00:00+07:00",
+    steps: [
+      { text: "Chọn ngày giờ và số người dự kiến", who: "Trưởng ban Hậu cần" },
+      { text: "Gửi yêu cầu cho phòng quản lý CLB qua email của CLB", who: "Phó chủ nhiệm" },
+      { text: "Chờ phòng xác nhận, thường trong 2 ngày làm việc", who: "Phó chủ nhiệm" },
+      { text: "Báo lại cho nhóm Zalo của CLB", who: "Trưởng ban Truyền thông" },
+    ],
+  },
+  {
+    id: "kit-xin-phep-su-kien", clubId: DEMO_CLUB_ID, name: "Xin phép tổ chức sự kiện", leadDays: 7, documentIds: ["kit-mau-xin-phep", "kit-de-xuat-chi"], updatedAt: "2026-08-20T09:00:00+07:00",
+    steps: [
+      { text: "Viết kế hoạch sự kiện theo mẫu xin phép", who: "Chủ nhiệm" },
+      { text: "Mentor ký xác nhận", who: "Chủ nhiệm" },
+      { text: "Nộp cho phòng quản lý CLB", who: "Phó chủ nhiệm" },
+      { text: "Nhận kết quả và gửi bản sao cho thủ quỹ", who: "Phó chủ nhiệm" },
+      { text: "Đặt sân, đặt đồ theo kế hoạch đã duyệt", who: "Trưởng ban Hậu cần" },
+    ],
+  },
+  {
+    id: "kit-bao-cao-ky", clubId: DEMO_CLUB_ID, name: "Báo cáo cuối kỳ cho phòng quản lý CLB", leadDays: 14, documentIds: ["kit-bao-cao-cuoi-ky"], updatedAt: "2026-06-15T09:00:00+07:00",
+    steps: [
+      { text: "Gom số buổi sinh hoạt và điểm danh trong kỳ", who: "Chủ nhiệm" },
+      { text: "Gom thu chi từ sổ quỹ", who: "Thủ quỹ" },
+      { text: "Điền mẫu báo cáo và nộp trước hạn của phòng", who: "Chủ nhiệm" },
+    ],
+  },
+];
+
+const KIT_ACCOUNTS: KitAccount[] = [
+  { id: "kit-fanpage", clubId: DEMO_CLUB_ID, service: "Fanpage Facebook", label: "https://example.com/fanpage-clb", holderId: "a001", ownership: "personal", required: true, updatedAt: "2026-09-01T09:00:00+07:00" },
+  { id: "kit-zalo", clubId: DEMO_CLUB_ID, service: "Nhóm Zalo của CLB", label: "Nhóm chung của CLB", holderId: "a003", ownership: "club", required: false, updatedAt: "2026-09-01T09:00:00+07:00" },
+  { id: "kit-drive", clubId: DEMO_CLUB_ID, service: "Google Drive", label: "https://example.com/drive-clb", holderId: "a001", ownership: "personal", required: true, updatedAt: "2026-09-01T09:00:00+07:00" },
+  { id: "kit-email", clubId: DEMO_CLUB_ID, service: "Email của CLB", label: "clb.caulong.mau@example.com", ownership: "club", required: true, updatedAt: "2026-09-01T09:00:00+07:00" },
+  { id: "kit-ngan-hang", clubId: DEMO_CLUB_ID, service: "Tài khoản ngân hàng nhận quỹ", label: "Tài khoản nhận quỹ kỳ Fall 2026", holderId: "a002", ownership: "personal", required: true, updatedAt: "2026-09-01T09:00:00+07:00" },
+];
+
+// Việc cần làm mẫu của CLB mẫu. Hạn đặt quanh ngày 22/10/2026 để có việc quá hạn khi xem demo; test dùng đồng hồ riêng.
+const TASKS: ClubTask[] = [
+  {
+    id: "viec-dat-san", clubId: DEMO_CLUB_ID, title: "Đặt sân buổi giao lưu thứ Bảy", assigneeId: "a005", due: "2026-10-24T23:59:00+07:00", status: "doing", eventId: "giai-noi-bo",
+    createdBy: "a001", createdAt: "2026-10-12T09:00:00+07:00",
+    history: [{ at: "2026-10-12T09:00:00+07:00", by: "a001", text: "tạo việc, giao cho Trần Gia Huy" }, { at: "2026-10-14T20:00:00+07:00", by: "a005", text: "đổi trạng thái: đang làm" }],
+  },
+  {
+    id: "viec-bao-cao", clubId: DEMO_CLUB_ID, title: "Gửi báo cáo giữa kỳ cho phòng quản lý CLB", assigneeId: "a001", due: "2026-10-15T23:59:00+07:00", status: "todo", processId: "kit-bao-cao-ky",
+    createdBy: "a001", createdAt: "2026-10-05T09:00:00+07:00", history: [{ at: "2026-10-05T09:00:00+07:00", by: "a001", text: "tạo việc, giao cho Phạm Quốc Bảo" }],
+  },
+  {
+    id: "viec-ao", clubId: DEMO_CLUB_ID, title: "Chốt mẫu và số lượng áo đồng phục", assigneeId: "a006", due: "2026-11-05T23:59:00+07:00", status: "todo",
+    createdBy: "a003", createdAt: "2026-10-16T10:00:00+07:00", history: [{ at: "2026-10-16T10:00:00+07:00", by: "a003", text: "tạo việc, giao cho Võ Ngọc Lan" }],
+  },
+  {
+    id: "viec-bai-tuyen", clubId: DEMO_CLUB_ID, title: "Đăng bài tuyển thành viên kỳ Spring 2027", assigneeId: "a007", due: "2026-10-18T23:59:00+07:00", status: "doing",
+    createdBy: "a001", createdAt: "2026-10-08T09:00:00+07:00",
+    history: [{ at: "2026-10-08T09:00:00+07:00", by: "a001", text: "tạo việc, giao cho Nguyễn Hải Đăng" }, { at: "2026-10-10T21:00:00+07:00", by: "a007", text: "đổi trạng thái: đang làm" }],
+  },
+  {
+    id: "viec-danh-sach-giai", clubId: DEMO_CLUB_ID, title: "Chốt danh sách thi đấu giải nội bộ", assigneeId: "a003", due: "2026-10-12T23:59:00+07:00", status: "done", eventId: "giai-noi-bo",
+    createdBy: "a001", createdAt: "2026-10-02T09:00:00+07:00",
+    history: [{ at: "2026-10-02T09:00:00+07:00", by: "a001", text: "tạo việc, giao cho Đinh Công Minh" }, { at: "2026-10-11T18:30:00+07:00", by: "a003", text: "đổi trạng thái: xong" }],
+  },
+  {
+    id: "viec-mua-nuoc", clubId: DEMO_CLUB_ID, title: "Mua nước uống cho giải nội bộ", assigneeId: "a017", due: "2026-10-17T23:59:00+07:00", status: "todo", eventId: "giai-noi-bo",
+    createdBy: "a005", createdAt: "2026-10-13T19:00:00+07:00", history: [{ at: "2026-10-13T19:00:00+07:00", by: "a005", text: "tạo việc, giao cho Nguyễn Minh Anh" }],
+  },
 ];
 
 export function createSeed(): AppState {
@@ -230,8 +308,22 @@ export function createSeed(): AppState {
       { clubId: DEMO_CLUB_ID, term: DEMO_TERM, submittedAt: "2026-09-30T20:00:00+07:00", support: { amount: 1_000_000, purpose: "Giải nội bộ Fall 2026 (18/10/2026), mở cho cả sinh viên ngoài CLB", status: "pending" } },
     ],
     handovers: [
-      { clubId: DEMO_CLUB_ID, fromTerm: DEMO_TERM, toTerm: "Spring 2027", step: 3, lockedBalance: 3_120_000, newReceiver: { personId: "a006", bank: "", account: "" } },
+      {
+        clubId: DEMO_CLUB_ID, fromTerm: DEMO_TERM, toTerm: "Spring 2027", step: 4, lockedBalance: 3_120_000, lockedAt: "2026-10-10T20:00:00+07:00",
+        newBoard: { president: "a017", vice: "a003", treasurer: "a006", heads: ["a005", "a008"] },
+        newReceiver: { personId: "a006", bank: "", account: "" }, transferred: [],
+        history: [
+          { at: "2026-10-10T19:40:00+07:00", by: "a001", text: "chọn ban mới: chủ nhiệm Nguyễn Minh Anh" },
+          { at: "2026-10-10T20:00:00+07:00", by: "a001", text: "chốt số dư 3.120.000 ₫" },
+          { at: "2026-10-10T20:05:00+07:00", by: "a001", text: "kiểm tra kho bàn giao: 5 biểu mẫu, 3 quy trình, 5 tài khoản, 1 mục thiếu" },
+        ],
+      },
     ],
+    kitDocuments: KIT_DOCUMENTS,
+    kitProcesses: KIT_PROCESSES,
+    kitAccounts: KIT_ACCOUNTS,
+    tasks: TASKS,
+    aiUsage: [],
     consents,
   };
 }

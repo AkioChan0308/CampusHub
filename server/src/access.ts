@@ -19,6 +19,18 @@ export function requireBoard(s: AppState, clubId: string, me: Person): { club: C
   return { club, ms };
 }
 
+/**
+ * Ban điều hành, hoặc người được chọn làm chủ nhiệm mới trong bàn giao (đã nhận lời mời, kể cả khi đang là thành viên thường).
+ * Chủ nhiệm mới cần xem trang Bàn giao để xác nhận ở bước 6, nên chỉ trang này và khung của nó mở cho họ.
+ */
+export function requireBoardOrIncoming(s: AppState, clubId: string, me: Person): { club: Club; ms: Membership } {
+  const club = findClub(s, clubId);
+  const ms = membershipOf(s, clubId, me.id);
+  const incoming = s.handovers.some((h) => h.clubId === clubId && h.newBoard?.president === me.id);
+  if (ms && ms.invite === "accepted" && incoming) return { club, ms };
+  return requireBoard(s, clubId, me);
+}
+
 /** Vai trò phải có quyền làm việc này (bảng quyền ở web/src/lib/selectors.ts). */
 export function requireRight(ms: Membership, right: Right): void {
   if (!can(ms.role, right)) throw forbidden(RIGHT_LABEL[right]);
