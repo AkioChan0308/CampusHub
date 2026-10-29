@@ -12,14 +12,14 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import { toast } from "sonner";
 import type { ApplicationRes, ApplyBody, ClubCardDto, MeRes } from "@contract";
 import { ApiError, apiPost } from "@/api/client";
-import { errorText, keys, useClubCard, useMe } from "@/api/queries";
+import { errorText, keys, useClubCard, useFeed, useMe } from "@/api/queries";
 import { ChatButton } from "@/components/lich/ChatBubble";
 import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { PostRow } from "@/components/lich/Post";
-import { sampleAbout, samplePosts } from "@/lib/feed-sample";
+import { sampleAbout } from "@/lib/feed-sample";
 import { dm } from "@/lib/format";
 import { ClubTag } from "../application-status";
 
@@ -205,9 +205,10 @@ function ApplyForm({ club, me, onSent }: { club: ClubCardDto; me: MeRes; onSent:
   );
 }
 
-/** Tin gần đây của CLB (DỮ LIỆU MẪU, lib/feed-sample.ts) và lối liên hệ qua Zalo, Facebook (CLB tự dán link ở phần giới thiệu, chưa làm). */
+/** Tin gần đây của CLB (chỉ tin đã được trường duyệt, lấy từ GET /feed) và lối liên hệ qua Zalo, Facebook (CLB tự dán link ở phần giới thiệu, chưa làm). */
 function ClubPosts({ clubId }: { clubId: string }) {
-  const posts = useMemo(() => samplePosts().filter((p) => p.clubId === clubId).slice(0, 3), [clubId]);
+  const feed = useFeed();
+  const posts = useMemo(() => (feed.data?.posts ?? []).filter((p) => p.club.id === clubId && p.status === "approved").slice(0, 3), [feed.data, clubId]);
   return (
     <>
       <section className="l-pay-card" aria-labelledby="club-contact">

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useRef, useState, type ReactNode, type RefObject } from "react";
 import { toast } from "sonner";
-import type { ExpenseRes, SchoolClubRes, SchoolClubRowDto } from "@contract";
+import type { ExpenseRes, SchoolClubRes, SchoolClubRowDto, SchoolHandoverDto, SchoolHandoverRes } from "@contract";
 import { apiPost } from "@/api/client";
 import { schoolBudgetRows } from "@/api/excel-rows";
 import { errorText, keys, useSchoolClub, useSchoolClubs } from "@/api/queries";
@@ -22,7 +22,7 @@ import { LeafSkel, LichPage, LinkIcon, Loading, Reveal, SkelLine, useSawPending 
 import { ColGroup, PageTop, TableSkeleton } from "@/components/lich/PageTop";
 import { SchoolFrame } from "@/components/lich/SchoolFrame";
 import { downloadCsv } from "@/lib/csv";
-import { dm, dmy, longDate, money, num } from "@/lib/format";
+import { dm, dmy, hm, longDate, money, num } from "@/lib/format";
 import { MENTOR_THRESHOLD } from "@/lib/selectors";
 
 type Detail = NonNullable<SchoolClubRes["detail"]>;
@@ -224,7 +224,7 @@ function DetailBody({ data, detail, fade }: { data: SchoolClubRes; detail: Detai
                 {/* Dữ liệu chưa có tháng bắt đầu nhiệm kỳ, nên ghi theo học kỳ. */}
                 <div className="l-dl-row"><dt>Ban hiện tại</dt><dd>{`Từ ${club.term}, chủ nhiệm ${club.president?.name ?? "chưa có"}`}</dd></div>
                 {/* Chưa có lần bàn giao nào đã xong (tháng, biên bản như bản vẽ); lần đang làm thì ghi kèm. */}
-                <div className="l-dl-row"><dt>Bàn giao gần nhất</dt><dd>{`chưa có${detail.handover ? ` · đang bàn giao sang ${detail.handover.toTerm}` : ""}`}</dd></div>
+                <HandoverRow clubId={data.club.id} handover={detail.handover} />
               </dl>
             </div>
           </section>
@@ -240,6 +240,39 @@ function WaitingHead() {
 }
 
 /** "Xem đề nghị" chưa làm: nút xám kèm chữ "chưa có" (như "Xem và sửa thông tin" ở Của tôi). */
+/**
+ * Bàn giao của CLB nhìn từ phía trường. Ban mới xác nhận xong thì mentor xác nhận biên bản (POST /school/clubs/:clubId/handover/confirm, một lần);
+ * trước đó chỉ báo đang ở bước nào.
+ */
+function HandoverRow({ clubId, handover }: { clubId: string; handover?: SchoolHandoverDto }) {
+  const client = useQueryClient();
+  const confirm = useMutation({
+    mutationFn: () => apiPost<SchoolHandoverRes>(`/school/clubs/${clubId}/handover/confirm`),
+    onSuccess: async () => {
+      await Promise.all([client.invalidateQueries({ queryKey: keys.schoolClub(clubId) }), client.invalidateQueries({ queryKey: keys.school })]);
+      toast.success("Đã xác nhận biên bản bàn giao.");
+    },
+    onError: (e) => { toast.error(errorText(e)); void client.invalidateQueries({ queryKey: keys.schoolClub(clubId) }); },
+  });
+  if (!handover) return <div className="l-dl-row"><dt>Bàn giao gần nhất</dt><dd>chưa có</dd></div>;
+  const done = handover.mentorConfirmed;
+  return (
+    <div className="l-dl-row">
+      <dt>Bàn giao sang {handover.toTerm}</dt>
+      <dd>
+        {done ? `Biên bản đã xác nhận bởi ${done.by.name}, ${hm(done.at)} ${dmy(done.at)}`
+          : handover.accepted ? "Ban mới đã xác nhận nhận bàn giao. Chờ mentor xác nhận biên bản."
+          : `Đang bàn giao, ở bước ${handover.step} trên 7. Mentor xác nhận biên bản sau khi ban mới nhận.`}
+        {handover.accepted && !done && (
+          <span className="l-inline-act">
+            <button type="button" className="l-btn l-sm" aria-busy={confirm.isPending || undefined} onClick={() => { if (!confirm.isPending) confirm.mutate(); }}>Xác nhận biên bản</button>
+          </span>
+        )}
+      </dd>
+    </div>
+  );
+}
+
 function SupportAction({ inert = false }: { inert?: boolean }) {
   if (inert) return <span className="l-inline-act l-inert"><span className="l-btn2 l-sm" aria-disabled="true">Xem đề nghị</span><span className="l-note">chưa có</span></span>;
   return (

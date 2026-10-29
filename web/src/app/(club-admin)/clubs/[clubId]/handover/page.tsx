@@ -568,7 +568,7 @@ function RecordStep({ data }: { data: HandoverRes }) {
     ["Ban mới", b ? [`Chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length && `trưởng ban ${b.heads.map((h) => h.name).join(", ")}`].filter(Boolean).join("; ") : "Chưa chọn"],
     ["Số dư đã chốt", money(data.lockedBalance)],
     ["Tài khoản nhận quỹ mới", data.newReceiver ? `${data.newReceiver.name} · ${data.newReceiver.bank} · •••• ${data.newReceiver.accountLast4}` : "Chưa có"],
-    ["Mentor", data.mentor ? `${data.mentor} · chưa xác nhận trên CampusHub` : "CLB chưa có mentor"],
+    ["Mentor", data.mentorConfirmed ? `${data.mentorConfirmed.by.name} (mentor) đã xác nhận, ${hm(data.mentorConfirmed.at)} ${dmy(data.mentorConfirmed.at)}` : data.mentor ? `${data.mentor} · chưa xác nhận trên CampusHub` : "CLB chưa có mentor"],
     ["Ban mới xác nhận", data.acceptedAt && data.acceptedBy ? `${data.acceptedBy.name}, ${hm(data.acceptedAt)} ${dmy(data.acceptedAt)}` : "Chưa xác nhận"],
   ];
   const exportRecord = () => downloadCsv(`bien-ban-ban-giao-${club.id}.csv`, [["Biên bản bàn giao"], ...lines.map(([k, v]) => [k, v]), [], ["Thời điểm", "Người làm", "Việc đã làm"], ...data.history.map((h) => [`${hm(h.at)} ${dmy(h.at)}`, h.by.name, h.text])]);

@@ -7,6 +7,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useMe, useMyClub } from "@/api/queries";
+import { useActiveMembership } from "@/api/active-club";
 import { ErrorGate } from "@/components/lich/Gate";
 import { LichPage, Reveal, useSawPending } from "@/components/lich/motion";
 import { NoClubGate } from "@/components/lich/NoClub";
@@ -16,7 +17,7 @@ import { PaySkeleton } from "./pay-skeleton";
 export default function Page() {
   const router = useRouter();
   const me = useMe();
-  const membership = me.data?.memberships.find((x) => x.invite === "accepted");
+  const membership = useActiveMembership(me.data);
   const club = useMyClub(membership?.clubId);
   const saw = useSawPending(!club.data);
   const collectionId = club.data?.collection?.id;

@@ -15,6 +15,7 @@ import type { ConsentRes, MeRes, MyClubRes, MyExportRes } from "@contract";
 import { apiGet, apiPost } from "@/api/client";
 import { myDataRows } from "@/api/excel-rows";
 import { errorText, keys, useMe, useMyClub } from "@/api/queries";
+import { useActiveMembership } from "@/api/active-club";
 import { Icon } from "@/components/Icon";
 import { LichConfirm } from "@/components/lich/Confirm";
 import { ErrorGate, NOT_IN_MVP, useLogout } from "@/components/lich/Gate";
@@ -38,7 +39,7 @@ function departmentText(department: string): string {
 
 export default function MePage() {
   const me = useMe();
-  const membership = me.data?.memberships.find((x) => x.invite === "accepted");
+  const membership = useActiveMembership(me.data);
   const club = useMyClub(membership?.clubId);
   const saw = useSawPending(!club.data);
 

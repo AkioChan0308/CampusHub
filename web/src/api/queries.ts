@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
   AiStatusRes, ApplicationsRes, BoardRes, BudgetRes, ClubRes, ClubsRes, CollectionRes, CollectionsRes, DashboardRes, EventsRes, EventDetailRes, ExpensesRes, HandoverRes, HealthRes, InviteRes,
-  KitRes, LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, MyTasksRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes, TasksRes,
+  ClubPostsRes, FeedRes, KitRes, LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, MyTasksRes, PostRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes, SchoolPostsRes, TasksRes,
 } from "@contract";
 import { ApiError, apiGet } from "./client";
 
@@ -31,6 +31,10 @@ export const keys = {
   kit: (clubId: string) => ["clubs", clubId, "handover-kit"] as const,
   ai: (clubId: string) => ["clubs", clubId, "ai"] as const,
   tasks: (clubId: string) => ["clubs", clubId, "tasks"] as const,
+  feed: ["feed"] as const,
+  post: (postId: string) => ["feed", "post", postId] as const,
+  clubPosts: (clubId: string) => ["clubs", clubId, "posts"] as const,
+  schoolPosts: ["school", "posts"] as const,
   myTasks: ["me", "tasks"] as const,
   ledger: (clubId: string) => ["clubs", clubId, "ledger"] as const,
   myPayment: (collectionId: string) => ["me", "collections", collectionId] as const,
@@ -69,6 +73,11 @@ export const useApplications = (clubId: string) => useQuery({ queryKey: keys.app
 export const useEvents = (clubId: string) => useQuery({ queryKey: keys.events(clubId), queryFn: () => apiGet<EventsRes>(`/clubs/${clubId}/events`) });
 export const useCollections = (clubId: string) => useQuery({ queryKey: keys.collections(clubId), queryFn: () => apiGet<CollectionsRes>(`/clubs/${clubId}/collections`) });
 export const useHandover = (clubId: string) => useQuery({ queryKey: keys.handover(clubId), queryFn: () => apiGet<HandoverRes>(`/clubs/${clubId}/handover`) });
+/** Cộng đồng: mọi tin đã duyệt, cộng tin chưa duyệt của chính mình (hiện mờ). Mọi khóa tin nằm dưới ["feed"] nên đăng hay duyệt tin thì làm mới một lần. */
+export const useFeed = () => useQuery({ queryKey: keys.feed, queryFn: () => apiGet<FeedRes>("/feed") });
+export const usePost = (postId: string) => useQuery({ queryKey: keys.post(postId), queryFn: () => apiGet<PostRes>(`/posts/${postId}`), retry: false });
+export const useClubPosts = (clubId: string) => useQuery({ queryKey: keys.clubPosts(clubId), queryFn: () => apiGet<ClubPostsRes>(`/clubs/${clubId}/posts`) });
+export const useSchoolPosts = () => useQuery({ queryKey: keys.schoolPosts, queryFn: () => apiGet<SchoolPostsRes>("/school/posts") });
 export const useTasks = (clubId: string) => useQuery({ queryKey: keys.tasks(clubId), queryFn: () => apiGet<TasksRes>(`/clubs/${clubId}/tasks`) });
 export const useMyTasks = () => useQuery({ queryKey: keys.myTasks, queryFn: () => apiGet<MyTasksRes>("/me/tasks") });
 export const useAiStatus = (clubId: string) => useQuery({ queryKey: keys.ai(clubId), queryFn: () => apiGet<AiStatusRes>(`/clubs/${clubId}/ai`) });

@@ -1,18 +1,18 @@
 "use client";
 
-// Trang chung (Hiệu yêu cầu 29/10/2026): nơi các CLB đăng sự kiện, quảng bá, tin tức; ai đã đăng nhập cũng vào được, logo CampusHub ở mọi màn dẫn về đây.
-// KHUNG MẪU: tin lấy từ lib/feed-sample.ts (dữ liệu mẫu, chưa có API), màn ghi rõ như vậy. Mô tả đầy đủ: docs/mo-ta-bang-tin-chung.md.
-// Làm thật có hai chỗ cần thay: danh sách `posts` (GET /feed) và việc lọc theo CLB của tôi (làm ở máy chủ).
+// Cộng đồng (tên cũ: Trang chung; Hiệu yêu cầu 29/10/2026): nơi các CLB đăng sự kiện, quảng bá, tin tức; ai đã đăng nhập cũng vào được, logo CampusHub ở mọi màn dẫn về đây.
+// Tin lấy từ GET /feed. Duyệt trước, hiện sau: chỉ tin đã được trường duyệt hiện cho mọi người; tin chưa duyệt hoặc bị từ chối của chính người xem hiện mờ kèm nhãn.
+// Việc lọc "CLB của tôi" làm ở màn này theo danh sách CLB của người xem. Mô tả đầy đủ: docs/mo-ta-bang-tin-chung.md.
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useMe } from "@/api/queries";
+import { useState } from "react";
+import { useFeed, useMe } from "@/api/queries";
 import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LeafSkel, LichPage, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { PostRow } from "@/components/lich/Post";
-import { POST_KIND_LABEL, samplePosts, type PostKind } from "@/lib/feed-sample";
+import { POST_KIND_LABEL, type PostKind } from "@/lib/types";
 
 type Scope = "all" | "mine";
 const SCOPES: { key: Scope; label: string }[] = [
@@ -62,13 +62,14 @@ export default function FeedPage() {
   const me = useMe();
   const [scope, setScope] = useState<Scope>("all");
   const [kind, setKind] = useState<PostKind | "all">("all");
-  const saw = useSawPending(me.isPending);
-  const posts = useMemo(() => samplePosts(), []);
+  const feed = useFeed();
+  const saw = useSawPending(me.isPending || feed.isPending);
 
   if (me.isError) return <ErrorGate error={me.error} onRetry={() => void me.refetch()} />;
-  if (me.isPending) return <LichPage><FeedSkeleton /></LichPage>;
+  if (feed.isError) return <ErrorGate error={feed.error} onRetry={() => void feed.refetch()} />;
+  if (me.isPending || feed.isPending) return <LichPage><FeedSkeleton /></LichPage>;
   const mine = new Set(me.data.memberships.filter((m) => m.invite === "accepted").map((m) => m.clubId));
-  const shown = posts.filter((p) => (scope === "all" || mine.has(p.clubId)) && (kind === "all" || p.kind === kind));
+  const shown = feed.data.posts.filter((p) => (scope === "all" || mine.has(p.club.id)) && (kind === "all" || p.kind === kind));
 
   return (
     <LichPage>
@@ -83,7 +84,6 @@ export default function FeedPage() {
             </div>
           </Top>
           <Reveal from={saw} className="l-pay-body">
-            <p className="l-placeholder">Dữ liệu mẫu: Cộng đồng đang phát triển. Tin dưới đây do nhóm viết để minh họa; chưa đăng được tin thật.</p>
             <section className="l-pay-card l-rows" aria-live="polite" aria-label="Tin của các CLB">
               {scope === "mine" && mine.size === 0 ? (
                 <>

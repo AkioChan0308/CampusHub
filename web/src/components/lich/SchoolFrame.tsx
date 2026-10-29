@@ -9,16 +9,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { schoolRows } from "@/api/excel-rows";
-import { useMe, useSchoolClubs } from "@/api/queries";
+import { useMe, useSchoolClubs, useSchoolPosts } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { downloadCsv } from "@/lib/csv";
 import { initials } from "@/lib/format";
 import { ErrorGate, NOT_IN_MVP, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
-export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; children: ReactNode }) {
+export function SchoolFrame({ active, children }: { active: "clubs" | "detail" | "posts"; children: ReactNode }) {
   const me = useMe();
   const list = useSchoolClubs();
+  const posts = useSchoolPosts(); // số tin chờ duyệt cho mục "Duyệt tin"; chưa tải được thì mục vẫn bấm được, chỉ thiếu số đếm
   const { logout, pending: leaving } = useLogout();
   const saw = useSawPending(!list.data || !me.data);
   const fade = saw ? " l-fade-in" : "";
@@ -43,8 +44,11 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail"; 
           <nav aria-label="Menu nhà trường" className="l-navlist">
             {/* Trang chung là của mọi vai (Hiệu yêu cầu 29/10/2026). */}
             <Link className="l-nav" href="/feed"><LinkIcon name="feed" />Cộng đồng</Link>
-            {/* Trang chi tiết một CLB nằm trong mục "Các CLB", nên mục này luôn sáng. */}
-            <Link className="l-nav on" href="/school" aria-current={active === "clubs" ? "page" : undefined}><LinkIcon name="users" />Các CLB</Link>
+            {/* Trang chi tiết một CLB nằm trong mục "Các CLB", nên mục này sáng ở mọi trang trừ Duyệt tin. */}
+            <Link className={`l-nav${active === "posts" ? "" : " on"}`} href="/school" aria-current={active === "clubs" ? "page" : undefined}><LinkIcon name="users" />Các CLB</Link>
+            <Link className={`l-nav${active === "posts" ? " on" : ""}`} href="/school/posts" aria-current={active === "posts" ? "page" : undefined}>
+              <LinkIcon name="feed" />Duyệt tin{posts.data && posts.data.pending.length > 0 && <span className={`l-cnt${fade}`}>{posts.data.pending.length}<span className="l-sr"> tin chờ duyệt</span></span>}
+            </Link>
             <button type="button" className="l-nav" aria-disabled="true" aria-describedby="budget-report-unavailable" onClick={() => toast(NOT_IN_MVP)}>
               <Icon name="calendar" />Dự trù và báo cáo<span id="budget-report-unavailable" className="l-nav-note">chưa có</span>
             </button>

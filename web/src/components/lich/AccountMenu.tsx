@@ -8,7 +8,8 @@ import Link from "next/link";
 import { DropdownMenu as M } from "radix-ui";
 import { useMe } from "@/api/queries";
 import { initials } from "@/lib/format";
-import { roleEntries } from "@/lib/hub";
+import { setActiveClub } from "@/api/active-club";
+import { roleEntries, type RoleEntry } from "@/lib/hub";
 import { startTour } from "@/lib/tour-store";
 import { useLogout } from "./Gate";
 import { Spinner } from "./motion";
@@ -39,7 +40,7 @@ export function AccountMenu({ name, fade = false }: { name: string; fade?: boole
   const me = useMe();
   const { logout, pending } = useLogout();
   // Chưa biết vai thì cứ hiện "Của tôi": phần lớn người dùng khung điện thoại là thành viên hoặc sinh viên.
-  const entries = me.data ? roleEntries(me.data) : [{ key: "me" as const, label: "Của tôi", href: "/me" }];
+  const entries: RoleEntry[] = me.data ? roleEntries(me.data) : [{ key: "me", label: "Của tôi", href: "/me", icon: "user" }];
   return (
     <M.Root>
       <M.Trigger asChild>
@@ -48,7 +49,7 @@ export function AccountMenu({ name, fade = false }: { name: string; fade?: boole
       <M.Portal>
         <M.Content className="l-menu" align="end" sideOffset={8} collisionPadding={12}>
           <div className="l-menu-who">{name}</div>
-          {entries.map((r) => <M.Item key={r.key} asChild><Link className="l-menu-item" href={r.href}>{r.label}</Link></M.Item>)}
+          {entries.map((r) => <M.Item key={`${r.key}-${r.clubId ?? ""}`} asChild><Link className="l-menu-item" href={r.href} onClick={() => { if (r.key === "me" && r.clubId) setActiveClub(r.clubId); }}>{r.label}</Link></M.Item>)}
           {/* Chờ máy chủ đăng xuất xong mới đóng menu: onSelect chặn việc tự đóng, vòng xoay báo đang chờ. */}
           <M.Item className="l-menu-item" aria-busy={pending || undefined} onSelect={(e) => { e.preventDefault(); void logout(); }}>
             <span>Đăng xuất</span>{pending && <Spinner />}

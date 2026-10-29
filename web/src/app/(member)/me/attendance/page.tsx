@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import type { MyAttendanceRes } from "@contract";
 import { useMe, useMyAttendance, useMyClub } from "@/api/queries";
+import { useActiveMembership } from "@/api/active-club";
 import { Icon } from "@/components/Icon";
 import { ErrorGate } from "@/components/lich/Gate";
 import { daysLeft, Leaf } from "@/components/lich/Leaf";
@@ -62,7 +63,7 @@ function Attendance() {
   const params = useSearchParams();
   const justEventId = params.get("checkedIn") === "1" ? params.get("e") : null;
   const me = useMe();
-  const membership = me.data?.memberships.find((x) => x.invite === "accepted");
+  const membership = useActiveMembership(me.data);
   const club = useMyClub(membership?.clubId);
   const att = useMyAttendance(membership?.clubId);
   const saw = useSawPending(!att.data);
