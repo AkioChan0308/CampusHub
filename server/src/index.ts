@@ -14,11 +14,14 @@ import { createSessions } from "./sessions.ts";
 import { createStore } from "./store.ts";
 
 const config = loadConfig();
+// DEMO_NOW (chế độ demo, để quay video): đồng hồ của máy chủ đi từ thời điểm đó, nên việc và hạn trong dữ liệu mẫu hiện đúng như ngày dữ liệu được viết.
+const clockOffset = config.demoNow === undefined ? 0 : config.demoNow - Date.now();
+const now = () => Date.now() + clockOffset;
 
 let db: Db | undefined;
 let where = "mẫu, trong bộ nhớ (chưa đặt DATABASE_URL)";
 let store = createStore();
-let sessions = createSessions();
+let sessions = createSessions(now);
 let accounts = createAccounts();
 if (config.databaseUrl) {
   db = createPgDb(config.databaseUrl);
@@ -38,7 +41,7 @@ if (config.databaseUrl) {
 // Chế độ demo: có sẵn tài khoản mẫu cho từng vai (trang đăng nhập liệt kê). Tài khoản đã có thì giữ nguyên.
 if (config.authMode === "demo") await seedDemoAccounts(accounts, store.state, false);
 
-const app = createApp({ config, store, sessions, accounts });
+const app = createApp({ config, store, sessions, accounts, now });
 const server = app.listen(config.port, (err?: Error) => {
   if (err) {
     console.error(`Không mở được cổng ${config.port}: ${err.message}`);

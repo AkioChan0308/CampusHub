@@ -20,6 +20,8 @@ export interface Config {
   geminiApiKey: string;
   /** Tên mô hình gọi qua Gemini API, ví dụ gemini-3.1-flash-lite hoặc một mô hình Gemma. */
   aiModel: string;
+  /** Chỉ chế độ demo, để quay video: đồng hồ của máy chủ bắt đầu từ thời điểm này rồi chạy tiếp bình thường (dữ liệu mẫu đặt quanh 03/10/2026). Trống là dùng giờ thật. */
+  demoNow: number | undefined;
   /** Số lần gọi Gemini tối đa của cả hệ thống trong 24 giờ (hạn mức miễn phí của dự án là 500 lượt mỗi ngày với gemini-3.1-flash-lite, đặt thấp hơn để chừa chỗ). Vượt thì dùng bản mẫu. 0 là không giới hạn. */
   aiDailyCap: number;
   /** Số lượt hỏi trợ lý tối đa mỗi CLB mỗi học kỳ ở bản miễn phí. 0 là không giới hạn: mức giới hạn chưa có nên mặc định không chặn. */
@@ -48,6 +50,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     aiMode,
     geminiApiKey: env.GEMINI_API_KEY ?? "",
     aiModel: env.AI_MODEL || "gemini-3.1-flash-lite",
+    demoNow: authMode === "demo" && env.DEMO_NOW && Number.isFinite(Date.parse(env.DEMO_NOW)) ? Date.parse(env.DEMO_NOW) : undefined,
     aiDailyCap: env.AI_DAILY_CAP === undefined || env.AI_DAILY_CAP === "" ? 400 : Math.max(0, Math.floor(Number(env.AI_DAILY_CAP)) || 0),
     aiFreeAsks: Math.max(0, Math.floor(Number(env.AI_FREE_ASKS_PER_TERM ?? 0)) || 0),
   };
