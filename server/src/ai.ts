@@ -4,9 +4,10 @@
 // Giao diện `Assistant` dùng chung cho bản mẫu và bản thật (AI_MODE=mock|real), để sau này chỉ thay phần bên trong.
 // Bản mẫu (mặc định) TÍNH từ dữ liệu của CLB, không dán sẵn câu trả lời: đếm việc quá hạn, mục thiếu, tài khoản chưa chuyển;
 // hỏi đáp thì tìm từ khóa trong nội dung kho và trả về mục khớp nhất, luôn kèm mục nguồn.
-// Bản thật chưa có: chưa chọn nhà cung cấp và chưa có khóa. Khi làm: không gửi tên hay email thành viên ra ngoài, chỉ gửi vai trò.
+// Bản thật (AI_MODE=real) gọi Gemini, viết ở ai-real.ts; gọi lỗi thì lùi về bản mẫu và kết quả ghi mode "mock".
 
-import { HttpError } from "./errors.ts";
+import { createGeminiAssistant } from "./ai-real.ts";
+import type { Config } from "./config.ts";
 import {
   dm, kitSummary, KIT_CATEGORY_LABEL, membershipOf, openTasks, personName, toAsciiUpper, upcomingEvents,
   type AppState, type Club,
@@ -14,7 +15,9 @@ import {
 
 export type AiMode = "mock" | "real";
 
+/** mode là chế độ của lần trả lời này: bản thật lùi về bản mẫu khi gọi lỗi nên có thể khác AI_MODE. */
 export interface AiSummary {
+  mode: AiMode;
   text: string;
   bullets: string[];
 }
@@ -26,6 +29,7 @@ export interface AiSource {
 }
 
 export interface AiAnswer {
+  mode: AiMode;
   found: boolean;
   answer: string;
   sources: AiSource[];
@@ -34,9 +38,15 @@ export interface AiAnswer {
 export interface Assistant {
   readonly mode: AiMode;
   /** Bản nháp tóm tắt cho ban mới. Không lưu gì, không gửi cho ai. */
-  summarize(s: AppState, club: Club, now: number): AiSummary;
-  /** Trả lời chỉ từ nội dung Kho bàn giao mà người hỏi được thấy. includeAccounts: chỉ ban điều hành. */
-  ask(s: AppState, club: Club, question: string, includeAccounts: boolean): AiAnswer;
+  summarize(s: AppState, club: Club, now: number): Promise<AiSummary>;
+  /** Trả lời chỉ từ nội dung Kho bàn giao mà người hỏi được thấy. includeAccounts: chỉ ban điều hành (bản thật không gửi phần tài khoản). */
+  ask(s: AppState, club: Club, question: string, includeAccounts: boolean): Promise<AiAnswer>;
+}
+
+/** Phần tính toán của bản mẫu, chạy ngay không cần chờ. */
+interface MockCore {
+  summarize(s: AppState, club: Club, now: number): Omit<AiSummary, "mode">;
+  ask(s: AppState, club: Club, question: string, includeAccounts: boolean): Omit<AiAnswer, "mode">;
 }
 
 const DAY = 86_400_000;
@@ -87,9 +97,7 @@ function itemsOf(s: AppState, club: Club, includeAccounts: boolean): Item[] {
   return items;
 }
 
-const mockAssistant: Assistant = {
-  mode: "mock",
-
+const mockCore: MockCore = {
   summarize(s, club, now) {
     const open = openTasks(s, club.id);
     const late = open.filter((t) => Date.parse(t.due) < now);
@@ -143,12 +151,18 @@ const mockAssistant: Assistant = {
   },
 };
 
-const notReady = (): never => { throw new HttpError(501, "NOT_IMPLEMENTED", "Chưa nối AI thật. Đặt AI_MODE=mock để dùng bản mẫu."); };
+const mockAssistant: Assistant = {
+  mode: "mock",
+  summarize: async (s, club, now) => ({ ...mockCore.summarize(s, club, now), mode: "mock" }),
+  ask: async (s, club, question, includeAccounts) => ({ ...mockCore.ask(s, club, question, includeAccounts), mode: "mock" }),
+};
 
-const realAssistant: Assistant = { mode: "real", summarize: notReady, ask: notReady };
-
-export function createAssistant(mode: AiMode): Assistant {
-  return mode === "real" ? realAssistant : mockAssistant;
+export function createAssistant(config: Pick<Config, "aiMode" | "geminiApiKey" | "aiModel">): Assistant {
+  if (config.aiMode !== "real") return mockAssistant;
+  return createGeminiAssistant({
+    apiKey: config.geminiApiKey, model: config.aiModel, fallback: mockAssistant,
+    isOffLimits: (q) => OFF_LIMITS.test(toAsciiUpper(q)), notFound: NOT_FOUND_ANSWER,
+  });
 }
 
 /** Người hỏi có phải ban điều hành (thấy cả phần tài khoản) không. */

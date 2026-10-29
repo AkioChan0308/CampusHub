@@ -25,24 +25,22 @@ export const aiHandlers: Pick<Handlers, Keys> = {
   },
 
   /** Bản nháp tóm tắt cho ban mới. Không lưu gì; lưu vào biên bản là việc riêng (PUT /handover/summary), sau khi người duyệt sửa. */
-  aiSummary: (ctx) => {
+  aiSummary: async (ctx) => {
     const { club } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
-    const assistant = createAssistant(ctx.config.aiMode);
-    const draft = assistant.summarize(ctx.state, club, ctx.now());
+    const draft = await createAssistant(ctx.config).summarize(ctx.state, club, ctx.now());
     ctx.update(countAiUse(club.id, club.term, "summaries"));
-    return { mode: assistant.mode, text: draft.text, bullets: draft.bullets, usage: usage(ctx, club) };
+    return { mode: draft.mode, text: draft.text, bullets: draft.bullets, usage: usage(ctx, club) };
   },
 
   /** Hỏi đáp chỉ từ nội dung kho mà người hỏi được thấy: thành viên thường không nhận gì từ phần tài khoản. */
-  askAi: (ctx) => {
+  askAi: async (ctx) => {
     const { club } = requireMember(ctx.state, ctx.params.clubId, ctx.me);
     const body = parseBody(aiAskBody, ctx.body);
     const cap = ctx.config.aiFreeAsks;
     if (cap > 0 && aiUsageOf(ctx.state, club.id, club.term).asks >= cap) throw conflict(`CLB đã dùng hết ${cap} lượt hỏi của kỳ ${club.term} (bản miễn phí).`);
-    const assistant = createAssistant(ctx.config.aiMode);
-    const answer = assistant.ask(ctx.state, club, body.question, asksAsBoard(ctx.state, club.id, ctx.me.id));
+    const answer = await createAssistant(ctx.config).ask(ctx.state, club, body.question, asksAsBoard(ctx.state, club.id, ctx.me.id));
     ctx.update(countAiUse(club.id, club.term, "asks"));
-    return { mode: assistant.mode, found: answer.found, answer: answer.answer, sources: answer.sources, usage: usage(ctx, club) };
+    return { mode: answer.mode, found: answer.found, answer: answer.answer, sources: answer.sources, usage: usage(ctx, club) };
   },
 
   /** Lưu bản tóm tắt (đã sửa) vào biên bản: ghi ai lưu, lúc nào. Không lưu được sau khi ban mới đã xác nhận. */

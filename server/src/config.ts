@@ -14,8 +14,12 @@ export interface Config {
   cookieSecure: boolean;
   /** Địa chỉ PostgreSQL (docs/postgresql.md). Trống thì dữ liệu chỉ nằm trong bộ nhớ, tắt máy chủ là mất. */
   databaseUrl: string;
-  /** mock: trợ lý bản mẫu, tính từ dữ liệu của CLB (mặc định). real: chưa nối, API trả 501. */
+  /** mock: trợ lý bản mẫu, tính từ dữ liệu của CLB (mặc định). real: gọi Gemini; lỗi hoặc hết hạn mức thì lùi về bản mẫu. */
   aiMode: "mock" | "real";
+  /** Khóa Gemini API (Google AI Studio). Bắt buộc khi AI_MODE=real; chỉ để trong .env. */
+  geminiApiKey: string;
+  /** Tên mô hình gọi qua Gemini API, ví dụ gemini-3.1-flash-lite hoặc một mô hình Gemma. */
+  aiModel: string;
   /** Số lượt hỏi trợ lý tối đa mỗi CLB mỗi học kỳ ở bản miễn phí. 0 là không giới hạn: mức giới hạn chưa có nên mặc định không chặn. */
   aiFreeAsks: number;
 }
@@ -27,6 +31,8 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const qrSecret = env.QR_SECRET || (authMode === "demo" ? DEMO_QR_SECRET : "");
   if (!qrSecret) throw new Error("Thiếu QR_SECRET. Bản thật phải đặt khóa bí mật để ký mã QR điểm danh.");
   const webOrigin = env.WEB_ORIGIN ?? "http://localhost:3000";
+  const aiMode = env.AI_MODE === "real" ? "real" : "mock";
+  if (aiMode === "real" && !env.GEMINI_API_KEY) throw new Error("Thiếu GEMINI_API_KEY. AI_MODE=real cần khóa tạo ở Google AI Studio, đặt trong server/.env.");
   return {
     port: Number(env.PORT ?? 4000),
     authMode,
@@ -37,7 +43,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     loginAs: parseLoginAs(env.LOGIN_AS ?? ""),
     cookieSecure: webOrigin.startsWith("https://"),
     databaseUrl: env.DATABASE_URL ?? "",
-    aiMode: env.AI_MODE === "real" ? "real" : "mock",
+    aiMode,
+    geminiApiKey: env.GEMINI_API_KEY ?? "",
+    aiModel: env.AI_MODEL || "gemini-3.1-flash-lite",
     aiFreeAsks: Math.max(0, Math.floor(Number(env.AI_FREE_ASKS_PER_TERM ?? 0)) || 0),
   };
 }
