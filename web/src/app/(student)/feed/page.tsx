@@ -30,7 +30,7 @@ function Top({ children }: { children: React.ReactNode }) {
     <>
       <div className="l-ptop">
         <TodayLeaf size="md" />
-        <div className="l-ptop-text"><h1 className="l-phone-title">Trang chung</h1><span className="l-ptop-sub">Tin của các CLB</span></div>
+        <div className="l-ptop-text"><h1 className="l-phone-title">Cộng đồng</h1><span className="l-ptop-sub">Tin của các CLB</span></div>
       </div>
       {children}
     </>
@@ -75,7 +75,7 @@ export default function FeedPage() {
       <PhoneFrame brand personName={me.data.person.name} tab="feed" fade={saw}>
         <div className="l-pay-body">
           <Top>
-            <div className="l-seg" role="group" aria-label="Chọn phần của trang chung">
+            <div className="l-seg" role="group" aria-label="Chọn phần của Cộng đồng">
               {SCOPES.map((s) => <button key={s.key} type="button" className="l-chip" aria-pressed={scope === s.key} onClick={() => setScope(s.key)}>{s.label}</button>)}
             </div>
             <div className="l-seg" role="group" aria-label="Lọc theo loại tin">
@@ -83,7 +83,7 @@ export default function FeedPage() {
             </div>
           </Top>
           <Reveal from={saw} className="l-pay-body">
-            <p className="l-placeholder">Dữ liệu mẫu: trang chung đang phát triển. Tin dưới đây do nhóm viết để minh họa; chưa đăng được tin thật.</p>
+            <p className="l-placeholder">Dữ liệu mẫu: Cộng đồng đang phát triển. Tin dưới đây do nhóm viết để minh họa; chưa đăng được tin thật.</p>
             <section className="l-pay-card l-rows" aria-live="polite" aria-label="Tin của các CLB">
               {scope === "mine" && mine.size === 0 ? (
                 <>

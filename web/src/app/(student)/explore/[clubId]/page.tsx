@@ -218,7 +218,7 @@ function ClubPosts({ clubId }: { clubId: string }) {
         <section className="l-pay-card l-rows" aria-labelledby="club-posts">
           <h2 id="club-posts" className="l-subhead">Tin gần đây của CLB</h2>
           <ul className="l-posts">{posts.map((p) => <PostRow key={p.id} post={p} />)}</ul>
-          <Link className="l-rowlink" href="/feed">Xem trang chung<LinkIcon name="chevronRight" size={16} /></Link>
+          <Link className="l-rowlink" href="/feed">Xem Cộng đồng<LinkIcon name="chevronRight" size={16} /></Link>
         </section>
       )}
     </>

@@ -14,7 +14,7 @@ import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { POST_KIND_LABEL, samplePost } from "@/lib/feed-sample";
 import { agoLabel, hm, longDate } from "@/lib/format";
 
-const BACK = { href: "/feed", label: "Trang chung" };
+const BACK = { href: "/feed", label: "Cộng đồng" };
 
 export default function PostPage() {
   const { postId } = useParams<{ postId: string }>();
@@ -22,7 +22,7 @@ export default function PostPage() {
   const saw = useSawPending(me.isPending);
   const post = useMemo(() => samplePost(postId), [postId]);
 
-  if (me.isError) return <ErrorGate error={me.error} onRetry={() => void me.refetch()} back={{ href: "/feed", label: "Về trang chung" }} />;
+  if (me.isError) return <ErrorGate error={me.error} onRetry={() => void me.refetch()} back={{ href: "/feed", label: "Về Cộng đồng" }} />;
 
   return (
     <LichPage>
@@ -32,7 +32,7 @@ export default function PostPage() {
             <section className="l-pay-card">
               <h1 className="l-subhead">Không tìm thấy tin này</h1>
               <p className="l-fine">Tin có thể đã bị ẩn hoặc đường dẫn bị sai.</p>
-              <Link className="l-btn2 l-lg" href="/feed">Về trang chung</Link>
+              <Link className="l-btn2 l-lg" href="/feed">Về Cộng đồng</Link>
             </section>
           ) : (
             <>

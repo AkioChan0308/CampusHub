@@ -38,11 +38,11 @@ export function PhoneFrame({ clubName, personName, tab, payHref, fade = false, b
             {back ? (
               <><Link className="l-back" href={back.href}><LinkIcon name="chevronLeft" size={18} />{back.label}</Link>{avatar()}</>
             ) : brand ? (
-              <><Link className="l-brand" href="/feed" aria-label="CampusHub, trang chung"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>{avatar()}</>
+              <><Link className="l-brand" href="/feed" aria-label="CampusHub, Cộng đồng"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>{avatar()}</>
             ) : clubName && personName ? (
               <>
                 <span className="l-phead-left">
-                  <Link className="l-logo l-phead-logo" href="/feed" aria-label="CampusHub, trang chung">C</Link>
+                  <Link className="l-logo l-phead-logo" href="/feed" aria-label="CampusHub, Cộng đồng">C</Link>
                   <span className={`l-phead-club${fadeCls}`}>{clubName}</span>
                 </span>
                 {avatar()}

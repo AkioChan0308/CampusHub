@@ -47,7 +47,7 @@ export function MeLocked({ me }: { me: MeRes }) {
           </div>
           <section className="l-pay-card" aria-labelledby="need-club">
             <h2 id="need-club" className="l-subhead">Cần tham gia một CLB</h2>
-            <p className="l-fine">Bạn xem được trang chung và gửi đơn xin vào CLB. Điểm danh, đóng quỹ và việc của tôi chỉ mở khi bạn được duyệt vào một CLB. Một sinh viên có thể ở nhiều CLB cùng lúc.</p>
+            <p className="l-fine">Bạn xem được Cộng đồng và gửi đơn xin vào CLB. Điểm danh, đóng quỹ và việc của tôi chỉ mở khi bạn được duyệt vào một CLB. Một sinh viên có thể ở nhiều CLB cùng lúc.</p>
             <Link className="l-btn l-lg" href="/explore">Khám phá CLB</Link>
             <Link className="l-btn2 l-lg" href="/clubs/new">Tạo CLB mới</Link>
           </section>
