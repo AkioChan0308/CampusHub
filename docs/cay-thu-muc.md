@@ -69,7 +69,7 @@ Mỗi thư mục có `page.tsx` (nội dung trang) và `layout.tsx` (tên trên 
 | `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm; chủ nhiệm mới ở bước 6 | BDH-BanGiao, 7 bước |
 | `/clubs/[clubId]/handover-kit` | `…/handover-kit/` | ban điều hành xem và sửa | Kho bàn giao: biểu mẫu, quy trình, tài khoản (chưa có bản vẽ) |
 | `/clubs/[clubId]/tasks` | `…/tasks/` | ban điều hành | Việc cần làm (chưa có bản vẽ) |
-| `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: khung mẫu, nút Đăng tin báo đang phát triển (`docs/mo-ta-bang-tin-chung.md`) |
+| `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: đăng tin, xem tin ở mọi trạng thái (chờ trường duyệt hiện mờ) (`docs/mo-ta-bang-tin-chung.md`) |
 | `/clubs/[clubId]/paid-plan` | `…/paid-plan/` | ban điều hành | Bản trả phí: trang mô tả một ý tưởng, chưa có giá (chưa có bản vẽ) |
 | `/me` | `(member)/me/` | thành viên, điện thoại | TV-CuaToi ("Của tôi") |
 | `/me/attendance` | `(member)/me/attendance/` | thành viên | Tab Điểm danh, lịch sử điểm danh |
@@ -84,6 +84,7 @@ Mỗi thư mục có `page.tsx` (nội dung trang) và `layout.tsx` (tên trên 
 | `/clubs/new` | `(student)/clubs/new/` | ai đã đăng nhập | Tạo CLB mới (chưa có bản vẽ) |
 | `/school` | `(school-staff)/school/` | ban quản lý CLB của trường, laptop | NT-TongQuan |
 | `/school/clubs/[clubId]` | `(school-staff)/school/clubs/[clubId]/` | nhà trường | NT-ChiTietCLB |
+| `/school/posts` | `(school-staff)/school/posts/` | nhà trường | Duyệt tin của CLB trước khi hiện trên Cộng đồng (chưa có bản vẽ) |
 
 `…/` là viết tắt của `(club-admin)/clubs/[clubId]/`. `[clubId]`, `[code]`… là phần thay đổi trong URL, ví dụ `cau-long-san-nha`.
 

@@ -111,7 +111,7 @@ Ban điều hành sửa phần này ở **Giới thiệu CLB**: `/clubs/[clubId]
 - Ban điều hành chỉ đăng, sửa, ẩn tin và giới thiệu **của CLB mình**; chỉ ban điều hành CLB đó đọc hộp thư của CLB đó. Kiểm ở máy chủ (`server/src/access.ts`), không tin giao diện.
 - **Tin nhắn là dữ liệu cá nhân.** Cần: dòng báo trước khi gửi ("Tin này gửi tới ban điều hành CLB, kèm tên hiển thị của bạn"); người gửi tải và xóa được tin của mình theo luồng dữ liệu cá nhân (mục 9 của `docs/luong-nguoi-dung.md`); CLB chỉ thấy tên hiển thị, không thấy email.
 - Người đã rời CLB hoặc xóa dữ liệu: tin do họ đăng giữ nguyên (ghi tên CLB, không ghi tên người đăng).
-- **Kiểm duyệt:** chưa có ở bản đầu. Hướng đã chọn: cán bộ trường duyệt tin (mục 2, điểm 7), làm sau.
+- **Duyệt trước, hiện sau (Hiệu chốt 29/10/2026):** tin của CLB phải được cán bộ trường duyệt thì mới hiện trên Cộng đồng cho mọi người. Tin chưa duyệt ở trạng thái **chờ duyệt**: người đăng vẫn thấy tin như đã đăng lên nhưng **mờ đi**, kèm nhãn "Chờ trường duyệt"; người khác không thấy. Đề xuất chi tiết (chờ Hiệu duyệt): ban điều hành của chính CLB đó cũng thấy tin chờ duyệt ở "Bảng tin của CLB"; cán bộ trường thấy hàng chờ ở màn Nhà trường và bấm Duyệt hoặc Từ chối (từ chối thì ghi lý do, như luật duyệt chi); người đăng thấy tin bị từ chối kèm lý do và sửa gửi lại được. Người đăng không tự duyệt tin của mình. Nút Báo cáo và chặn người dùng để sau.
 
 ## 5. Dữ liệu và API (phác, để Khoa xem sau)
 
@@ -147,7 +147,9 @@ Mỗi bước xong thì chạy test, bấm thử Playwright, Hiệu duyệt rồ
 - Trang đầu tiên sau đăng nhập theo mục 2 (có test); `/me` của người chưa ở CLB nào bị giới hạn (`MeLocked`).
 - Quyền `post` trong bảng quyền (chủ nhiệm, phó chủ nhiệm, trưởng ban).
 
-**Đã làm dạng khung mẫu** (dữ liệu viết sẵn ở `web/src/lib/feed-sample.ts`, màn ghi rõ "Dữ liệu mẫu" hoặc "đang phát triển"; chưa có API, chưa có bảng dữ liệu):
+**Đã làm thật (29/10/2026, Hiệu chốt "duyệt trước, hiện sau", chọn "luồng thật nhưng gọn"):** đăng tin (chủ nhiệm, phó chủ nhiệm, trưởng ban), tin luôn chờ trường duyệt; cán bộ trường duyệt hoặc từ chối kèm lý do ở `/school/posts`; Cộng đồng chỉ hiện tin đã duyệt, người đăng thấy tin chờ hoặc bị từ chối của mình **mờ** kèm nhãn; ban điều hành CLB thấy mọi tin của CLB ở Bảng tin của CLB. API `GET /feed`, `GET /posts/:postId`, `GET` và `POST /clubs/:clubId/posts`, `GET /school/posts`, `POST /school/posts/:postId/review` (xem `docs/api.md`), bảng `posts` (migration 007). Đã làm thêm (29/10/2026): sửa tin bị từ chối rồi gửi lại (`PUT /clubs/:clubId/posts/:postId`). Chưa làm: ẩn tin đã duyệt, ảnh đính kèm, nút Báo cáo.
+
+**Còn dạng khung mẫu** (giới thiệu CLB viết sẵn ở `web/src/lib/feed-sample.ts`, nhắn tin ghi "đang phát triển"; chưa có API, chưa có bảng dữ liệu). Phần dưới đây là danh sách cũ, nay chỉ còn giới thiệu CLB và nhắn tin là khung mẫu:
 - `/feed` (lọc theo phần và loại tin), `/feed/[postId]`, giới thiệu CLB mẫu và tin gần đây ở `/explore/[clubId]`.
 - Bong bóng chat (`ChatBubble`): khung chat mở lên từ góc phải dưới, ô viết và nút gửi khóa, ghi "Tính năng nhắn tin đang phát triển".
 - `/clubs/[clubId]/posts`: danh sách tin mẫu, nút "Đăng tin" báo đang phát triển.
