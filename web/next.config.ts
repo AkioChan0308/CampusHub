@@ -6,6 +6,8 @@ const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Tắt huy hiệu "N" của Next.js khi chạy npm run dev: nó nằm đè lên avatar ở chân thanh bên (Hiệu báo 29/10/2026). Lỗi biên dịch vẫn hiện như thường.
+  devIndicators: false,
   async rewrites() {
     return [
       { source: "/api/v1/:path*", destination: `${API_ORIGIN}/api/v1/:path*` },
