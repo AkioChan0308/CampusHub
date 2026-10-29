@@ -25,6 +25,18 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
     return p;
   }
   const confirm = (p, name) => p.locator("[role=alertdialog]").getByRole("button", { name }).click();
+  /** Ban mới xác nhận nhận bàn giao: vùng nguy hiểm, hộp hỏi hai bước (gõ BAN GIAO mới bấm được nút xác nhận). */
+  async function acceptHandover(p, name) {
+    await p.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).click();
+    const d = p.locator("[role=alertdialog]");
+    const go = d.getByRole("button", { name: "Đổi ban và xác nhận" });
+    ok(await go.isDisabled(), `${name}: nút xác nhận khóa khi chưa gõ gì`);
+    await d.getByLabel(/Gõ BAN GIAO/).fill("ban gian");
+    ok(await go.isDisabled(), `${name}: gõ sai thì nút xác nhận vẫn khóa`);
+    await d.getByLabel(/Gõ BAN GIAO/).fill("ban giao");
+    ok(await go.isEnabled(), `${name}: gõ BAN GIAO (không phân biệt hoa thường và dấu) thì nút xác nhận mở`);
+    await go.click();
+  }
   await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
 
   // ---- Kho bàn giao (chủ nhiệm) ----
@@ -80,19 +92,18 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
   }
   await p.screenshot({ path: path.join(OUT, "3-handover-step-5.png") });
   await p.getByRole("button", { name: "Tiếp tục" }).click();
-  ok(await waitText(p, /Bước 6 \/ 7[\s\S]*Chờ Nguyễn Minh Anh xác nhận/) && (await p.getByRole("button", { name: "Tôi đã nhận bàn giao" }).count()) === 0, "Bàn giao: bước 6, chủ nhiệm cũ không có nút xác nhận");
+  ok(await waitText(p, /Bước 6 \/ 7[\s\S]*Chờ Nguyễn Minh Anh xác nhận/) && (await p.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).count()) === 0, "Bàn giao: bước 6, chủ nhiệm cũ không có nút xác nhận");
   await p.context().close();
 
   // ---- Bàn giao: chủ nhiệm mới (thành viên thường) xác nhận ----
   p = await as("a017", LAPTOP);
   ok((await p.request.get(`${BASE}/api/v1/clubs/cau-long-san-nha/members`)).status() === 403, "Bàn giao: chủ nhiệm mới vẫn bị chặn ở trang ban điều hành khác");
   await p.goto(`${C}/handover`);
-  ok(await waitText(p, /Tôi đã nhận bàn giao/), "Bàn giao: chủ nhiệm mới mở được trang Bàn giao");
+  ok(await waitText(p, /Vùng nguy hiểm: đổi ban điều hành[\s\S]*Xác nhận đã nhận bàn giao/), "Bàn giao: chủ nhiệm mới mở được trang Bàn giao, nút xác nhận nằm trong vùng nguy hiểm");
   const menu = await p.locator("nav[aria-label='Menu ban điều hành']").innerText();
   ok(/Bàn giao/.test(menu) && /Kho bàn giao/.test(menu) && !/Thành viên|Đợt thu/.test(menu), "Bàn giao: menu của chủ nhiệm mới chỉ có Bàn giao và Kho bàn giao");
   ok((await p.getByRole("button", { name: "Xuất toàn bộ dữ liệu (Excel)" }).count()) === 0, "Bàn giao: chủ nhiệm mới không có nút xuất toàn bộ dữ liệu");
-  await p.getByRole("button", { name: "Tôi đã nhận bàn giao" }).click();
-  await confirm(p, "Tôi đã nhận bàn giao");
+  await acceptHandover(p, "Bàn giao");
   ok(await waitText(p, /Biên bản bàn giao[\s\S]*Nguyễn Minh Anh xác nhận đã nhận bàn giao/), "Bàn giao: xác nhận xong sang bước 7, biên bản có dòng xác nhận");
   ok((await p.locator(".l-ho-log li").count()) >= 10 && (await p.getByRole("button", { name: /Quay lại bước/ }).count()) === 0, "Bàn giao: biên bản ghi đủ các bước và không còn nút quay lại");
   await p.screenshot({ path: path.join(OUT, "4-handover-record.png"), fullPage: true });

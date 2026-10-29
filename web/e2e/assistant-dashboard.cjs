@@ -27,6 +27,18 @@ const API = `${BASE}/api/v1/clubs/cau-long-san-nha`;
     return p;
   }
   const confirm = (p, name) => p.locator("[role=alertdialog]").getByRole("button", { name }).click();
+  /** Ban mới xác nhận nhận bàn giao: vùng nguy hiểm, hộp hỏi hai bước (gõ BAN GIAO mới bấm được nút xác nhận). */
+  async function acceptHandover(p, name) {
+    await p.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).click();
+    const d = p.locator("[role=alertdialog]");
+    const go = d.getByRole("button", { name: "Đổi ban và xác nhận" });
+    ok(await go.isDisabled(), `${name}: nút xác nhận khóa khi chưa gõ gì`);
+    await d.getByLabel(/Gõ BAN GIAO/).fill("ban gian");
+    ok(await go.isDisabled(), `${name}: gõ sai thì nút xác nhận vẫn khóa`);
+    await d.getByLabel(/Gõ BAN GIAO/).fill("ban giao");
+    ok(await go.isEnabled(), `${name}: gõ BAN GIAO (không phân biệt hoa thường và dấu) thì nút xác nhận mở`);
+    await go.click();
+  }
   await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
 
   // ---- Trang chủ ban điều hành ----
@@ -99,9 +111,8 @@ const API = `${BASE}/api/v1/clubs/cau-long-san-nha`;
   await p.context().close();
   const a017b = await as("a017", LAPTOP);
   await a017b.goto(`${C}/handover`);
-  ok(await waitText(a017b, /Tôi đã nhận bàn giao/) && (await a017b.getByRole("button", { name: "Tóm tắt", exact: true }).count()) === 0, "Tóm tắt: chủ nhiệm mới thấy bản đã lưu, không có nút Tóm tắt");
-  await a017b.getByRole("button", { name: "Tôi đã nhận bàn giao" }).click();
-  await confirm(a017b, "Tôi đã nhận bàn giao");
+  ok(await waitText(a017b, /Xác nhận đã nhận bàn giao/) && (await a017b.getByRole("button", { name: "Tóm tắt", exact: true }).count()) === 0, "Tóm tắt: chủ nhiệm mới thấy bản đã lưu, không có nút Tóm tắt");
+  await acceptHandover(a017b, "Tóm tắt");
   ok(await waitText(a017b, /Biên bản bàn giao[\s\S]*Bản tóm tắt cho ban mới[\s\S]*Bản đã sửa tay[\s\S]*lưu bản tóm tắt cho ban mới vào biên bản \(bản mẫu, chưa dùng AI thật\)/), "Biên bản: có bản tóm tắt và dòng lưu bản tóm tắt");
   const locked = await a017b.request.put(`${API}/handover/summary`, { data: { text: "Muộn rồi" } });
   ok(locked.status() === 409, "Biên bản: đã khóa sau khi ban mới xác nhận, chủ nhiệm mới cũng không lưu được bản tóm tắt");

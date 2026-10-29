@@ -403,7 +403,7 @@ Ví dụ trong bảng dùng CLB mẫu của prototype: **CLB Cầu lông Sân Nh
 | 3. Kiểm tra kho bàn giao (mới) | Kết quả kiểm: bao nhiêu biểu mẫu, quy trình, tài khoản đã có; mục nào còn thiếu hoặc quá cũ. Dẫn sang màn Kho bàn giao (5.2). | "Mở kho bàn giao", "Tiếp tục" | Không chặn bàn giao nếu thiếu, chỉ cảnh báo bằng chữ. Hiện số mục thiếu. |
 | 4. Đổi tài khoản nhận quỹ | Đã có. | Đã có | Đã có. |
 | 5. Chuyển quyền quản trị | Danh sách tài khoản và quyền của CLB (lấy từ Kho bàn giao, mục Tài khoản). Mỗi dòng: tài khoản, người giữ hiện tại, người nhận mới, trạng thái "đã chuyển". Nhắc: email trường của chủ nhiệm cũ sẽ bị thu hồi khi tốt nghiệp. | "Đã chuyển" từng dòng | Chỉ qua bước tiếp khi tài khoản đánh dấu "bắt buộc" đã chuyển. |
-| 6. Ban mới xác nhận | Chủ nhiệm mới thấy bản tóm tắt: số dư, kho bàn giao, tài khoản đã chuyển. | "Tôi đã nhận bàn giao" (do chủ nhiệm mới bấm) | Chỉ người nhận mới bấm được. Ghi giờ và người bấm. |
+| 6. Ban mới xác nhận | Chủ nhiệm mới thấy bản tóm tắt: số dư, kho bàn giao, tài khoản đã chuyển. | "Xác nhận đã nhận bàn giao" (do chủ nhiệm mới bấm, trong Vùng nguy hiểm, hộp hỏi hai bước: gõ BAN GIAO) | Chỉ người nhận mới bấm được. Ghi giờ và người bấm. |
 | 7. Biên bản bàn giao | Biên bản chỉ đọc gồm toàn bộ các bước, xuất file (Excel, và bản in). Có chỗ cho mentor của trường xác nhận nếu CLB có mentor. Nút "Tóm tắt" của trợ lý AI (mục 5.5). | "Xuất biên bản", "Xuất toàn bộ dữ liệu (Excel)" (đã có) | Biên bản không sửa được sau khi xác nhận. |
 
 **Trạng thái đặc biệt:** chưa có ban mới được chọn thì bước 2 trở đi hiện khóa và nói rõ vì sao. Chủ nhiệm cũ rời trước khi bàn giao xong: ghi vào biên bản "chưa hoàn tất".

@@ -205,7 +205,7 @@ Bàn giao có **7 bước**:
 3. **Kiểm tra Kho bàn giao:** xem còn thiếu gì và còn bao nhiêu việc dở. Thiếu thì chỉ cảnh báo, không chặn.
 4. **Đổi tài khoản nhận quỹ:** thủ quỹ mới không dùng tiếp tài khoản của thủ quỹ cũ.
 5. **Chuyển quyền quản trị:** từng tài khoản trong kho chuyển sang người nhận mới, vì email trường của chủ nhiệm cũ bị thu hồi khi tốt nghiệp. Chỉ sang bước sau khi mọi tài khoản "bắt buộc chuyển" đã chuyển.
-6. **Ban mới xác nhận:** chỉ chủ nhiệm mới bấm "Tôi đã nhận bàn giao". Người này mở được trang Bàn giao dù chưa có vai ban điều hành.
+6. **Ban mới xác nhận:** chỉ chủ nhiệm mới bấm "Xác nhận đã nhận bàn giao", nút nằm trong **Vùng nguy hiểm: đổi ban điều hành** vì bấm là đổi vai trò cả ban ngay và không hoàn tác được. Bấm xong có hộp hỏi hai bước: phải gõ BAN GIAO thì nút "Đổi ban và xác nhận" mới bấm được. Người này mở được trang Bàn giao dù chưa có vai ban điều hành.
 7. **Biên bản bàn giao:** chỉ đọc, ghi từng bước đã làm (lúc nào, ai), số dư chốt, ban mới, tài khoản nhận quỹ, bản tóm tắt nếu có. In được, xuất CSV được. Ban mới đã xác nhận thì biên bản không sửa được nữa.
 
 Quay lại bước trước được (có hỏi lại, biên bản ghi lại việc quay lại), trừ khi ban mới đã xác nhận. Nút "Xuất toàn bộ dữ liệu (Excel)" ở màn Bàn giao dùng được bất cứ lúc nào (ban điều hành).
@@ -403,7 +403,7 @@ Mở http://localhost:3000/login. Nên dùng cửa sổ ẩn danh, và mỗi vai
 
 **K4.4 Bước 6, chủ nhiệm cũ**
 - [ ] Có tóm tắt (số dư, tài khoản nhận quỹ, kho, quyền đã chuyển 4/5, việc còn dở).
-- [ ] **Không có** nút "Tôi đã nhận bàn giao"; có dòng "Chờ Nguyễn Minh Anh xác nhận. Chỉ người này bấm được."
+- [ ] **Không có** nút "Xác nhận đã nhận bàn giao"; có dòng "Chờ Nguyễn Minh Anh xác nhận. Chỉ người này bấm được."
 
 **K4.5 Bước 6, chủ nhiệm mới (thành viên thường)**
 Đăng xuất, đăng nhập `minhanh`, mở `/clubs/cau-long-san-nha/handover`.
@@ -411,7 +411,7 @@ Mở http://localhost:3000/login. Nên dùng cửa sổ ẩn danh, và mỗi vai
 - [ ] Menu chỉ có hai mục: **Bàn giao** và **Kho bàn giao**.
 - [ ] Không có nút "Xuất toàn bộ dữ liệu (Excel)".
 - [ ] Mở thẳng `/clubs/cau-long-san-nha/members`: bị chặn.
-- [ ] Bấm **Tôi đã nhận bàn giao**: có hộp hỏi lại; xác nhận thì sang bước 7.
+- [ ] Nút **Xác nhận đã nhận bàn giao** nằm trong khung "Vùng nguy hiểm", kèm danh sách vai sẽ đổi. Bấm: có hộp hỏi hai bước, nút "Đổi ban và xác nhận" khóa cho tới khi gõ BAN GIAO; xác nhận thì sang bước 7 và vai trò đổi theo ban mới.
 
 **K4.6 Bước 7, biên bản**
 - [ ] Cả 7 bước có dấu tích.

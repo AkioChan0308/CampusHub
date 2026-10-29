@@ -18,6 +18,7 @@ import { Icon } from "@/components/Icon";
 import { AiSummary } from "@/components/lich/Assistant";
 import { BoardFrame, useFrameSawPending, useLichBoard } from "@/components/lich/BoardFrame";
 import { LichConfirm } from "@/components/lich/Confirm";
+import { TypedConfirm } from "@/components/lich/TypedConfirm";
 import { ErrorGate } from "@/components/lich/Gate";
 import { LichPage, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PageTop } from "@/components/lich/PageTop";
@@ -533,14 +534,17 @@ function AcceptStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
   const accept = useHandoverCall(() => toast.success("Đã xác nhận nhận bàn giao."));
   const president = data.newBoard?.president;
   const moved = data.accounts.filter((a) => a.transferred).length;
+  // Hậu quả của việc đổi vai (xem acceptHandover ở lib/actions.ts), nêu rõ cho người bấm.
+  const b = data.newBoard;
+  const roleChanges = [
+    b && `Vai mới: ${[`chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length > 0 && `trưởng ban ${b.heads.map((h) => h.name).join(", ")}`].filter(Boolean).join("; ")}.`,
+    `${data.currentPresident ? `Chủ nhiệm hiện tại ${data.currentPresident.name} và mọi` : "Mọi"} người đang trong ban điều hành mà không có tên trong ban mới sẽ về thành viên thường, mất quyền ban điều hành.`,
+  ].filter((x): x is string => !!x);
   return (
     <StepShell step={6} title="Ban mới xác nhận" lead={`Chủ nhiệm mới${president ? ` (${president.name})` : ""} xem lại bản tóm tắt rồi xác nhận đã nhận bàn giao. Chỉ người này bấm được.`}
       actions={<>
         {canDo && <BackButton step={6} canDo={canDo} />}
-        {data.canAccept ? (
-          <LichConfirm className="l-btn" busy={accept.isPending} confirm="Tôi đã nhận bàn giao" title="Xác nhận đã nhận bàn giao?"
-            description="Sau khi xác nhận, biên bản bàn giao không sửa được nữa." onConfirm={() => accept.mutate({ method: "POST", path: "/accept" })}>Tôi đã nhận bàn giao</LichConfirm>
-        ) : <span className="l-note" id="handover-accept-note">Chờ {president?.name ?? "chủ nhiệm mới"} xác nhận. Chỉ người này bấm được.</span>}
+        {!data.canAccept && <span className="l-note" id="handover-accept-note">Chờ {president?.name ?? "chủ nhiệm mới"} xác nhận. Chỉ người này bấm được.</span>}
       </>}>
       <ul className="l-ho-list">
         <li>Số dư đã chốt: <strong>{money(data.lockedBalance)}</strong>{data.lockedAt ? ` (${dmy(data.lockedAt)})` : ""}</li>
@@ -551,6 +555,19 @@ function AcceptStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
       </ul>
       <SavedSummary data={data} />
       {canDo && <AiSummary clubId={club.id} canSave />}
+      {data.canAccept && (
+        <section className="l-danger" aria-labelledby="handover-danger">
+          <h3 id="handover-danger">Vùng nguy hiểm: đổi ban điều hành</h3>
+          <p>Xác nhận nhận bàn giao sẽ <strong>đổi vai trò của cả ban ngay lập tức</strong> và không hoàn tác được.</p>
+          <ul>
+            {roleChanges.map((line) => <li key={line}>{line}</li>)}
+            <li>Biên bản bàn giao khóa lại, không sửa được nữa.</li>
+          </ul>
+          <TypedConfirm className="l-btn-ghost-warn" busy={accept.isPending} title="Đổi ban điều hành và xác nhận nhận bàn giao?" phrase="BAN GIAO" confirm="Đổi ban và xác nhận"
+            body={<><p>Bạn sắp làm những việc sau, không hoàn tác được:</p><ul>{roleChanges.map((line) => <li key={line}>{line}</li>)}<li>Biên bản bàn giao khóa lại.</li></ul></>}
+            onConfirm={() => accept.mutate({ method: "POST", path: "/accept" })}>Xác nhận đã nhận bàn giao</TypedConfirm>
+        </section>
+      )}
       {!canDo && !data.canAccept && <p className="l-note" id="handover-permission">{RIGHT_LABEL.handover}</p>}
     </StepShell>
   );
