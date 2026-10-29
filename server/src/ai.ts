@@ -30,6 +30,8 @@ export interface AiSource {
 
 export interface AiAnswer {
   mode: AiMode;
+  /** Bị từ chối ở máy chủ trước khi hỏi AI (ngoài phạm vi, tiền, ra lệnh cho mô hình): không tốn lượt nên không tính vào số lượt hỏi của CLB. */
+  refused?: boolean;
   found: boolean;
   answer: string;
   sources: AiSource[];
@@ -38,9 +40,9 @@ export interface AiAnswer {
 export interface Assistant {
   readonly mode: AiMode;
   /** Bản nháp tóm tắt cho ban mới. Không lưu gì, không gửi cho ai. */
-  summarize(s: AppState, club: Club, now: number): Promise<AiSummary>;
+  summarize(s: AppState, club: Club, now: number, personId: string): Promise<AiSummary>;
   /** Trả lời chỉ từ nội dung Kho bàn giao mà người hỏi được thấy. includeAccounts: chỉ ban điều hành (bản thật không gửi phần tài khoản). */
-  ask(s: AppState, club: Club, question: string, includeAccounts: boolean): Promise<AiAnswer>;
+  ask(s: AppState, club: Club, question: string, includeAccounts: boolean, personId: string): Promise<AiAnswer>;
 }
 
 /** Phần tính toán của bản mẫu, chạy ngay không cần chờ. */
@@ -157,12 +159,22 @@ const mockAssistant: Assistant = {
   ask: async (s, club, question, includeAccounts) => ({ ...mockCore.ask(s, club, question, includeAccounts), mode: "mock" }),
 };
 
-export function createAssistant(config: Pick<Config, "aiMode" | "geminiApiKey" | "aiModel">): Assistant {
+const PER_PERSON_PER_MINUTE = 5;
+/** Mỗi cấu hình một bản trợ lý, để bộ đếm lượt gọi sống qua các lần gọi API. */
+const realByConfig = new WeakMap<object, Assistant>();
+
+export function createAssistant(config: Pick<Config, "aiMode" | "geminiApiKey" | "aiModel" | "aiDailyCap">): Assistant {
   if (config.aiMode !== "real") return mockAssistant;
-  return createGeminiAssistant({
-    apiKey: config.geminiApiKey, model: config.aiModel, fallback: mockAssistant,
-    isOffLimits: (q) => OFF_LIMITS.test(toAsciiUpper(q)), notFound: NOT_FOUND_ANSWER,
-  });
+  let a = realByConfig.get(config);
+  if (!a) {
+    a = createGeminiAssistant({
+      apiKey: config.geminiApiKey, model: config.aiModel, fallback: mockAssistant,
+      isOffLimits: (q) => OFF_LIMITS.test(toAsciiUpper(q)), notFound: NOT_FOUND_ANSWER,
+      dailyCap: config.aiDailyCap, perPersonPerMinute: PER_PERSON_PER_MINUTE,
+    });
+    realByConfig.set(config, a);
+  }
+  return a;
 }
 
 /** Người hỏi có phải ban điều hành (thấy cả phần tài khoản) không. */
