@@ -228,6 +228,9 @@ export interface Handover {
   transferred: string[];
   acceptedAt?: string;
   acceptedBy?: string;
+  /** Mentor (cán bộ trường) xác nhận biên bản sau khi ban mới đã nhận bàn giao (29/10/2026). */
+  mentorConfirmedBy?: string;
+  mentorConfirmedAt?: string;
   history: { at: string; by: string; text: string }[];
   /** Bản tóm tắt cho ban mới, do ban điều hành duyệt và sửa trước khi lưu vào biên bản. mock: viết bằng bản mẫu, chưa dùng AI thật. */
   summary?: { text: string; by: string; at: string; mock: boolean };
@@ -239,6 +242,33 @@ export interface AiUsage {
   term: string;
   asks: number;
   summaries: number;
+}
+
+export type PostKind = "event" | "promo" | "news";
+
+export const POST_KIND_LABEL: Record<PostKind, string> = { event: "Sự kiện", promo: "Quảng bá", news: "Tin tức" };
+
+/** Tin của CLB trên Cộng đồng: duyệt trước, hiện sau (Hiệu chốt 29/10/2026). Chỉ tin đã duyệt mới hiện cho mọi người. */
+export type PostStatus = "pending" | "approved" | "rejected";
+
+export const POST_STATUS_LABEL: Record<PostStatus, string> = { pending: "Chờ trường duyệt", approved: "Đã duyệt", rejected: "Bị từ chối" };
+
+export interface ClubPost {
+  id: string;
+  clubId: string;
+  kind: PostKind;
+  title: string;
+  body: string;
+  /** Sự kiện: ngày giờ diễn ra và nơi diễn ra. */
+  eventAt?: string;
+  place?: string;
+  status: PostStatus;
+  createdBy: string;
+  createdAt: string;
+  /** Cán bộ trường duyệt hoặc từ chối, và lúc nào. Từ chối thì kèm lý do. */
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectReason?: string;
 }
 
 export type TaskStatus = "todo" | "doing" | "done";
@@ -347,6 +377,7 @@ export interface AppState {
   kitProcesses: KitProcess[];
   kitAccounts: KitAccount[];
   tasks: ClubTask[];
+  posts: ClubPost[];
   aiUsage: AiUsage[];
   consents: Consent[];
 }

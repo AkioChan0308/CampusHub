@@ -9,25 +9,27 @@ export interface RoleEntry {
   label: string;
   href: string;
   icon: IconName;
+  /** Mục của một CLB cụ thể (người ở nhiều CLB có một mục cho từng CLB). */
+  clubId?: string;
 }
 
 /**
- * Mục theo vai trong menu avatar.
+ * Mục theo vai trong menu avatar. Người ở nhiều CLB có một mục cho từng CLB, ghi kèm tên CLB (Hiệu chọn 29/10/2026).
  * - Cán bộ trường: Nhà trường.
- * - Ban điều hành: Của tôi, dẫn tới trang quản lý CLB (CLB đầu tiên mà họ giữ vai ban điều hành; chọn CLB khi ở nhiều CLB chưa làm).
- *   Nếu người đó còn là thành viên thường ở CLB khác thì đã có mục Của tôi (giao diện thành viên), nên mục này giữ tên Quản lý CLB để khỏi trùng.
- * - Thành viên thường, hoặc chưa ở CLB nào: Của tôi (chưa ở CLB nào thì trang đó giới hạn tính năng).
- * - Chưa ở CLB nào: thêm Tạo CLB.
- * Ban điều hành không có mục Của tôi, vì /me là giao diện thành viên (xem landingAfterLogin).
+ * - Ban điều hành của một CLB: Của tôi, dẫn tới trang quản lý CLB đó. Nếu người đó còn là thành viên thường ở CLB khác thì mục này
+ *   ghi "Quản lý CLB" cho khỏi trùng với Của tôi của phía thành viên. Ở nhiều CLB thì ghi "Quản lý <tên CLB>".
+ * - Thành viên thường của một CLB: Của tôi (giao diện thành viên, /me); ở nhiều CLB thì "Của tôi · <tên CLB>", bấm vào là chọn CLB đó (api/active-club.ts).
+ * - Chưa ở CLB nào: Của tôi (trang đó giới hạn tính năng) và Tạo CLB.
  */
 export function roleEntries(me: MeRes): RoleEntry[] {
   if (me.person.kind === "staff") return [{ key: "school", label: "Nhà trường", href: "/school", icon: "users" }];
   const accepted = me.memberships.filter((m) => m.invite === "accepted");
-  const board = accepted.find((m) => m.role !== "member");
-  const entries: RoleEntry[] = [];
-  const hasMe = accepted.some((m) => m.role === "member") || accepted.length === 0;
-  if (board) entries.push({ key: "board", label: hasMe ? "Quản lý CLB" : "Của tôi", href: `/clubs/${board.clubId}`, icon: "home" });
-  if (hasMe) entries.push({ key: "me", label: "Của tôi", href: "/me", icon: "user" });
-  if (accepted.length === 0) entries.push({ key: "new", label: "Tạo CLB", href: "/clubs/new", icon: "plus" });
-  return entries;
+  if (accepted.length === 0) return [{ key: "me", label: "Của tôi", href: "/me", icon: "user" }, { key: "new", label: "Tạo CLB", href: "/clubs/new", icon: "plus" }];
+  const many = accepted.length > 1;
+  const board = accepted.filter((m) => m.role !== "member");
+  const plain = accepted.filter((m) => m.role === "member");
+  return [
+    ...board.map((m): RoleEntry => ({ key: "board", clubId: m.clubId, href: `/clubs/${m.clubId}`, icon: "home", label: many ? `Quản lý ${m.clubName}` : "Của tôi" })),
+    ...plain.map((m): RoleEntry => ({ key: "me", clubId: m.clubId, href: "/me", icon: "user", label: many ? `Của tôi · ${m.clubName}` : "Của tôi" })),
+  ];
 }

@@ -45,8 +45,8 @@ export const BOARD_TOUR: TourStep[] = [
   { group: "Việc cần làm", target: "css:.l-task-filter", title: "Lọc việc", text: "Xem tất cả, việc của tôi hoặc việc quá hạn; hoặc lọc theo từng người." },
   { group: "Việc cần làm", target: "css:.l-task-cols", title: "Việc theo trạng thái", text: "Việc chia theo trạng thái. Bấm nút ở mỗi việc để chuyển trạng thái, hoặc Sửa để giao lại cho người khác." },
 
-  { group: "Bảng tin", page: "/posts", target: "b:Đăng tin", title: "Đăng tin", text: "Đăng tin của CLB lên Cộng đồng. Tính năng đang phát triển. Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban có quyền đăng." },
-  { group: "Bảng tin", target: "h:Tin đã đăng", title: "Tin đã đăng", text: "Tin của CLB sẽ hiện ở đây. Hiện là dữ liệu mẫu." },
+  { group: "Bảng tin", page: "/posts", target: "b:Đăng tin", title: "Đăng tin", text: "Đăng tin của CLB lên Cộng đồng. Tin cần cán bộ trường duyệt rồi mới hiện cho mọi người. Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban có quyền đăng." },
+  { group: "Bảng tin", target: "h:Tin đã đăng", title: "Tin đã đăng", text: "Tin của CLB ở mọi trạng thái. Tin chờ trường duyệt hoặc bị từ chối hiện mờ kèm nhãn; bị từ chối thì kèm lý do." },
 
   { group: "Bàn giao", page: "/handover", target: "css:.l-steps", scope: "all", title: "Bảy bước bàn giao", text: "Chọn ban mới, chốt số dư, kiểm tra kho bàn giao, đổi tài khoản nhận quỹ, chuyển quyền quản trị, ban mới xác nhận, rồi lập biên bản." },
   { group: "Bàn giao", target: "css:.l-detail", scope: "all", title: "Nội dung từng bước", text: "Phần việc của bước hiện tại. Làm xong bước này mới sang bước sau; cần thì quay lại bước trước." },

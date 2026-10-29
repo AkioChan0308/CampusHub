@@ -4,10 +4,10 @@
 import { classify, type MemberRef } from "./reconcile.ts";
 import { toAsciiUpper } from "./text.ts";
 import type {
-  AppState, Attendance, Club, ClubEvent, ClubTask, Consent, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
+  AppState, Attendance, Club, ClubEvent, ClubPost, ClubTask, Consent, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
 } from "./types.ts";
 
-export const STATE_VERSION = 5;
+export const STATE_VERSION = 6;
 export const DEMO_CLUB_ID = "cau-long-san-nha";
 export const DEMO_COLLECTION_ID = "quy-fall-2026";
 export const DEMO_TERM = "Fall 2026";
@@ -152,6 +152,48 @@ const TASKS: ClubTask[] = [
   {
     id: "viec-mua-nuoc", clubId: DEMO_CLUB_ID, title: "Mua nước uống cho giải nội bộ", assigneeId: "a017", due: "2026-10-17T23:59:00+07:00", status: "todo", eventId: "giai-noi-bo",
     createdBy: "a005", createdAt: "2026-10-13T19:00:00+07:00", history: [{ at: "2026-10-13T19:00:00+07:00", by: "a005", text: "tạo việc, giao cho Nguyễn Minh Anh" }],
+  },
+];
+
+// Tin mẫu trên Cộng đồng (chuyển từ feed-sample.ts khi làm thật, 29/10/2026). Tin đã được cán bộ trường duyệt, trừ một tin chờ duyệt của CLB mẫu để thấy luồng duyệt.
+// Người đăng ghi là chủ nhiệm CLB mẫu (a001) cho mọi CLB vì các CLB còn lại chưa có thành viên trong dữ liệu mẫu. Ngày đặt quanh 03/10/2026 như phần còn lại của dữ liệu mẫu.
+const REVIEWER = "p-thu-trang";
+const approved = (p: Omit<ClubPost, "status" | "createdBy" | "reviewedBy" | "reviewedAt">): ClubPost => ({ ...p, status: "approved", createdBy: "a001", reviewedBy: REVIEWER, reviewedAt: p.createdAt.replace(/T\d\d:\d\d/, "T21:00") });
+const POSTS: ClubPost[] = [
+  approved({
+    id: "giai-noi-bo", clubId: DEMO_CLUB_ID, kind: "event", title: "Giải cầu lông nội bộ Fall 2026",
+    body: "Giải giao hữu mở cho thành viên và khách mời. Thi đấu đôi, xếp cặp ngay tại buổi sinh hoạt. Mang theo vợt của bạn.",
+    createdAt: "2026-10-02T09:00:00+07:00", eventAt: "2026-10-18T07:30:00+07:00", place: "[sân sinh hoạt]",
+  }),
+  approved({
+    id: "tuyen-spring", clubId: "vong-lap", kind: "promo", title: "Tuyển thành viên kỳ Spring 2027",
+    body: "Vòng Lặp mở đơn cho bạn nào muốn tập code cùng nhóm. Không cần biết lập trình từ trước, buổi đầu cả CLB làm bài cùng nhau.",
+    createdAt: "2026-10-01T10:00:00+07:00",
+  }),
+  approved({
+    id: "hau-can", clubId: "hau-truong", kind: "promo", title: "Cần thêm bạn hỗ trợ hậu cần cho sự kiện các CLB",
+    body: "Hậu Trường tìm CLB muốn cùng tổ chức sự kiện chung và bạn muốn thử sức làm hậu cần. Nhắn cho CLB để hẹn trao đổi.",
+    createdAt: "2026-09-30T10:00:00+07:00",
+  }),
+  approved({
+    id: "tong-ket-tinh-nguyen", clubId: "gieo-mam", kind: "news", title: "Tổng kết đợt tình nguyện cuối tuần",
+    body: "Cảm ơn các bạn đã tham gia đợt tình nguyện vừa rồi. Đội sẽ gửi tổng kết hoạt động và thông báo đợt tiếp theo trong tuần này.",
+    createdAt: "2026-09-29T10:00:00+07:00",
+  }),
+  approved({
+    id: "dem-nhac", clubId: "day-nam", kind: "event", title: "Đêm nhạc cuối kỳ",
+    body: "Buổi biểu diễn cuối kỳ của các thành viên Dây Năm, mở cho mọi người đến nghe. Bạn nào muốn lên sân khấu thì nhắn cho CLB.",
+    createdAt: "2026-09-28T10:00:00+07:00", eventAt: "2026-10-31T19:00:00+07:00", place: "[phòng sinh hoạt]",
+  }),
+  approved({
+    id: "sach-thang", clubId: "trang-mo", kind: "news", title: "Sách của tháng này",
+    body: "Tháng này Trang Mở đọc chung một cuốn và trao đổi vào chiều Chủ nhật. Ai muốn mượn sách của CLB thì đến sớm buổi sinh hoạt.",
+    createdAt: "2026-09-27T10:00:00+07:00",
+  }),
+  {
+    id: "doi-gio-sinh-hoat", clubId: DEMO_CLUB_ID, kind: "news", title: "Đổi giờ sinh hoạt tuần sau",
+    body: "Buổi sinh hoạt Thứ Bảy tuần sau dời sang 08:30 vì sân có lịch bảo trì. Các bạn nhớ đến đúng giờ mới.",
+    status: "pending", createdBy: "a001", createdAt: "2026-10-03T08:00:00+07:00",
   },
 ];
 
@@ -323,6 +365,7 @@ export function createSeed(): AppState {
     kitProcesses: KIT_PROCESSES,
     kitAccounts: KIT_ACCOUNTS,
     tasks: TASKS,
+    posts: POSTS,
     aiUsage: [],
     consents,
   };

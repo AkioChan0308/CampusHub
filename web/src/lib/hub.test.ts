@@ -5,7 +5,7 @@ import type { MeRes } from "@contract";
 import { roleEntries } from "./hub.ts";
 
 type Ms = MeRes["memberships"][number];
-const ms = (role: Ms["role"], clubId = "cau-long", invite: Ms["invite"] = "accepted"): Ms => ({ clubId, clubName: "CLB", term: "Fall 2026", code: "A001", department: "Ban", role, invite });
+const ms = (role: Ms["role"], clubId = "cau-long", invite: Ms["invite"] = "accepted", clubName = "CLB"): Ms => ({ clubId, clubName, term: "Fall 2026", code: "A001", department: "Ban", role, invite });
 const me = (memberships: Ms[], kind: "student" | "staff" = "student"): MeRes => ({
   person: { id: "p", name: "Người thử", email: "thu@example.com", kind },
   memberships,
@@ -28,9 +28,22 @@ test("thành viên thường có Của tôi", () => {
   assert.deepEqual(keys(me([ms("member")])), ["me"]);
 });
 
-test("ở hai vai (thành viên CLB này, ban điều hành CLB kia) thấy cả hai mục", () => {
-  assert.deepEqual(keys(me([ms("member", "a"), ms("vice", "b")])), ["board", "me"]);
-  assert.deepEqual(roleEntries(me([ms("member", "a"), ms("vice", "b")])).map((e) => e.label), ["Quản lý CLB", "Của tôi"], "không có hai mục cùng tên Của tôi");
+test("ở nhiều CLB: mỗi CLB một mục, ghi kèm tên CLB; ban điều hành trước, thành viên sau", () => {
+  const entries = roleEntries(me([ms("member", "a", "accepted", "CLB Vòng Lặp"), ms("vice", "b", "accepted", "CLB Cầu lông")]));
+  assert.deepEqual(entries.map((e) => [e.key, e.clubId, e.label, e.href]), [
+    ["board", "b", "Quản lý CLB Cầu lông", "/clubs/b"],
+    ["me", "a", "Của tôi · CLB Vòng Lặp", "/me"],
+  ]);
+});
+
+test("ở hai CLB thành viên thường: hai mục Của tôi, mỗi mục một CLB", () => {
+  const entries = roleEntries(me([ms("member", "a", "accepted", "CLB A"), ms("member", "b", "accepted", "CLB B")]));
+  assert.deepEqual(entries.map((e) => [e.clubId, e.label]), [["a", "Của tôi · CLB A"], ["b", "Của tôi · CLB B"]]);
+});
+
+test("ban điều hành ở hai CLB: hai mục quản lý, lời mời chưa nhận không tính", () => {
+  const entries = roleEntries(me([ms("president", "a", "accepted", "CLB A"), ms("treasurer", "b", "accepted", "CLB B"), ms("member", "c", "pending", "CLB C")]));
+  assert.deepEqual(entries.map((e) => e.label), ["Quản lý CLB A", "Quản lý CLB B"]);
 });
 
 test("chưa ở CLB nào (kể cả mới có lời mời chờ) có Của tôi và Tạo CLB", () => {

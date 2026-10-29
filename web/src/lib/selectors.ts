@@ -1,7 +1,7 @@
 // Các phép tính đọc từ state: số dư, đợt thu, điểm danh, dự trù, việc chờ, quyền.
 // Không sửa state ở đây. Khi có backend, phần lớn các phép tính này chuyển lên máy chủ.
 
-import type { AppState, ClubTask, Club, Collection, ExpenseRequest, LedgerEntry, Membership, Payment, Person, Role, Statement } from "./types.ts";
+import type { AppState, ClubPost, ClubTask, Club, Collection, ExpenseRequest, LedgerEntry, Membership, Payment, Person, Role, Statement } from "./types.ts";
 
 export const MENTOR_THRESHOLD = 2_000_000; // mặc định trong "Phương án nghiệp vụ"; chưa chốt
 
@@ -17,7 +17,7 @@ const RIGHTS: Record<Action, Role[]> = {
   handover: ["president"],
   checkin: ["president", "vice", "head", "treasurer"],
   assignRole: ["president"],
-  // Đăng tin lên trang chung (29/10/2026). Việc duyệt tin của trường (cán bộ trường là person.kind "staff", không phải một Role) để sau.
+  // Đăng tin lên Cộng đồng (29/10/2026). Tin phải được cán bộ trường duyệt mới hiện cho mọi người; cán bộ trường là person.kind "staff", không phải một Role, nên việc duyệt kiểm bằng kind, không nằm trong bảng quyền này.
   post: ["president", "vice", "head"],
 };
 
@@ -223,6 +223,30 @@ export function isTaskOverdue(t: ClubTask, now: number): boolean {
 /** Việc còn dở của CLB: hiện cho ban mới ở bước kiểm tra kho của bàn giao. */
 export function openTasks(s: AppState, clubId: string): ClubTask[] {
   return tasksOf(s, clubId).filter((t) => t.status !== "done");
+}
+
+// ---------- Tin của CLB trên Cộng đồng (duyệt trước, hiện sau) ----------
+
+/** Tin của CLB ở mọi trạng thái, mới nhất trước (cho ban điều hành của CLB). */
+export function postsOf(s: AppState, clubId: string): ClubPost[] {
+  return s.posts.filter((p) => p.clubId === clubId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Cộng đồng của một người: mọi tin đã duyệt, cộng tin của chính người đó chưa được duyệt hoặc bị từ chối (hiện mờ cho họ). Mới nhất trước. */
+export function feedFor(s: AppState, personId: string): ClubPost[] {
+  return s.posts.filter((p) => p.status === "approved" || p.createdBy === personId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Tin đã duyệt thì ai cũng xem; chưa duyệt hoặc bị từ chối thì chỉ người đăng, ban điều hành CLB đó và cán bộ trường xem. */
+export function canSeePost(s: AppState, p: ClubPost, me: Person): boolean {
+  if (p.status === "approved" || me.kind === "staff" || p.createdBy === me.id) return true;
+  const m = membershipOf(s, p.clubId, me.id);
+  return !!m && m.invite === "accepted" && m.role !== "member";
+}
+
+/** Hàng chờ duyệt của cán bộ trường: tin chờ lâu nhất trước. */
+export function pendingPosts(s: AppState): ClubPost[] {
+  return s.posts.filter((p) => p.status === "pending").sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 /** Số lượt dùng trợ lý của CLB trong học kỳ. */

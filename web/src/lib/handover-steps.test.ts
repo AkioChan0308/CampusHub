@@ -40,7 +40,14 @@ test("đi hết 7 bước, mỗi bước ghi vào biên bản", () => {
   assert.equal(h.step, 7);
   assert.equal(h.acceptedBy, "a003");
   assert.equal(h.acceptedAt, AT);
-  assert.match(h.history.at(-1)!.text, /xác nhận đã nhận bàn giao/);
+  assert.match(h.history.at(-2)!.text, /xác nhận đã nhận bàn giao/);
+  assert.match(h.history.at(-1)!.text, /đổi vai trò theo ban mới/);
+  // Đúng một chủ nhiệm: người đã chọn ở bước 1; ban cũ không có tên trong ban mới về thành viên thường.
+  const presidents = s.memberships.filter((m) => m.clubId === CLUB && m.role === "president").map((m) => m.personId);
+  assert.deepEqual(presidents, [h.newBoard!.president]);
+  const board = h.newBoard!;
+  const keep = new Set([board.president, board.vice, board.treasurer, ...board.heads]);
+  for (const m of s.memberships.filter((x) => x.clubId === CLUB && x.role !== "member")) assert.ok(keep.has(m.personId), `${m.personId} không thuộc ban mới mà vẫn giữ vai ${m.role}`);
 });
 
 test("chốt số dư lấy số dư sổ quỹ lúc bấm, không sửa sổ quỹ", () => {

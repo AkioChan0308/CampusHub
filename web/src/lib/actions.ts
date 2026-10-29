@@ -5,7 +5,7 @@
 import { classify, type MemberRef } from "./reconcile.ts";
 import { money } from "./format.ts";
 import { balance, kitSummary, MENTOR_THRESHOLD, openCollections, personName } from "./selectors.ts";
-import { TASK_STATUS_LABEL, type AppState, type BudgetItem, type Club, type ClubEvent, type ClubTask, type Collection, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type NewBoard, type Payment, type Person, type Role, type Statement, type StatementTxn, type TaskStatus } from "./types.ts";
+import { TASK_STATUS_LABEL, type AppState, type BudgetItem, type Club, type ClubEvent, type ClubPost, type ClubTask, type Collection, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type NewBoard, type Payment, type Person, type Role, type Statement, type StatementTxn, type TaskStatus } from "./types.ts";
 
 export type Update = (s: AppState) => AppState;
 
@@ -326,9 +326,39 @@ export const transferHandoverAccount = (clubId: string, accountId: string, holde
 
 export const finishHandoverTransfer = (clubId: string, by: string, at: string): Update => stepTo(clubId, 6, by, at, "chuyển xong quyền quản trị các tài khoản bắt buộc");
 
-/** Bước 6: chủ nhiệm mới xác nhận đã nhận. Sau đó biên bản không sửa được. */
-export const acceptHandover = (clubId: string, by: string, at: string): Update =>
-  stepTo(clubId, 7, by, at, (s) => `${personName(s, by)} xác nhận đã nhận bàn giao`, () => ({ acceptedAt: at, acceptedBy: by }));
+/**
+ * Bước 6: chủ nhiệm mới xác nhận đã nhận. Sau đó biên bản không sửa được.
+ * Cùng lúc đổi vai theo ban mới đã chọn ở bước 1 (Hiệu chọn 29/10/2026): chủ nhiệm, phó chủ nhiệm, thủ quỹ, trưởng ban mới nhận vai;
+ * mọi người khác đang ở ban điều hành (ban cũ) về thành viên thường. Ban (department) giữ nguyên. Ghi vào lịch sử bàn giao.
+ */
+export const acceptHandover = (clubId: string, by: string, at: string): Update => (s) => {
+  const accepted = stepTo(clubId, 7, by, at, (st) => `${personName(st, by)} xác nhận đã nhận bàn giao`, () => ({ acceptedAt: at, acceptedBy: by }))(s);
+  const board = accepted.handovers.find((h) => h.clubId === clubId)?.newBoard;
+  if (!board) return accepted;
+  const roles = new Map<string, Role>([[board.president, "president"]]);
+  if (board.vice) roles.set(board.vice, "vice");
+  if (board.treasurer) roles.set(board.treasurer, "treasurer");
+  for (const id of board.heads) roles.set(id, "head");
+  let gained = 0, lost = 0;
+  const memberships = accepted.memberships.map((m) => {
+    if (m.clubId !== clubId) return m;
+    const next: Role | undefined = roles.get(m.personId) ?? (m.role === "member" ? undefined : "member");
+    if (!next || next === m.role) return m;
+    if (next === "member") lost++; else gained++;
+    return { ...m, role: next };
+  });
+  const text = `đổi vai trò theo ban mới: ${gained} người nhận vai trong ban điều hành, ${lost} người ban cũ về thành viên`;
+  return { ...accepted, memberships, handovers: accepted.handovers.map((h) => (h.clubId !== clubId ? h : { ...h, history: [...h.history, { at, by, text }] })) };
+};
+
+/** Mentor xác nhận biên bản (không đổi bước). Chỉ gọi khi ban mới đã xác nhận và mentor chưa xác nhận (máy chủ kiểm trước). */
+export const confirmHandoverByMentor = (clubId: string, by: string, at: string): Update => (s) => ({
+  ...s,
+  handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : {
+    ...h, mentorConfirmedBy: by, mentorConfirmedAt: at,
+    history: [...h.history, { at, by, text: `${personName(s, by)} (mentor) xác nhận biên bản bàn giao` }],
+  })),
+});
 
 /** Quay lại bước trước (chỉ chủ nhiệm cũ, và chỉ khi ban mới chưa xác nhận). */
 export const setHandoverStep = (clubId: string, step: number, by: string, at: string): Update => stepTo(clubId, step, by, at, `quay lại bước ${step}`);
@@ -352,6 +382,37 @@ export const countAiUse = (clubId: string, term: string, kind: "asks" | "summari
       : [...s.aiUsage, { clubId, term, asks: kind === "asks" ? 1 : 0, summaries: kind === "summaries" ? 1 : 0 }],
   };
 };
+
+// ---------- Tin của CLB trên Cộng đồng ----------
+
+/** Tin mới luôn ở trạng thái chờ trường duyệt. */
+export const createPost = (p: Omit<ClubPost, "status" | "reviewedBy" | "reviewedAt" | "rejectReason">): Update => (s) => ({ ...s, posts: [...s.posts, { ...p, status: "pending" }] });
+
+/** Sửa tin bị từ chối rồi gửi lại: nội dung mới, tin quay về chờ duyệt (xóa lý do và người duyệt cũ), tính lại giờ gửi để vào cuối hàng chờ. */
+export const resubmitPost = (id: string, change: { kind: ClubPost["kind"]; title: string; body: string; eventAt?: string; place?: string }, at: string): Update => (s) => ({
+  ...s,
+  posts: s.posts.map((p) => {
+    if (p.id !== id) return p;
+    const { eventAt: _e, place: _p, rejectReason: _r, reviewedBy: _b, reviewedAt: _a, ...rest } = p;
+    return { ...rest, ...change, status: "pending", createdAt: at };
+  }),
+});
+
+/** Cán bộ trường duyệt: tin hiện cho mọi người. Chỉ gọi cho tin đang chờ (máy chủ kiểm trước). */
+export const approvePost = (id: string, by: string, at: string): Update => (s) => ({
+  ...s,
+  posts: s.posts.map((p) => {
+    if (p.id !== id) return p;
+    const { rejectReason: _r, ...rest } = p;
+    return { ...rest, status: "approved", reviewedBy: by, reviewedAt: at };
+  }),
+});
+
+/** Cán bộ trường từ chối: kèm lý do, người đăng thấy lý do. */
+export const rejectPost = (id: string, reason: string, by: string, at: string): Update => (s) => ({
+  ...s,
+  posts: s.posts.map((p) => (p.id === id ? { ...p, status: "rejected", reviewedBy: by, reviewedAt: at, rejectReason: reason } : p)),
+});
 
 // ---------- Việc cần làm ----------
 
