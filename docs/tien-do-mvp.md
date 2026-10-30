@@ -49,7 +49,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 
 **Chưa có:**
 - Dữ liệu vẫn là dữ liệu mẫu (giả).
-- Đăng nhập Google đã có code, nhưng nhóm chưa tạo khóa Google.
+- Đăng nhập Google đã có code và đã thử chạy được trên máy (30/10/2026) với khóa tự tạo. Repo không có khóa: mỗi người tự tạo khóa theo `docs/dang-nhap-google.md` rồi điền `server/.env`. Chưa dùng cho bản đưa lên mạng.
 - Chưa đưa lên mạng.
 - Repo trên GitHub: https://github.com/AkioChan0308/CampusHub (nhánh `main` và `develop`, commit đầu ngày 05/10/2026). **Chỉ commit và push khi Hiệu bảo.**
 
@@ -64,6 +64,9 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
   - **Hướng đi (Hiệu chốt 22/10/2026): web trước, chưa làm app.** Khung thành viên trên laptop đã đổi thành trang web thường (từ 1024px); đăng nhập không còn đưa ban điều hành vào `/me` vì `next` sót lại. Chi tiết ở `web/README.md`, mục cuối.
   - **Duyệt tin của CLB (29/10/2026, Hiệu chốt: duyệt trước, hiện sau; đã làm thật, chờ Hiệu duyệt giao diện):** ban điều hành có quyền đăng tin, tin chờ cán bộ trường duyệt; Cộng đồng chỉ hiện tin đã duyệt, người đăng thấy tin của mình mờ kèm nhãn chờ duyệt; trang mới `/school/posts`. Có API, bảng `posts` (migration 007) và test (server 114/114, web 76/76; e2e `post-review.cjs` 15/15). Chi tiết ở `web/README.md`, `docs/api.md`. **Báo Khoa:** đổi hợp đồng API, thêm migration.
   - **Bốn việc làm thêm (29/10/2026, Hiệu chọn; đã làm, chờ Hiệu duyệt giao diện):** sửa tin bị từ chối rồi gửi lại; đổi vai tự động sau khi ban mới xác nhận bàn giao; người ở nhiều CLB chọn CLB trong menu avatar; mentor xác nhận biên bản bàn giao ở màn nhà trường. Chi tiết ở `web/README.md` và `server/README.md`. **Báo Khoa:** đổi hợp đồng API (thêm hai API), thêm migration 008, đổi hành vi `acceptHandover`.
+  - **Thông báo cho chủ nhiệm mới khi nhận bàn giao (30/10/2026, Hiệu yêu cầu; đã làm, chờ Hiệu duyệt giao diện):** ban cũ chuyển bàn giao tới bước 6 thì chủ nhiệm mới thấy khối "Cần bạn xác nhận" ở Cộng đồng và Của tôi, bấm vào để xác nhận (hộp gõ BAN GIAO), xác nhận xong vai đổi ngay. Thêm `notices` vào `GET /me`. Chi tiết ở `web/README.md`. Chưa có OTP qua email: chỉ bàn bạc, chưa duyệt.
+  - **Chuông thông báo cho mọi vai (30/10/2026, Hiệu yêu cầu; đã làm, chờ Hiệu duyệt giao diện):** chuông ở khung của thành viên, ban điều hành và nhà trường; thông báo lưu ở máy chủ (bảng `notifications`, migration 009) nên chủ nhiệm cũ vẫn thấy "Bàn giao xong" sau khi mất quyền, và bị đưa ra khỏi ban điều hành ngay (hỏi lại mỗi 3 giây) kèm hộp thông báo tự mở. Chi tiết ở `web/README.md`.
+  - **Quảng cáo mẫu chuyển sang Cộng đồng (30/10/2026, Hiệu yêu cầu; đã làm, chờ Hiệu duyệt giao diện):** laptop từ 1200px có cột bên phải 300px, dính theo khi cuộn; màn hẹp có một dòng xen sau tin thứ 4 (rồi cứ 6 tin một lần); mỗi màn chỉ hiện một kiểu. Còn ở Của tôi, bỏ khỏi Khám phá. Vẫn là khung mẫu: không nhắm theo người, không đếm lượt, không pop-up, không ở màn tiền, đồng ý, QR, bàn giao. Tham khảo AdMob native ads và MGID (chỉ lấy nguyên tắc). Chi tiết ở `web/README.md`.
   - **Hướng dẫn cho ban điều hành (29/10/2026, Hiệu yêu cầu; đã làm, chờ Hiệu duyệt giao diện):** tự chạy lần đầu đăng nhập, đi qua từng tab và từng mục trong tab (37 bước), xem lại từ menu avatar. Chi tiết ở `web/README.md`. Cùng ngày: Trang chung đổi tên thành **Cộng đồng**, mục theo vai (Của tôi, Nhà trường, Tạo CLB) chuyển vào menu avatar, tắt huy hiệu Next.js che avatar khi chạy dev.
   - **Trang chung (29/10/2026, Hiệu yêu cầu; đã làm khung mẫu, chờ Hiệu duyệt):** điều hướng làm thật (logo về trang chung, thanh tab theo vai, thành viên đăng nhập xong vào trang chung, `/me` giới hạn cho người chưa vào CLB, quyền đăng tin `post`); tin, giới thiệu CLB, nhắn tin và đăng tin chỉ là khung dữ liệu mẫu ghi "đang phát triển". Chi tiết ở `docs/mo-ta-bang-tin-chung.md` mục 8 và `web/README.md`. Bản mô tả gốc của ý tưởng: Trang chung cho mọi vai, nơi các CLB đăng tin, quảng bá, giao lưu và nhắn tin với admin CLB (Hiệu đề xuất 22/10/2026, mở rộng 29/10/2026: logo về trang chung, mục theo vai trên thanh trên, thành viên đăng nhập xong vào thẳng trang chung). Bản mô tả 2 ở `docs/mo-ta-bang-tin-chung.md`, có 9 câu hỏi cần Hiệu quyết và đề xuất làm theo 4 bước. Đã dựng khung rỗng `/feed` và `/clubs/[clubId]/posts` (đường dẫn, khung xương, trạng thái rỗng; chưa có API, chưa có lối vào); chưa kiểm trên trình duyệt.
   - **Nhóm D chưa làm:** hồ sơ hoạt động của thành viên; quay lại hai video demo của trang đầu (video hiện vẫn quay bản cũ, chưa có Kho bàn giao). Ảnh buổi sinh hoạt: Hiệu chọn bỏ lần này.
@@ -206,7 +209,7 @@ Mỗi API mới làm theo mục 9, bước 3. Luật gốc: `CLAUDE.md`, mục "
 - Các nút còn "chưa có": "Xem đề nghị" hỗ trợ từ trường, mục "Dự trù và báo cáo" phía trường.
 
 **Trước bản thật** (không cần cho bản dữ liệu giả)
-- Tạo khóa Google; thử đăng nhập bằng tài khoản thật.
+- Đăng nhập Google cho bản đưa lên mạng: cần địa chỉ HTTPS thật (thêm vào Authorized redirect URIs) và màn hình đồng ý OAuth được Google duyệt. Trên máy thì đã có, xem `docs/dang-nhap-google.md`.
 - Đưa lên mạng (HTTPS). Thử link trong trình duyệt bên trong Zalo và Messenger.
 - Mã VietQR thật (máy chủ phải lưu đủ số tài khoản; hiện chỉ lưu 4 số cuối).
 - Cơ sở dữ liệu trống thì không nạp dữ liệu mẫu, để CLB tự tạo từ đầu.

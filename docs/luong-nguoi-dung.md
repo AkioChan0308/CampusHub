@@ -205,8 +205,10 @@ Bàn giao có **7 bước**:
 3. **Kiểm tra Kho bàn giao:** xem còn thiếu gì và còn bao nhiêu việc dở. Thiếu thì chỉ cảnh báo, không chặn.
 4. **Đổi tài khoản nhận quỹ:** thủ quỹ mới không dùng tiếp tài khoản của thủ quỹ cũ.
 5. **Chuyển quyền quản trị:** từng tài khoản trong kho chuyển sang người nhận mới, vì email trường của chủ nhiệm cũ bị thu hồi khi tốt nghiệp. Chỉ sang bước sau khi mọi tài khoản "bắt buộc chuyển" đã chuyển.
-6. **Ban mới xác nhận:** chỉ chủ nhiệm mới bấm "Xác nhận đã nhận bàn giao", nút nằm trong **Vùng nguy hiểm: đổi ban điều hành** vì bấm là đổi vai trò cả ban ngay và không hoàn tác được. Bấm xong có hộp hỏi hai bước: phải gõ BAN GIAO thì nút "Đổi ban và xác nhận" mới bấm được. Người này mở được trang Bàn giao dù chưa có vai ban điều hành.
+6. **Ban mới xác nhận:** khi ban cũ chuyển tới bước này, chủ nhiệm mới thấy khối "Cần bạn xác nhận" ở đầu Cộng đồng và Của tôi, bấm "Xem và xác nhận" để tới màn này (30/10/2026). Chỉ chủ nhiệm mới bấm "Xác nhận đã nhận bàn giao", nút nằm trong **Vùng nguy hiểm: đổi ban điều hành** vì bấm là đổi vai trò cả ban ngay và không hoàn tác được. Bấm xong có hộp hỏi hai bước: phải gõ BAN GIAO thì nút "Đổi ban và xác nhận" mới bấm được. Người này mở được trang Bàn giao dù chưa có vai ban điều hành.
 7. **Biên bản bàn giao:** chỉ đọc, ghi từng bước đã làm (lúc nào, ai), số dư chốt, ban mới, tài khoản nhận quỹ, bản tóm tắt nếu có. In được, xuất CSV được. Ban mới đã xác nhận thì biên bản không sửa được nữa.
+
+**Thông báo:** mọi vai có chuông ở đầu màn. Khi bàn giao tới bước 6 chủ nhiệm mới được báo; khi ban mới xác nhận, ban cũ tự bị đưa ra khỏi ban điều hành và hộp thông báo mở ra với "Bàn giao xong" (30/10/2026).
 
 Quay lại bước trước được (có hỏi lại, biên bản ghi lại việc quay lại), trừ khi ban mới đã xác nhận. Nút "Xuất toàn bộ dữ liệu (Excel)" ở màn Bàn giao dùng được bất cứ lúc nào (ban điều hành).
 

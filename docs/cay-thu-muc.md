@@ -18,6 +18,7 @@ campushub/
     cay-thu-muc.md      file này
     api.md              hợp đồng API giữa web và máy chủ, bản để đọc và duyệt
     postgresql.md       cách chạy cơ sở dữ liệu (có và không có Docker)
+    dang-nhap-google.md bật đăng nhập Google trên máy: tạo khóa, điền .env, ghép Gmail với vai
     ke-hoach-mvp.md     kế hoạch 10 tuần ban đầu
   design/          bản vẽ wireframe 16 màn, chỉ để tra nội dung, chữ và luật
     README.md           mỗi màn làm gì, luật nào hiện trên màn, những gì chưa vẽ

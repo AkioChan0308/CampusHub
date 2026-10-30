@@ -102,6 +102,16 @@ Lần đầu nối vào cơ sở dữ liệu trống, máy chủ **tự tạo b�
 
 Cổng 5432 đã có chương trình khác dùng, hoặc gặp lỗi khác: xem bảng "Lỗi thường gặp" trong [docs/postgresql.md](docs/postgresql.md). Muốn cài PostgreSQL không qua Docker cũng xem file đó.
 
+### Đăng nhập bằng Google (tùy chọn)
+
+Repo **không có khóa Google**. Chưa có khóa thì trang đăng nhập chỉ ẩn nút Google, còn 7 tài khoản mẫu vẫn dùng bình thường. Muốn thử đăng nhập Google trên máy mình (miễn phí, khoảng 10 phút):
+
+1. Tạo OAuth client trên Google Cloud Console, thêm Gmail của bạn vào Test users, và thêm redirect `http://localhost:3000/api/v1/auth/google/callback`.
+2. Chép `server/.env.example` thành `server/.env`, điền `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` và `LOGIN_AS` (ghép Gmail với một vai mẫu).
+3. Khởi động lại máy chủ, mở http://localhost:3000/login: nút "Đăng nhập bằng Google" hiện ra.
+
+Từng bước, cách ghép vai (kể cả thử bàn giao hai phía bằng hai Gmail) và bảng lỗi thường gặp: [docs/dang-nhap-google.md](docs/dang-nhap-google.md). Client secret chỉ để trong `server/.env`, không đưa vào repo.
+
 ## Thư mục và tài liệu
 
 | Ở đâu | Có gì |
@@ -111,6 +121,8 @@ Cổng 5432 đã có chương trình khác dùng, hoặc gặp lỗi khác: xem 
 | [web/](web/) | Trang web (Next.js). Hướng dẫn: [web/README.md](web/README.md) |
 | [server/](server/) | Máy chủ API (Node.js, Express). Hướng dẫn: [server/README.md](server/README.md) |
 | [docs/api.md](docs/api.md) | Danh sách API giữa trang web và máy chủ |
+| [docs/dang-nhap-google.md](docs/dang-nhap-google.md) | Bật đăng nhập Google trên máy mình: tạo khóa, điền `.env`, ghép Gmail với vai, lỗi thường gặp |
+| [docs/postgresql.md](docs/postgresql.md) | Chạy cơ sở dữ liệu PostgreSQL (có và không có Docker) |
 | [DESIGN.md](DESIGN.md) | Hệ giao diện "Lịch bloc": màu, chữ, cách bố trí |
 | [design/](design/) | Bản vẽ wireframe ban đầu (16 màn), dùng để tra nội dung và luật của từng màn |
 | [CLAUDE.md](CLAUDE.md) | Luật làm việc của nhóm và các nguyên tắc nghiệp vụ đã chốt |
