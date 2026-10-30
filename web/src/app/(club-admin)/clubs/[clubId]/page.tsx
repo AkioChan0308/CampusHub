@@ -273,16 +273,15 @@ function Home() {
             ))}
           </section>
 
-          {/* Khung khóa của bản trả phí (giả thuyết, chưa có giá, chưa có thanh toán): chỉ cho thấy loại thông tin. Số bị làm mờ. */}
+          {/* Tính năng thuộc gói trả phí (chốt 30/10/2026). Bản demo mở hết, nên số hiện đủ; khi ra bản chính thức, CLB dùng bản miễn phí sẽ chỉ thấy khung có số làm mờ. */}
           <section className="l-panel" aria-labelledby="stats-h">
-            <div className="l-panel-head"><h2 id="stats-h">Thống kê tham gia</h2><span className="l-tag wait">Có trong bản trả phí</span></div>
+            <div className="l-panel-head"><h2 id="stats-h">Thống kê tham gia</h2><span className="l-tag wait">Thuộc gói trả phí</span></div>
             <div className="l-panel-body">
-              {/* Chỉ làm mờ số, nhãn vẫn đọc được. Số thật vẫn có trong dữ liệu trang: đây là khung demo, không phải khóa thật. */}
-              <dl className="l-facts l-locked" aria-hidden="true">
+              <dl className="l-facts">
                 <div><dt>Có mặt {d.participation.sessions} buổi gần đây</dt><dd>{d.participation.rate ?? "–"}%</dd></div>
                 <div><dt>Vắng liền {d.participation.sessions} buổi</dt><dd>{d.participation.absentRuns} người</dd></div>
               </dl>
-              <p className="l-note">Phân tích tự động từ dữ liệu điểm danh (phép đếm, không phải AI). Số liệu đang khóa trong bản miễn phí.</p>
+              <p className="l-note">Phân tích tự động từ dữ liệu điểm danh (phép đếm, không phải AI). Bản demo mở hết tính năng; bản chính thức chỉ có ở gói trả phí.</p>
               <div className="l-row-actions"><Link className="l-btn2 l-sm" href={`${base}/paid-plan`}>Tìm hiểu bản trả phí</Link></div>
             </div>
           </section>

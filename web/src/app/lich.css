@@ -1039,7 +1039,6 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 .l-fundline .l-subhead { flex: 0 0 auto; }
 .l-fundline-text { flex: 1; min-width: 0; color: var(--l-ink-2); }
 .l-fundline-text strong { color: var(--l-ink); }
-.l-locked dd { filter: blur(6px); user-select: none; pointer-events: none; }
 
 /* Menu: nhóm Quỹ gấp được */
 .l-navtoggle { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 40px; margin: 8px 0 0; padding: 0 10px; border: 0; background: none; font: 500 15px/1.25 var(--l-body); color: var(--l-ink-2); text-align: left; cursor: pointer; }

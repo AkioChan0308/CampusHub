@@ -16,7 +16,7 @@ export const MOCK_NOTE = "Bản mẫu: câu trả lời lấy từ dữ liệu m
 function usageText(u: AiUsageDto) {
   return u.limit !== undefined
     ? `Đã hỏi ${u.asks} / ${u.limit} lượt trong kỳ này (bản miễn phí).`
-    : `Đã hỏi ${u.asks} lượt trong kỳ này. Bản miễn phí giới hạn lượt hỏi theo kỳ; mức giới hạn: chưa có.`;
+    : `Đã hỏi ${u.asks} lượt trong kỳ này. Bản demo không giới hạn lượt; bản miễn phí chính thức giới hạn 10 lượt mỗi CLB mỗi kỳ, gói trả phí không giới hạn.`;
 }
 
 const KIND_LABEL: Record<AiSourceDto["kind"], string> = { document: "Biểu mẫu", process: "Quy trình", account: "Tài khoản" };

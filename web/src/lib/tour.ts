@@ -29,7 +29,7 @@ export const BOARD_TOUR: TourStep[] = [
   { group: "Trang chủ", target: "h:Bàn giao", title: "Bàn giao", text: "Tiến độ bàn giao sang ban mới và số mục trong kho. Bấm \"Mở kho bàn giao\" để vào kho." },
   { group: "Trang chủ", target: "h:Sự kiện sắp tới", title: "Sự kiện sắp tới", text: "Các buổi sinh hoạt sắp tới của CLB." },
   { group: "Trang chủ", target: "h:Cần bạn xử lý", title: "Cần bạn xử lý", text: "Những việc cần bạn quyết: đơn xin vào CLB, khoản chi chờ duyệt, giao dịch chưa khớp với sao kê." },
-  { group: "Trang chủ", target: "h:Thống kê tham gia", title: "Thống kê tham gia", text: "Thống kê chuyên cần tính từ dữ liệu điểm danh (phép đếm, không phải AI). Phần này có trong bản trả phí." },
+  { group: "Trang chủ", target: "h:Thống kê tham gia", title: "Thống kê tham gia", text: "Thống kê chuyên cần tính từ dữ liệu điểm danh (phép đếm, không phải AI). Bản demo mở hết; bản chính thức chỉ có ở gói trả phí." },
 
   { group: "Thành viên", page: "/members", target: "h:Đơn xin vào đang chờ", title: "Đơn xin vào CLB", text: "Duyệt hoặc từ chối đơn của sinh viên xin vào. Chỉ người có quyền duyệt mới bấm được." },
   { group: "Thành viên", target: "h:Danh sách thành viên", title: "Danh sách thành viên", text: "Tìm theo tên, lọc theo ban, và sửa vai trò hoặc ban của từng người." },
