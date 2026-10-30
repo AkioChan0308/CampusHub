@@ -7,13 +7,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
   AiStatusRes, ApplicationsRes, BoardRes, BudgetRes, ClubRes, ClubsRes, CollectionRes, CollectionsRes, DashboardRes, EventsRes, EventDetailRes, ExpensesRes, HandoverRes, HealthRes, InviteRes,
-  ClubPostsRes, FeedRes, KitRes, LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, MyTasksRes, PostRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes, SchoolPostsRes, TasksRes,
+  ClubPostsRes, FeedRes, KitRes, LedgerRes, MeRes, MembersRes, MyAttendanceRes, MyClubRes, MyPaymentRes, MyTasksRes, NotificationsRes, PostRes, QrRes, ReconciliationRes, SchoolClubRes, SchoolClubsRes, SchoolPostsRes, TasksRes,
 } from "@contract";
-import { ApiError, apiGet } from "./client";
+import { ApiError, apiGet, apiPost } from "./client";
 
 export const keys = {
   health: ["health"] as const,
   me: ["me"] as const,
+  notifications: ["notifications"] as const,
   club: (clubId: string) => ["clubs", clubId] as const,
   board: (clubId: string) => ["clubs", clubId, "board"] as const,
   dashboard: (clubId: string) => ["clubs", clubId, "dashboard"] as const,
@@ -51,8 +52,27 @@ export const keys = {
 
 /** Chế độ đăng nhập của máy chủ: "demo" thì còn trang chọn vai, "google" thì chỉ đăng nhập Google. */
 export const useHealth = () => useQuery({ queryKey: keys.health, queryFn: () => apiGet<HealthRes>("/health"), staleTime: Infinity });
+/** Thông báo của mình: hỏi lại mỗi 3 giây khi trang đang hiện. Không đăng nhập (401) thì không thử lại, chuông tự ẩn. */
+export const useNotifications = () => useQuery({
+  queryKey: keys.notifications, queryFn: () => apiGet<NotificationsRes>("/me/notifications"), refetchInterval: BOARD_POLL_MS, retry: false,
+});
+
+/** ids trống: đánh dấu đã đọc hết. */
+export function useReadNotifications() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (ids?: string[]) => apiPost<NotificationsRes>("/me/notifications/read", ids ? { ids } : {}),
+    onSuccess: (res) => client.setQueryData(keys.notifications, res),
+  });
+}
+
 export const useMe = () => useQuery({ queryKey: keys.me, queryFn: () => apiGet<MeRes>("/me") });
-export const useBoardQuery = (clubId: string) => useQuery({ queryKey: keys.board(clubId), queryFn: () => apiGet<BoardRes>(`/clubs/${clubId}/board`) });
+/** poll: hỏi lại mỗi 3 giây (khung ban điều hành dùng), để quyền đổi ở máy khác, ví dụ ban mới vừa xác nhận bàn giao, hiện ngay không cần bấm gì. */
+export const BOARD_POLL_MS = 3000;
+export const useBoardQuery = (clubId: string, poll = false) => useQuery({
+  queryKey: keys.board(clubId), queryFn: () => apiGet<BoardRes>(`/clubs/${clubId}/board`),
+  ...(poll ? { refetchInterval: BOARD_POLL_MS } : {}),
+});
 export const useDashboard = (clubId: string) => useQuery({ queryKey: keys.dashboard(clubId), queryFn: () => apiGet<DashboardRes>(`/clubs/${clubId}/dashboard`) });
 export const useMyPayment = (collectionId: string) => useQuery({ queryKey: keys.myPayment(collectionId), queryFn: () => apiGet<MyPaymentRes>(`/me/collections/${collectionId}`) });
 

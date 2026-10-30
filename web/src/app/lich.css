@@ -1060,6 +1060,22 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 /* Khung quảng cáo mẫu: giữ chỗ cố định, nằm trong dòng nội dung, viền 1px, không che gì */
 .l-sponsor { display: flex; flex-direction: column; gap: 4px; min-height: 116px; padding: 12px 16px; border: 1px solid var(--l-rule); border-radius: var(--l-r-lg); background: var(--l-paper); }
 .l-pay-card.l-rows > .l-sponsor { border-width: 1px 0; border-radius: 0; margin: 0 -16px; }
+/* Quảng cáo ở Cộng đồng (Hiệu yêu cầu 30/10/2026). Từ 1200px: cột bên phải, dính theo khi cuộn, không có dòng xen. Dưới 1200px: không có cột, có dòng xen sau tin thứ 4. */
+.l-feed-layout { display: contents; }
+.l-feed-side { display: none; }
+.l-sponsor-art { display: grid; place-items: center; min-height: 120px; border: 1px dashed var(--l-rule); border-radius: var(--l-r); color: var(--l-ink-3); font-size: 13px; }
+.l-sponsor-side .l-btn2, .l-sponsor-post .l-btn2 { align-self: flex-start; margin-top: 4px; }
+.l-sponsor.l-sponsor-post { min-height: 0; margin: 10px 0; padding: 12px 14px; border: 1px solid var(--l-ink-3); border-radius: var(--l-r); }
+.l-posts > li.l-post-ad + li:not(.l-post-ad) { margin-top: 0; }
+@media (min-width: 1200px) {
+  .l-post-ad { display: none; }
+  /* Cột tin 760px như cũ cộng cột bên 300px, cả cụm canh giữa; đầu màn và thanh tab canh theo cụm đó. */
+  .l-pmain:has(.l-feed-layout) { max-width: 1132px; }
+  .l-phone:has(.l-feed-layout) .l-phead, .l-phone:has(.l-feed-layout) .l-tabs { padding-inline: max(24px, calc((100% - 1084px) / 2 + 24px)); }
+  .l-feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+  .l-feed-side { display: block; position: sticky; top: 120px; }
+  .l-sponsor.l-sponsor-side { min-height: 0; gap: 8px; }
+}
 .l-sponsor-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .l-sponsor-label { font-size: 12.5px; font-weight: 600; color: var(--l-ink-3); }
 
@@ -1146,6 +1162,25 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 
 /* Menu tài khoản (components/lich/AccountMenu): bấm avatar ở đầu khung điện thoại. Hộp nổi viền 1px mực 3, không bóng; mục cao 44px. */
 .l-menu { z-index: 50; min-width: 208px; padding: 6px; background: var(--l-paper); border: 1px solid var(--l-ink-3); border-radius: var(--l-r); color: var(--l-ink); font-family: var(--l-body); }
+/* Chuông thông báo và hộp danh sách (Hiệu yêu cầu 30/10/2026). Số chưa đọc xanh mực, không đỏ. */
+.l-phead-tools { display: flex; align-items: center; gap: 6px; }
+button.l-bell { position: relative; flex-shrink: 0; width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--l-ink-2); cursor: pointer; }
+button.l-bell:hover { background: var(--l-ground); color: var(--l-ink); }
+.l-bell::before { content: ""; position: absolute; inset: -4px; }
+.l-bell-cnt { position: absolute; top: 0; right: -2px; min-width: 18px; padding: 1px 5px; border-radius: 9px; background: var(--l-blue); color: #FFFFFF; font: 700 11.5px/1.3 var(--l-num); text-align: center; }
+.l-who .l-bell { margin-left: auto; }
+.l-notif { z-index: 50; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 520px); display: flex; flex-direction: column; background: var(--l-paper); border: 1px solid var(--l-ink-3); border-radius: var(--l-r); color: var(--l-ink); font-family: var(--l-font); overflow: hidden; }
+.l-notif-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--l-rule-soft); }
+.l-notif-head h2 { font-size: 16px; font-weight: 700; }
+.l-notif-empty { padding: 20px 16px; }
+.l-notif-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+.l-notif-list li + li { border-top: 1px solid var(--l-rule-soft); }
+button.l-notif-item { width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 12px 16px; border: 0; background: transparent; color: var(--l-ink); font: inherit; text-align: left; cursor: pointer; }
+button.l-notif-item:hover, button.l-notif-item:focus-visible { background: var(--l-ground); }
+button.l-notif-item.unread { background: var(--l-blue-tint); }
+.l-notif-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14.5px; }
+.l-notif-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: var(--l-blue); }
+.l-notif-body { font-size: 13.5px; line-height: 1.45; color: var(--l-ink-2); }
 .l-menu-who { margin-bottom: 4px; padding: 8px 12px 10px; border-bottom: 1px solid var(--l-rule-soft); font-weight: 700; overflow-wrap: anywhere; }
 .l-menu .l-menu-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 8px; color: var(--l-ink); font-size: 15px; font-weight: 500; text-decoration: none; cursor: pointer; outline: none; }
 .l-menu .l-menu-item[data-highlighted] { background: var(--l-ground); }

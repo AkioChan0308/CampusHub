@@ -5,11 +5,13 @@
 // Việc lọc "CLB của tôi" làm ở màn này theo danh sách CLB của người xem. Mô tả đầy đủ: docs/mo-ta-bang-tin-chung.md.
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useFeed, useMe } from "@/api/queries";
 import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LeafSkel, LichPage, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
+import { Notices } from "@/components/lich/Notices";
+import { SponsoredPost, SponsoredSide } from "@/components/lich/SponsoredSlot";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { PostRow } from "@/components/lich/Post";
 import { POST_KIND_LABEL, type PostKind } from "@/lib/types";
@@ -74,7 +76,9 @@ export default function FeedPage() {
   return (
     <LichPage>
       <PhoneFrame brand personName={me.data.person.name} tab="feed" fade={saw}>
-        <div className="l-pay-body">
+        <div className="l-feed-layout">
+         <div className="l-pay-body l-feed-main">
+          <Notices notices={me.data.notices} />
           <Top>
             <div className="l-seg" role="group" aria-label="Chọn phần của Cộng đồng">
               {SCOPES.map((s) => <button key={s.key} type="button" className="l-chip" aria-pressed={scope === s.key} onClick={() => setScope(s.key)}>{s.label}</button>)}
@@ -93,10 +97,20 @@ export default function FeedPage() {
               ) : shown.length === 0 ? (
                 <p className="l-fine">{scope === "mine" ? "CLB của bạn chưa có tin nào." : "Không có tin nào khớp bộ lọc."}</p>
               ) : (
-                <ul className="l-posts">{shown.map((p) => <PostRow key={p.id} post={p} />)}</ul>
+                <ul className="l-posts">
+                  {shown.map((p, i) => (
+                    <Fragment key={p.id}>
+                      <PostRow post={p} />
+                      {/* Điện thoại và màn hẹp: một dòng quảng cáo sau tin thứ 4, rồi cứ 6 tin một lần. Laptop rộng dùng cột bên thay cho dòng này (CSS ẩn). */}
+                      {i >= 3 && (i - 3) % 6 === 0 && i < shown.length - 1 && <SponsoredPost />}
+                    </Fragment>
+                  ))}
+                </ul>
               )}
             </section>
           </Reveal>
+         </div>
+         <div className="l-feed-side"><SponsoredSide /></div>
         </div>
       </PhoneFrame>
     </LichPage>

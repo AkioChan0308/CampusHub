@@ -22,6 +22,7 @@ import { ErrorGate, NOT_IN_MVP, useLogout } from "@/components/lich/Gate";
 import { dueLabel, isUrgent, Leaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, Spinner, useSawPending } from "@/components/lich/motion";
 import { MeLocked, NoClubGate } from "@/components/lich/NoClub";
+import { Notices } from "@/components/lich/Notices";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
 import { SponsoredSlot } from "@/components/lich/SponsoredSlot";
 import { downloadCsv } from "@/lib/csv";
@@ -174,6 +175,8 @@ function Me({ me, data, fade }: { me: MeRes; data: MyClubRes; fade: boolean }) {
           <span className="l-meta">{person.email} · {departmentText(data.membership.department)}</span>
         </div>
       </div>
+
+      <Notices notices={me.notices} />
 
       <SponsoredSlot />
 

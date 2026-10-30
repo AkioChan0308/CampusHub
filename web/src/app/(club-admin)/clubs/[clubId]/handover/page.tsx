@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { HandoverRes, PersonRef } from "@contract";
 import { ApiError, apiPost, apiPut } from "@/api/client";
 import { budgetRows, ledgerRows, memberRows } from "@/api/excel-rows";
-import { budgetQuery, errorText, ledgerQuery, membersQuery, useClubMutation, useHandover } from "@/api/queries";
+import { budgetQuery, errorText, keys, ledgerQuery, membersQuery, useClubMutation, useHandover } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { AiSummary } from "@/components/lich/Assistant";
 import { BoardFrame, useFrameSawPending, useLichBoard } from "@/components/lich/BoardFrame";
@@ -531,7 +531,11 @@ function SavedSummary({ data }: { data: HandoverRes }) {
 
 function AcceptStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
   const { club } = useLichBoard();
-  const accept = useHandoverCall(() => toast.success("Đã xác nhận nhận bàn giao."));
+  const client = useQueryClient();
+  const accept = useHandoverCall(() => {
+    void client.invalidateQueries({ queryKey: keys.me }); // vai mới và thông báo "Cần bạn xác nhận" cập nhật ngay
+    toast.success("Đã xác nhận nhận bàn giao.");
+  });
   const president = data.newBoard?.president;
   const moved = data.accounts.filter((a) => a.transferred).length;
   // Hậu quả của việc đổi vai (xem acceptHandover ở lib/actions.ts), nêu rõ cho người bấm.

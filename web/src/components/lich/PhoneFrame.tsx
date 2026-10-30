@@ -11,6 +11,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AccountMenu } from "./AccountMenu";
+import { NotificationBell } from "./NotificationBell";
 import { ChatProvider } from "./ChatBubble";
 import { HubNav, isHubTab, type HubTab } from "./HubNav";
 import { LinkIcon, Skel } from "./motion";
@@ -29,7 +30,7 @@ export function PhoneFrame({ clubName, personName, tab, payHref, fade = false, b
   );
   // Bấm avatar: menu tài khoản (Của tôi, Đăng xuất).
   const fadeCls = fade ? " l-fade-in" : "";
-  const avatar = () => personName && <AccountMenu name={personName} fade={fade} />;
+  const avatar = () => personName && <span className="l-phead-tools"><NotificationBell /><AccountMenu name={personName} fade={fade} /></span>;
   const frame = (
     <div className="lich">
       <div className="l-phone-page">

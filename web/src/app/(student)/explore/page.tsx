@@ -11,7 +11,6 @@ import { ErrorGate } from "@/components/lich/Gate";
 import { TodayLeaf } from "@/components/lich/Leaf";
 import { LichPage, LinkIcon, Loading, Reveal, Skel, SkelLine, useSawPending } from "@/components/lich/motion";
 import { PhoneFrame } from "@/components/lich/PhoneFrame";
-import { SponsoredSlot } from "@/components/lich/SponsoredSlot";
 import { dm } from "@/lib/format";
 import { matchesSearch } from "@/lib/text";
 import { FIELDS } from "@/lib/types";
@@ -62,7 +61,7 @@ export default function ExplorePage() {
               <p className="l-sr" aria-live="polite">{clubs.length} CLB</p>
               {clubs.length === 0
                 ? <p className="l-fine">Không có CLB nào khớp. Thử tên khác hoặc chọn lĩnh vực Tất cả.</p>
-                : <section className="l-pay-card l-rows" aria-label="Các CLB">{clubs.map((c, i) => <Fragment key={c.id}>{i === 2 && <SponsoredSlot />}<ClubRow club={c} /></Fragment>)}</section>}
+                : <section className="l-pay-card l-rows" aria-label="Các CLB">{clubs.map((c) => <ClubRow key={c.id} club={c} />)}</section>}
               {/* Thêm ngày 04/10/2026: chủ nhiệm tự tạo CLB (phương án nghiệp vụ N1), mô tả được Hiệu duyệt. */}
               <div className="l-create-club">
                 <span className="l-fine">Chưa thấy CLB của bạn? Chủ nhiệm tự tạo được, không cần chờ duyệt.</span>

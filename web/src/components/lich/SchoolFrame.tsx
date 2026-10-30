@@ -15,6 +15,7 @@ import { downloadCsv } from "@/lib/csv";
 import { initials } from "@/lib/format";
 import { ErrorGate, NOT_IN_MVP, useLogout } from "./Gate";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
+import { NotificationBell } from "./NotificationBell";
 
 export function SchoolFrame({ active, children }: { active: "clubs" | "detail" | "posts"; children: ReactNode }) {
   const me = useMe();
@@ -72,6 +73,7 @@ export function SchoolFrame({ active, children }: { active: "clubs" | "detail" |
                     <button type="button" className="l-linkbtn" aria-busy={leaving || undefined} onClick={() => logout()}>Đăng xuất</button>
                   </div>
                 </div>
+                <NotificationBell side="top" align="start" />
               </>
             ) : (
               <><span className="l-avatar l-skel" aria-hidden="true" /><span className="l-who-text"><Skel w={120} /><Skel w={150} h={12} /><Skel w={84} h={12} /></span></>

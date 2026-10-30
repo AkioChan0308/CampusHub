@@ -5,14 +5,17 @@
 // Lúc đang tải: thanh bên vẫn hiện đủ mục với chữ thật, chỉ tên CLB và tên người là thanh giữ chỗ; vùng chính hiện `fallback`.
 
 import Link from "next/link";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { BoardRes } from "@contract";
+import { ApiError } from "@/api/client";
 import { useBoardQuery } from "@/api/queries";
 import { Icon, type IconName } from "@/components/Icon";
 import { ROLE_LABEL } from "@/lib/types";
 import { BoardAccountMenu } from "./AccountMenu";
 import { ErrorGate, useLogout } from "./Gate";
+import { NotificationBell, OPEN_BELL_KEY } from "./NotificationBell";
 import { LinkIcon, Loading, Skel, useSawPending } from "./motion";
 
 /** Mục đang chọn trên thanh bên. */
@@ -63,12 +66,29 @@ const NAV: NavItem[] = [
 const FUND: BoardNav[] = ["collection", "reconcile", "expenses", "budget"];
 
 export function BoardFrame({ clubId, active, fallback, children }: { clubId: string; active: BoardNav; fallback?: ReactNode; children: ReactNode }) {
-  const query = useBoardQuery(clubId);
+  const query = useBoardQuery(clubId, true);
+  const router = useRouter();
+  // Đang ở trong ban điều hành mà quyền vừa mất (ban mới xác nhận bàn giao ở máy khác): đưa ra ngay, không đợi tới lúc bấm thao tác rồi bị báo lỗi.
+  const roleSeen = useRef<string | undefined>(undefined);
+  const role = query.data?.me.role;
+  // Mất quyền thì máy chủ trả vai thành viên, hoặc 403 (không còn xem được trang của ban điều hành).
+  const forbidden = query.error instanceof ApiError && query.error.status === 403;
+  const wasBoard = !!roleSeen.current && roleSeen.current !== "member";
+  const kicked = wasBoard && (role === "member" || forbidden);
+  useEffect(() => {
+    if (kicked) {
+      roleSeen.current = "member";
+      toast("Ban mới đã nhận bàn giao. Bạn đã chuyển thành thành viên của CLB.");
+      try { sessionStorage.setItem(OPEN_BELL_KEY, "1"); } catch { /* chặn sessionStorage: hộp không tự mở, thông báo vẫn nằm trong chuông */ }
+      router.replace("/me");
+    } else if (role) roleSeen.current = role;
+  }, [kicked, role, router]);
   const { logout, pending: leaving } = useLogout();
   const saw = useSawPending(query.isPending);
   const fade = saw ? " l-fade-in" : "";
   // Nhóm Quỹ: mỗi trang tự dựng khung, nên trạng thái đầu là "mở" khi đang ở một trang của quỹ; bấm nút đóng mở được.
   const [fundOpen, setFundOpen] = useState(FUND.includes(active));
+  if (kicked) return null; // đang chuyển về "Của tôi", không chớp trang lỗi
   if (query.isError) return <ErrorGate error={query.error} onRetry={() => query.refetch()} />;
 
   const board = query.data;
@@ -145,6 +165,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
                         <button type="button" className="l-linkbtn" aria-busy={leaving || undefined} onClick={() => logout()}>Đăng xuất</button>
                       </div>
                     </div>
+                    <NotificationBell side="top" align="start" />
                   </>
                 ) : (
                   <><span className="l-avatar l-skel" aria-hidden="true" /><span className="l-who-text"><Skel w={120} /><Skel w={84} h={12} /></span></>
