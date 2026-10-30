@@ -124,7 +124,7 @@ Nguồn: `../Phuong an nghiep vu.md` (N0–N9) và `../Ghi chu san pham cho Chec
 
 ## Không làm trong MVP
 
-- Tính năng cho nhãn hàng, nhà tài trợ (trang cho nhãn hàng, đặt quảng cáo thật, tính tiền, xem báo cáo, nhắm đối tượng). **Ngoại lệ duy nhất (22/10/2026; sửa 30/10/2026 theo Hiệu): khung quảng cáo mẫu**, chỉ là chỗ trống có nhãn "Được tài trợ" với nội dung mẫu ở `/me` và Cộng đồng `/feed` (laptop từ 1200px: cột bên phải, dính theo khi cuộn; màn hẹp: một dòng xen sau tin thứ 4, rồi cứ 6 tin một lần; mỗi màn chỉ hiện một kiểu; không còn ở `/explore`); không pop-up, không che nội dung, không có ở màn tiền, màn đồng ý, lúc quét QR, bàn giao; chỉ ở bản miễn phí; nội dung giống nhau cho mọi người.
+- Tính năng cho nhãn hàng, nhà tài trợ (trang cho nhãn hàng, đặt quảng cáo thật, tính tiền, xem báo cáo, nhắm đối tượng). **Ngoại lệ duy nhất (22/10/2026; sửa 30/10/2026 theo Hiệu): khung quảng cáo mẫu**, chỉ là chỗ trống có nhãn "Được tài trợ" với nội dung mẫu ở `/me` và Cộng đồng `/feed` (laptop từ 1200px: cột bên phải, dính theo khi cuộn; màn hẹp: một dòng xen sau tin thứ 4, rồi cứ 6 tin một lần; mỗi màn chỉ hiện một kiểu; không còn ở `/explore`); không pop-up, không che nội dung, không có ở màn tiền, màn đồng ý, lúc quét QR, bàn giao; chỉ ở bản miễn phí (chốt 30/10/2026: ở bản chính thức không tắt được, gói trả phí không có; bản demo mở hết tính năng và vẫn có nút ẩn); nội dung giống nhau cho mọi người.
 - Điểm danh sự kiện cấp trường (FPT đã có hệ thống điểm trải nghiệm).
 - App cài đặt.
 - Ví điện tử, giữ tiền, cổng thanh toán.
