@@ -42,7 +42,29 @@ export function meRes(s: AppState, p: Person, account?: { username?: string; pas
     person: personDto(p),
     memberships: s.memberships.filter((m) => m.personId === p.id).map((m) => membershipDto(s, m)),
     account: { ...(account?.username ? { username: account.username } : {}), hasPassword: !!account?.passwordHash },
+    notices: noticesFor(s, p.id),
   };
+}
+
+/** Thông báo của một người: mới nhất trước, tối đa 50; `unread` đếm trên toàn bộ. */
+export function notificationsRes(s: AppState, personId: string): C.NotificationsRes {
+  const mine = s.notifications.filter((n) => n.personId === personId);
+  return {
+    items: mine.slice().reverse().slice(0, 50).map((n) => ({ id: n.id, kind: n.kind, title: n.title, body: n.body, at: n.at, ...(n.href ? { href: n.href } : {}), read: !!n.readAt })),
+    unread: mine.filter((n) => !n.readAt).length,
+  };
+}
+
+/** Bàn giao đã tới bước 6 (ban cũ xong phần của mình) mà chủ nhiệm mới là người này chưa xác nhận: nhắc họ vào xác nhận. */
+export function noticesFor(s: AppState, personId: string): C.NoticeDto[] {
+  return s.handovers
+    .filter((h) => h.step === 6 && !h.acceptedAt && h.newBoard?.president === personId)
+    .flatMap((h) => {
+      const club = s.clubs.find((c) => c.id === h.clubId);
+      if (!club) return [];
+      const from = s.memberships.find((m) => m.clubId === h.clubId && m.role === "president");
+      return [{ kind: "handover-accept" as const, clubId: club.id, clubName: club.name, ...(from ? { fromName: personName(s, from.personId) } : {}), fromTerm: h.fromTerm, toTerm: h.toTerm }];
+    });
 }
 
 export function eventDto(e: ClubEvent): C.EventDto {

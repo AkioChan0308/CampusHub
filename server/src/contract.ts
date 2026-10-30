@@ -217,11 +217,51 @@ export interface SchoolClubRowDto {
 
 // ---------- Kết quả trả về của từng API ----------
 
+/**
+ * Việc đang chờ chính người này, hiện ở đầu trang Cộng đồng và Của tôi (Hiệu yêu cầu 30/10/2026).
+ * Hiện chỉ có một loại: ban cũ đã chuyển bàn giao tới bước 6, chờ chủ nhiệm mới xác nhận nhận bàn giao.
+ */
+export interface NoticeDto {
+  kind: "handover-accept";
+  clubId: string;
+  clubName: string;
+  /** Chủ nhiệm hiện tại, người đã chuyển bàn giao. */
+  fromName?: string;
+  fromTerm: string;
+  toTerm: string;
+}
+
 export interface MeRes {
   person: { id: string; name: string; email: string; kind: "student" | "staff"; staffTitle?: string; year?: number };
   memberships: MembershipDto[];
   /** Đăng nhập bằng mật khẩu: tên tài khoản đã đặt (chữ thường) và đã có mật khẩu chưa. Không bao giờ có mật khẩu hay mã băm. */
   account: { username?: string; hasPassword: boolean };
+  /** Việc đang chờ người này; trống thì không có gì chờ. */
+  notices: NoticeDto[];
+}
+
+/** Một thông báo trong mục Thông báo (chuông) của chính người gọi. */
+export interface NotificationDto {
+  id: string;
+  kind: "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected";
+  title: string;
+  body: string;
+  at: IsoTime;
+  /** Đường dẫn trong web để mở khi bấm. */
+  href?: string;
+  read: boolean;
+}
+
+export interface NotificationsRes {
+  /** Mới nhất trước, tối đa 50. */
+  items: NotificationDto[];
+  /** Số thông báo chưa đọc (tính trên toàn bộ, không chỉ 50 thông báo mới nhất). */
+  unread: number;
+}
+
+/** Không gửi `ids` thì đánh dấu đã đọc tất cả. */
+export interface ReadNotificationsBody {
+  ids?: string[];
 }
 
 export interface MyClubRes {
@@ -942,6 +982,8 @@ export const ENDPOINTS = {
   logout: { method: "POST", path: "/auth/logout", auth: "public", who: "Người đã đăng nhập", screen: "Mọi màn" },
 
   getMe: { method: "GET", path: "/me", auth: "user", who: "Người đã đăng nhập", screen: "Mọi màn" },
+  getNotifications: { method: "GET", path: "/me/notifications", auth: "user", who: "Người đã đăng nhập", screen: "Chuông thông báo (chưa có bản vẽ)" },
+  readNotifications: { method: "POST", path: "/me/notifications/read", auth: "user", who: "Người đã đăng nhập", screen: "Chuông thông báo (chưa có bản vẽ)" },
   updateAccount: { method: "PUT", path: "/me/account", auth: "user", who: "Người đã đăng nhập", screen: "Đặt tên tài khoản và mật khẩu" },
   getMyClub: { method: "GET", path: "/me/clubs/:clubId", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-CuaToi" },
   getMyAttendance: { method: "GET", path: "/me/clubs/:clubId/attendance", auth: "user", who: "Thành viên đã nhận lời mời", screen: "TV-DiemDanh" },
@@ -1056,6 +1098,8 @@ export interface Api {
   logout: { params: {}; body: NoBody; res: OkRes };
 
   getMe: { params: {}; body: NoBody; res: MeRes };
+  getNotifications: { params: {}; body: NoBody; res: NotificationsRes };
+  readNotifications: { params: {}; body: ReadNotificationsBody; res: NotificationsRes };
   updateAccount: { params: {}; body: UpdateAccountBody; res: MeRes };
   getMyClub: { params: Club; body: NoBody; res: MyClubRes };
   getMyAttendance: { params: Club; body: NoBody; res: MyAttendanceRes };

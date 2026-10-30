@@ -36,8 +36,8 @@ test("nâng cấp từ cơ sở dữ liệu cũ: bàn giao ở bước 1, 2 gi�
         ('c3', 'Fall 2026', 'Spring 2027', 3, 3120000, 'p1', '[Ngân hàng]', '0123456789', 'MB1');
     `);
 
-    // Chạy các migration còn lại (004 tới 008).
-    assert.deepEqual(await migrate(db), ["004_handover_kit.sql", "005_handover_steps.sql", "006_ai_assistant.sql", "007_posts.sql", "008_mentor_confirm.sql"]);
+    // Chạy các migration còn lại (004 tới 009).
+    assert.deepEqual(await migrate(db), ["004_handover_kit.sql", "005_handover_steps.sql", "006_ai_assistant.sql", "007_posts.sql", "008_mentor_confirm.sql", "009_notifications.sql"]);
 
     const steps = (await db.query<{ club_id: string; step: number }>("select club_id, step from handovers order by club_id")).rows;
     assert.deepEqual(steps.map((r) => Number(r.step)), [1, 2, 4], "bước 3 cũ (đổi tài khoản nhận quỹ) thành bước 4 mới");

@@ -10,6 +10,7 @@ const me = (memberships: Ms[], kind: "student" | "staff" = "student"): MeRes => 
   person: { id: "p", name: "Người thử", email: "thu@example.com", kind },
   memberships,
   account: { hasPassword: false },
+  notices: [],
 });
 const keys = (m: MeRes) => roleEntries(m).map((e) => e.key);
 

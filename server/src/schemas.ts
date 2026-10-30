@@ -66,6 +66,8 @@ export const approveBody = z.object({
   note: optionalText(1000),
 }) satisfies z.ZodType<C.ApproveBody>;
 
+export const readNotificationsBody = z.object({ ids: z.array(z.string().min(1).max(80)).max(200).optional() }) satisfies z.ZodType<C.ReadNotificationsBody>;
+
 export const devLoginBody = z.object({ personId: id }) satisfies z.ZodType<C.DevLoginBody>;
 
 // Mật khẩu không trim: khoảng trắng đầu cuối cũng là một phần của mật khẩu. Luật chi tiết kiểm ở handler (web/src/lib/account.ts).

@@ -1,19 +1,28 @@
 // Thành viên trên điện thoại: trang Của tôi, lịch sử điểm danh, đóng quỹ, quét QR điểm danh; tên tài khoản và mật khẩu của mình.
 
 import { findClub, requireMember } from "../access.ts";
-import { checkIn, displayNameError, normalizeUsername, passwordError, reportTransfer, requestDeletion, setPersonName, usernameError, withdrawPhoneConsent } from "../domain.ts";
+import { checkIn, displayNameError, markNotificationsRead, normalizeUsername, passwordError, reportTransfer, requestDeletion, setPersonName, usernameError, withdrawPhoneConsent } from "../domain.ts";
 import { conflict, HttpError, invalid, notFound } from "../errors.ts";
 import { hashPassword, verifyPassword } from "../password.ts";
 import { verifyQrToken } from "../qr.ts";
-import { checkinBody, parseBody, updateAccountBody } from "../schemas.ts";
-import { attendanceDto, meRes, myAttendanceRes, myClubRes, myExportRes, myPaymentRes } from "../responses.ts";
+import { checkinBody, parseBody, readNotificationsBody, updateAccountBody } from "../schemas.ts";
+import { attendanceDto, meRes, myAttendanceRes, notificationsRes, myClubRes, myExportRes, myPaymentRes } from "../responses.ts";
 import { lockedError } from "./auth.ts";
 import type { Handlers } from "./types.ts";
 
-type Keys = "getMe" | "updateAccount" | "getMyClub" | "getMyAttendance" | "withdrawPhoneConsent" | "requestDeletion" | "exportMyData" | "getMyPayment" | "reportTransfer" | "checkIn";
+type Keys = "getMe" | "getNotifications" | "readNotifications" | "updateAccount" | "getMyClub" | "getMyAttendance" | "withdrawPhoneConsent" | "requestDeletion" | "exportMyData" | "getMyPayment" | "reportTransfer" | "checkIn";
 
 export const meHandlers: Pick<Handlers, Keys> = {
   getMe: (ctx) => meRes(ctx.state, ctx.me, ctx.auth.accounts.get(ctx.me.id)),
+
+  /** Chỉ thấy thông báo của chính mình. */
+  getNotifications: (ctx) => notificationsRes(ctx.state, ctx.me.id),
+
+  readNotifications: (ctx) => {
+    const body = parseBody(readNotificationsBody, ctx.body ?? {});
+    ctx.update(markNotificationsRead(ctx.me.id, body.ids, ctx.nowIso()));
+    return notificationsRes(ctx.state, ctx.me.id);
+  },
 
   /**
    * Đặt hoặc đổi tên hiển thị, tên tài khoản, mật khẩu. Đã có mật khẩu thì phải nhập mật khẩu hiện tại,

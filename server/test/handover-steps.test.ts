@@ -86,13 +86,21 @@ test("đi hết 7 bước, biên bản ghi từng bước, ban mới xác nhận
   const kit = (await srv.call("GET", `${C}/handover-kit`, { as: "a001" })).body;
   assert.ok(kit.accounts.filter((a: { required: boolean }) => a.required).every((a: { holder: { personId: string } }) => a.holder.personId === "a017"));
   assert.equal(kit.summary.missing, 0); // chuyển xong thì Email không còn thiếu người giữ
+  const notices = async (as: string) => (await srv.call("GET", "/me", { as })).body.notices;
+  assert.deepEqual(await notices("a017"), []); // chưa tới bước 6: chủ nhiệm mới chưa có thông báo
   assert.equal((await call("POST", "/transfer-done", "a001")).body.step, 6);
+
+  // Tới bước 6: chủ nhiệm mới có thông báo chờ xác nhận, người khác (kể cả ban cũ) thì không.
+  assert.deepEqual(await notices("a017"), [{ kind: "handover-accept", clubId: CLUB, clubName: "CLB Cầu lông Sân Nhà", fromName: "Phạm Quốc Bảo", fromTerm: "Fall 2026", toTerm: "Spring 2027" }]);
+  assert.deepEqual(await notices("a001"), []);
+  assert.deepEqual(await notices("a002"), []);
 
   // Bước 6: chỉ chủ nhiệm mới bấm được.
   assert.equal((await call("POST", "/accept", "a001")).status, 403);
   assert.equal((await call("POST", "/accept", "a002")).status, 403);
   const done = (await call("POST", "/accept", "a017")).body;
   assert.equal(done.step, 7);
+  assert.deepEqual(await notices("a017"), []); // xác nhận xong thì thông báo biến mất
   assert.equal(done.acceptedBy.personId, "a017");
   assert.ok(done.acceptedAt);
   assert.match(done.history.at(-2).text, /xác nhận đã nhận bàn giao/);

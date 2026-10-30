@@ -8,6 +8,7 @@ const me = (role: "president" | "member", extra: Partial<MeRes["person"]> = {}):
   person: { id: "p", name: "Người thử", email: "thu@example.com", kind: "student", ...extra },
   memberships: [{ clubId: "cau-long", clubName: "CLB", term: "Fall 2026", code: "A001", department: "Ban", role, invite: "accepted" }],
   account: { hasPassword: false },
+  notices: [],
 });
 
 test("ban điều hành đăng nhập với next=/me thì về trang CLB", () => {
@@ -29,7 +30,7 @@ test("thành viên thường đăng nhập với next=/me thì vào /me; không 
 });
 
 test("người chưa ở CLB nào vào trang chung; có lời mời đang chờ thì vào lời mời", () => {
-  const none: MeRes = { person: { id: "p", name: "Người thử", email: "thu@example.com", kind: "student" }, memberships: [], account: { hasPassword: false } };
+  const none: MeRes = { person: { id: "p", name: "Người thử", email: "thu@example.com", kind: "student" }, memberships: [], account: { hasPassword: false }, notices: [] };
   assert.equal(homeFor(none), "/feed");
   const invited: MeRes = { ...none, memberships: [{ clubId: "cau-long", clubName: "CLB", term: "Fall 2026", code: "A001", department: "Ban", role: "member", invite: "pending", inviteCode: "moi-a022" }] };
   assert.equal(homeFor(invited), "/invite/moi-a022");

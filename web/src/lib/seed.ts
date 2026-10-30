@@ -7,7 +7,7 @@ import type {
   AppState, Attendance, Club, ClubEvent, ClubPost, ClubTask, Consent, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
 } from "./types.ts";
 
-export const STATE_VERSION = 6;
+export const STATE_VERSION = 7;
 export const DEMO_CLUB_ID = "cau-long-san-nha";
 export const DEMO_COLLECTION_ID = "quy-fall-2026";
 export const DEMO_TERM = "Fall 2026";
@@ -367,6 +367,7 @@ export function createSeed(): AppState {
     tasks: TASKS,
     posts: POSTS,
     aiUsage: [],
+    notifications: [],
     consents,
   };
 }

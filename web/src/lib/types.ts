@@ -356,6 +356,22 @@ export interface Consent {
   withdrawnAt?: string;
 }
 
+/** Loại thông báo trong mục Thông báo (chuông) của mỗi người. */
+export type NotificationKind = "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected";
+
+/** Một thông báo gửi cho một người, giữ lại cả khi vai của họ đã đổi (ví dụ chủ nhiệm cũ vẫn thấy "Bàn giao xong"). Chưa có readAt là chưa đọc. */
+export interface AppNotification {
+  id: string;
+  personId: string;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  at: string;
+  /** Đường dẫn trong web để mở khi bấm vào thông báo. */
+  href?: string;
+  readAt?: string;
+}
+
 export interface AppState {
   v: number;
   persona: string | null;
@@ -379,5 +395,6 @@ export interface AppState {
   tasks: ClubTask[];
   posts: ClubPost[];
   aiUsage: AiUsage[];
+  notifications: AppNotification[];
   consents: Consent[];
 }

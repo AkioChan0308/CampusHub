@@ -5,9 +5,17 @@
 import { classify, type MemberRef } from "./reconcile.ts";
 import { money } from "./format.ts";
 import { balance, kitSummary, MENTOR_THRESHOLD, openCollections, personName } from "./selectors.ts";
-import { TASK_STATUS_LABEL, type AppState, type BudgetItem, type Club, type ClubEvent, type ClubPost, type ClubTask, type Collection, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type NewBoard, type Payment, type Person, type Role, type Statement, type StatementTxn, type TaskStatus } from "./types.ts";
+import { ROLE_LABEL, TASK_STATUS_LABEL, type AppNotification, type AppState, type BudgetItem, type Club, type ClubEvent, type ClubPost, type ClubTask, type Collection, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type NewBoard, type Payment, type Person, type Role, type Statement, type StatementTxn, type TaskStatus } from "./types.ts";
 
 export type Update = (s: AppState) => AppState;
+
+/** Gửi một thông báo cho mỗi người trong danh sách (mỗi người một bản, mỗi người chỉ một lần). */
+const notify = (s: AppState, personIds: string[], n: Omit<AppNotification, "id" | "personId" | "readAt">): AppState => {
+  const ids = [...new Set(personIds)];
+  return ids.length === 0 ? s : { ...s, notifications: [...s.notifications, ...ids.map((personId) => ({ id: uid("tb"), personId, ...n }))] };
+};
+const staffIds = (s: AppState) => s.persons.filter((p) => p.kind === "staff").map((p) => p.id);
+const clubName = (s: AppState, clubId: string) => s.clubs.find((c) => c.id === clubId)?.name ?? clubId;
 
 const CONSENT_VERSION = "chinh-sach-du-lieu-v1";
 
@@ -324,7 +332,16 @@ export const transferHandoverAccount = (clubId: string, accountId: string, holde
   };
 };
 
-export const finishHandoverTransfer = (clubId: string, by: string, at: string): Update => stepTo(clubId, 6, by, at, "chuyển xong quyền quản trị các tài khoản bắt buộc");
+export const finishHandoverTransfer = (clubId: string, by: string, at: string): Update => (s) => {
+  const done = stepTo(clubId, 6, by, at, "chuyển xong quyền quản trị các tài khoản bắt buộc")(s);
+  const h = done.handovers.find((x) => x.clubId === clubId);
+  if (!h?.newBoard) return done;
+  // Chủ nhiệm mới nhận thông báo cần xác nhận (cùng lúc khối "Cần bạn xác nhận" ở Cộng đồng và Của tôi).
+  return notify(done, [h.newBoard.president], {
+    kind: "handover-accept", title: "Cần bạn xác nhận nhận bàn giao", at, href: `/clubs/${clubId}/handover`,
+    body: `${personName(done, by)} đã chuyển bàn giao ${clubName(done, clubId)} (từ ${h.fromTerm} sang ${h.toTerm}) cho bạn. Xem rồi xác nhận để nhận quyền chủ nhiệm.`,
+  });
+};
 
 /**
  * Bước 6: chủ nhiệm mới xác nhận đã nhận. Sau đó biên bản không sửa được.
@@ -348,17 +365,36 @@ export const acceptHandover = (clubId: string, by: string, at: string): Update =
     return { ...m, role: next };
   });
   const text = `đổi vai trò theo ban mới: ${gained} người nhận vai trong ban điều hành, ${lost} người ban cũ về thành viên`;
-  return { ...accepted, memberships, handovers: accepted.handovers.map((h) => (h.clubId !== clubId ? h : { ...h, history: [...h.history, { at, by, text }] })) };
+  const changed: AppState = { ...accepted, memberships, handovers: accepted.handovers.map((h) => (h.clubId !== clubId ? h : { ...h, history: [...h.history, { at, by, text }] })) };
+  // Thông báo "Bàn giao xong" cho mọi người đổi vai (ban cũ về thành viên vẫn thấy dù đã mất quyền), và cho cán bộ trường để mentor xác nhận.
+  const name = clubName(changed, clubId);
+  const term = changed.handovers.find((h) => h.clubId === clubId)?.toTerm ?? "";
+  let out: AppState = changed;
+  for (const m of accepted.memberships) {
+    if (m.clubId !== clubId) continue;
+    const now = memberships.find((x) => x.clubId === clubId && x.personId === m.personId)?.role;
+    if (!now || now === m.role) continue;
+    out = now === "member"
+      ? notify(out, [m.personId], { kind: "handover-done", title: "Bàn giao xong", at, href: "/me", body: `${personName(out, by)} đã xác nhận nhận bàn giao ${name}. Bạn đã chuyển thành thành viên của CLB; biên bản bàn giao đã khóa.` })
+      : notify(out, [m.personId], { kind: "handover-done", title: "Bàn giao xong: bạn có vai mới", at, href: `/clubs/${clubId}`, body: `Bạn nhận vai ${ROLE_LABEL[now].toLowerCase()} của ${name}, nhiệm kỳ ${term}.` });
+  }
+  out = notify(out, staffIds(out), { kind: "handover-mentor", title: "Bàn giao chờ mentor xác nhận", at, href: `/school/clubs/${clubId}`, body: `${name} đã bàn giao xong sang ${term}. Mentor xác nhận biên bản ở trang chi tiết CLB.` });
+  // Thông báo "Cần bạn xác nhận" của người vừa xác nhận coi như đã đọc.
+  return { ...out, notifications: out.notifications.map((n) => (n.personId === by && n.kind === "handover-accept" && n.href === `/clubs/${clubId}/handover` && !n.readAt ? { ...n, readAt: at } : n)) };
 };
 
 /** Mentor xác nhận biên bản (không đổi bước). Chỉ gọi khi ban mới đã xác nhận và mentor chưa xác nhận (máy chủ kiểm trước). */
-export const confirmHandoverByMentor = (clubId: string, by: string, at: string): Update => (s) => ({
-  ...s,
-  handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : {
-    ...h, mentorConfirmedBy: by, mentorConfirmedAt: at,
-    history: [...h.history, { at, by, text: `${personName(s, by)} (mentor) xác nhận biên bản bàn giao` }],
-  })),
-});
+export const confirmHandoverByMentor = (clubId: string, by: string, at: string): Update => (s) => {
+  const next: AppState = {
+    ...s,
+    handovers: s.handovers.map((h) => (h.clubId !== clubId ? h : {
+      ...h, mentorConfirmedBy: by, mentorConfirmedAt: at,
+      history: [...h.history, { at, by, text: `${personName(s, by)} (mentor) xác nhận biên bản bàn giao` }],
+    })),
+  };
+  const receiver = s.handovers.find((h) => h.clubId === clubId)?.acceptedBy;
+  return receiver ? notify(next, [receiver], { kind: "handover-mentor", title: "Mentor đã xác nhận biên bản", at, href: `/clubs/${clubId}/handover`, body: `${personName(s, by)} đã xác nhận biên bản bàn giao ${clubName(s, clubId)}.` }) : next;
+};
 
 /** Quay lại bước trước (chỉ chủ nhiệm cũ, và chỉ khi ban mới chưa xác nhận). */
 export const setHandoverStep = (clubId: string, step: number, by: string, at: string): Update => stepTo(clubId, step, by, at, `quay lại bước ${step}`);
@@ -386,32 +422,53 @@ export const countAiUse = (clubId: string, term: string, kind: "asks" | "summari
 // ---------- Tin của CLB trên Cộng đồng ----------
 
 /** Tin mới luôn ở trạng thái chờ trường duyệt. */
-export const createPost = (p: Omit<ClubPost, "status" | "reviewedBy" | "reviewedAt" | "rejectReason">): Update => (s) => ({ ...s, posts: [...s.posts, { ...p, status: "pending" }] });
+export const createPost = (p: Omit<ClubPost, "status" | "reviewedBy" | "reviewedAt" | "rejectReason">): Update => (s) =>
+  notify({ ...s, posts: [...s.posts, { ...p, status: "pending" }] }, staffIds(s), { kind: "post-pending", title: "Tin mới chờ duyệt", at: p.createdAt, href: "/school/posts", body: `${clubName(s, p.clubId)}: "${p.title}"` });
 
 /** Sửa tin bị từ chối rồi gửi lại: nội dung mới, tin quay về chờ duyệt (xóa lý do và người duyệt cũ), tính lại giờ gửi để vào cuối hàng chờ. */
-export const resubmitPost = (id: string, change: { kind: ClubPost["kind"]; title: string; body: string; eventAt?: string; place?: string }, at: string): Update => (s) => ({
-  ...s,
-  posts: s.posts.map((p) => {
-    if (p.id !== id) return p;
-    const { eventAt: _e, place: _p, rejectReason: _r, reviewedBy: _b, reviewedAt: _a, ...rest } = p;
-    return { ...rest, ...change, status: "pending", createdAt: at };
-  }),
-});
+export const resubmitPost = (id: string, change: { kind: ClubPost["kind"]; title: string; body: string; eventAt?: string; place?: string }, at: string): Update => (s) => {
+  const next: AppState = {
+    ...s,
+    posts: s.posts.map((p) => {
+      if (p.id !== id) return p;
+      const { eventAt: _e, place: _p, rejectReason: _r, reviewedBy: _b, reviewedAt: _a, ...rest } = p;
+      return { ...rest, ...change, status: "pending", createdAt: at };
+    }),
+  };
+  const post = s.posts.find((p) => p.id === id);
+  return post ? notify(next, staffIds(s), { kind: "post-pending", title: "Tin gửi lại chờ duyệt", at, href: "/school/posts", body: `${clubName(s, post.clubId)}: "${change.title}"` }) : next;
+};
 
 /** Cán bộ trường duyệt: tin hiện cho mọi người. Chỉ gọi cho tin đang chờ (máy chủ kiểm trước). */
-export const approvePost = (id: string, by: string, at: string): Update => (s) => ({
-  ...s,
-  posts: s.posts.map((p) => {
-    if (p.id !== id) return p;
-    const { rejectReason: _r, ...rest } = p;
-    return { ...rest, status: "approved", reviewedBy: by, reviewedAt: at };
-  }),
-});
+export const approvePost = (id: string, by: string, at: string): Update => (s) => {
+  const next: AppState = {
+    ...s,
+    posts: s.posts.map((p) => {
+      if (p.id !== id) return p;
+      const { rejectReason: _r, ...rest } = p;
+      return { ...rest, status: "approved", reviewedBy: by, reviewedAt: at };
+    }),
+  };
+  const post = s.posts.find((p) => p.id === id);
+  return post ? notify(next, [post.createdBy], { kind: "post-approved", title: "Tin của bạn đã được duyệt", at, href: `/feed/${id}`, body: `"${post.title}" đã hiện trên Cộng đồng.` }) : next;
+};
 
 /** Cán bộ trường từ chối: kèm lý do, người đăng thấy lý do. */
-export const rejectPost = (id: string, reason: string, by: string, at: string): Update => (s) => ({
+export const rejectPost = (id: string, reason: string, by: string, at: string): Update => (s) => {
+  const next: AppState = {
+    ...s,
+    posts: s.posts.map((p) => (p.id === id ? { ...p, status: "rejected", reviewedBy: by, reviewedAt: at, rejectReason: reason } : p)),
+  };
+  const post = s.posts.find((p) => p.id === id);
+  return post ? notify(next, [post.createdBy], { kind: "post-rejected", title: "Tin của bạn bị từ chối", at, href: `/clubs/${post.clubId}/posts`, body: `"${post.title}": ${reason}` }) : next;
+};
+
+// ---------- Thông báo ----------
+
+/** Đánh dấu đã đọc thông báo của một người: các id đã cho, hoặc tất cả nếu không cho id. Thông báo đã đọc giữ nguyên giờ đọc cũ. */
+export const markNotificationsRead = (personId: string, ids: string[] | undefined, at: string): Update => (s) => ({
   ...s,
-  posts: s.posts.map((p) => (p.id === id ? { ...p, status: "rejected", reviewedBy: by, reviewedAt: at, rejectReason: reason } : p)),
+  notifications: s.notifications.map((n) => (n.personId === personId && !n.readAt && (!ids || ids.includes(n.id)) ? { ...n, readAt: at } : n)),
 });
 
 // ---------- Việc cần làm ----------

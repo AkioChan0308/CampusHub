@@ -2,7 +2,7 @@
 // Mỗi bảng: tên cột theo đúng thứ tự, cột khóa, cách lấy các dòng từ AppState và cách dựng lại đối tượng từ một dòng.
 // Thứ tự các bảng trong TABLES là thứ tự thêm dòng (bảng cha trước bảng con); xóa thì đi ngược lại.
 
-import { nowIso, STATE_VERSION, type AppState, type Budget, type Club, type ClubPost, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
+import { nowIso, STATE_VERSION, type AppNotification, type AppState, type Budget, type Club, type ClubPost, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
 
 export type Val = string | number | boolean | null;
 type Row = Record<string, unknown>;
@@ -132,6 +132,12 @@ export const TABLES: TableDef[] = [
     name: "posts", source: "posts", keyCount: 1,
     cols: ["id", "club_id", "kind", "title", "body", "event_at", "place", "status", "created_by", "created_at", "reviewed_by", "reviewed_at", "reject_reason"],
     rows: (s) => s.posts.map((p) => [p.id, p.clubId, p.kind, p.title, p.body, n(p.eventAt), n(p.place), p.status, p.createdBy, p.createdAt, n(p.reviewedBy), n(p.reviewedAt), n(p.rejectReason)]),
+  },
+  {
+    // Thông báo của từng người; đổi readAt khi đọc nên khóa là id, không phải vị trí.
+    name: "notifications", source: "notifications", keyCount: 1,
+    cols: ["id", "person_id", "kind", "title", "body", "at", "href", "read_at"],
+    rows: (s) => s.notifications.map((x) => [x.id, x.personId, x.kind, x.title, x.body, x.at, n(x.href), n(x.readAt)]),
   },
   {
     name: "ai_usage", source: "aiUsage", keyCount: 2,
@@ -272,6 +278,10 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
       id: str(r.id), clubId: str(r.club_id), kind: r.kind as ClubPost["kind"], title: str(r.title), body: str(r.body), eventAt: optTime(r.event_at), place: opt<string>(r.place),
       status: r.status as ClubPost["status"], createdBy: str(r.created_by), createdAt: time(r.created_at),
       reviewedBy: opt<string>(r.reviewed_by), reviewedAt: optTime(r.reviewed_at), rejectReason: opt<string>(r.reject_reason),
+    })),
+    notifications: t.notifications.map((r) => clean<AppNotification>({
+      id: str(r.id), personId: str(r.person_id), kind: r.kind as AppNotification["kind"], title: str(r.title), body: str(r.body), at: time(r.at),
+      href: opt<string>(r.href), readAt: optTime(r.read_at),
     })),
     aiUsage: t.ai_usage.map((r) => ({ clubId: str(r.club_id), term: str(r.term), asks: num(r.asks), summaries: num(r.summaries) })),
     consents: t.consents.map((r) => clean<Consent>({

@@ -119,7 +119,9 @@ Cột "Màn" là tên màn trong `design/screens/`.
 
 | API | Ai gọi | Màn | Ghi chú |
 |---|---|---|---|
-| `GET /me` | Người đã đăng nhập | Mọi màn | Thông tin của mình và các CLB đang ở. Lời mời chưa nhận có `inviteCode`. `account`: tên tài khoản đã đặt, đã có mật khẩu chưa |
+| `GET /me` | Người đã đăng nhập | Mọi màn | Thông tin của mình và các CLB đang ở. Lời mời chưa nhận có `inviteCode`. `account`: tên tài khoản đã đặt, đã có mật khẩu chưa. `notices`: việc đang chờ người này, hiện chỉ có `handover-accept` (bàn giao đã tới bước 6 và người này là chủ nhiệm mới chưa xác nhận); không có gì chờ thì mảng trống |
+| `GET /me/notifications` | Người đã đăng nhập | Chuông thông báo (chưa có bản vẽ) | Thông báo của chính mình, mới nhất trước, tối đa 50, kèm `unread` (số chưa đọc trên toàn bộ). Giữ lại cả khi vai đã đổi: chủ nhiệm cũ vẫn thấy "Bàn giao xong". Loại: `handover-accept` (chủ nhiệm mới cần xác nhận), `handover-done`, `handover-mentor`, `post-pending` (cán bộ trường), `post-approved`, `post-rejected` |
+| `POST /me/notifications/read` | Người đã đăng nhập | Chuông thông báo (chưa có bản vẽ) | Đánh dấu đã đọc: gửi `ids` thì chỉ các thông báo đó, không gửi thì tất cả. Chỉ đụng tới thông báo của chính mình. Trả lại danh sách mới |
 | `PUT /me/account` | Người đã đăng nhập | Đặt tên tài khoản và mật khẩu | Gửi `name` (tên hiển thị), `username`, `password`, và `currentPassword` khi đã có mật khẩu (trừ khi vừa đăng nhập Google). Lỗi từng ô ở `details.fields`. Tên tài khoản đã có người dùng: 409 |
 | `GET /me/clubs/:clubId` | Thành viên đã nhận lời mời | TV-CuaToi | Điểm danh kỳ này, khoản quỹ, các mục đã đồng ý, yêu cầu xóa |
 | `GET /me/clubs/:clubId/attendance` | Thành viên đã nhận lời mời | TV-DiemDanh | Các buổi đã mở điểm danh và các lần mình điểm danh |
