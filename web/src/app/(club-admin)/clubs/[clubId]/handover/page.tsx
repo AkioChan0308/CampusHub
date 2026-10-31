@@ -582,10 +582,12 @@ function AcceptStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
 function RecordStep({ data }: { data: HandoverRes }) {
   const { club } = useLichBoard();
   const b = data.newBoard;
+  // Sau khi ban mới xác nhận, chủ nhiệm hiện tại đã là người mới; chủ nhiệm cũ là người chọn ban mới ở bước 1 (dòng đầu của biên bản).
+  const oldChair = data.acceptedAt ? data.history[0]?.by : data.currentPresident;
   const lines: [string, string][] = [
     ["CLB", club.name],
     ["Nhiệm kỳ", `Từ ban ${data.fromTerm} sang ban ${data.toTerm}`],
-    ["Chủ nhiệm cũ", data.currentPresident?.name ?? "Không rõ"],
+    ["Chủ nhiệm cũ", oldChair?.name ?? "Không rõ"],
     ["Ban mới", b ? [`Chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length && `trưởng ban ${b.heads.map((h) => h.name).join(", ")}`].filter(Boolean).join("; ") : "Chưa chọn"],
     ["Số dư đã chốt", money(data.lockedBalance)],
     ["Tài khoản nhận quỹ mới", data.newReceiver ? `${data.newReceiver.name} · ${data.newReceiver.bank} · •••• ${data.newReceiver.accountLast4}` : "Chưa có"],
