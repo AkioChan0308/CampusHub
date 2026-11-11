@@ -21,6 +21,7 @@ Thư mục này chỉ chứa code. Tài liệu nghiên cứu và khảo sát n�
 ## Cách làm việc
 
 - Trả lời và viết tài liệu bằng tiếng Việt, câu ngắn, dễ đọc. Giao diện người dùng viết tiếng Việt.
+- **Trước khi sửa code trong repo này, luôn đọc sơ đồ kiến trúc archify mới nhất ở `.archify/` (file `architecture-campushub-*/campushub-architecture.html`, nếu máy có) để nắm cấu trúc, rồi mới mở từng file.**
 - Không tự đặt số liệu. Số nào không có nguồn thì để trống và ghi "chưa có".
 - Tiến độ hiện tại và việc tiếp theo: `docs/tien-do-mvp.md`. Kế hoạch 10 tuần ban đầu: `docs/ke-hoach-mvp.md`.
 - Chuẩn code (đặt tên, cấu trúc thư mục, quy ước commit) do Khoa (Tech Lead) chốt. Chuẩn nào đã chốt thì ghi thêm vào file này.
