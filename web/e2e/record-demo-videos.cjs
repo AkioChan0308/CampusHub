@@ -1,6 +1,6 @@
 // Quay hai video demo cho trang đầu (Hiệu duyệt ngày 05/10/2026), bắt đầu từ trang đăng nhập:
 //   - member: điện thoại; đăng nhập, nhận lời mời, quét mã điểm danh, đóng quỹ, xem Của tôi;
-//   - club-admin: laptop; đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi, bàn giao.
+//   - club-admin: laptop; đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi, bàn giao (chọn chủ nhiệm mới, chốt số dư).
 // Quay bằng chính web đang chạy với dữ liệu mẫu, không dựng cảnh. Giao diện đổi thì chạy lại script này.
 //
 // Cần: web (npm run dev, cổng 3000) và máy chủ (npm start, chế độ demo, cổng 4000) đang chạy; ffmpeg
@@ -132,7 +132,7 @@ async function prepare(browser) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto(BASE + "/login");
-  await api(page, "POST", "/demo/reset");
+  await api(page, "POST", "/demo/reset?clean=1"); // bỏ kịch bản bàn giao hộ có sẵn: video chỉ quay luồng chính
   await ctx.close();
 }
 
@@ -324,11 +324,15 @@ async function recordBoard(browser) {
   await a.tap(nav("Bàn giao"));
   await page.waitForURL("**/handover");
   await wait(700);
-  await a.type(page.locator("#handover-bank"), "[Ngân hàng thử]");
-  await a.type(page.locator("#handover-account-number"), "0123456789");
-  await wait(300);
-  await a.tap(page.locator("button[type=submit]", { hasText: "Lưu và sang bước 4" }));
-  await page.getByText(/Bước 4 \/ 6/).first().waitFor();
+  // Dữ liệu mẫu bắt đầu đợt bàn giao ở bước 1 (từ 09/11/2026): chọn chủ nhiệm mới rồi chốt số dư.
+  await a.tap(page.locator("#handover-president"));
+  await page.selectOption("#handover-president", { label: "Nguyễn Minh Anh" });
+  await wait(500);
+  await a.tap(page.locator("button[type=submit]", { hasText: "Lưu và sang bước 2" }));
+  await page.getByText(/Bước 2 \/ 7/).first().waitFor();
+  await wait(900);
+  await a.tap(page.getByRole("button", { name: "Chốt số dư" }));
+  await page.getByText(/Bước 3 \/ 7/).first().waitFor();
   await wait(1600 + BOARD_HOLD);
 
   const result = await rec.stop();
