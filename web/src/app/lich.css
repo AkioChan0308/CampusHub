@@ -923,9 +923,9 @@ span.l-input, span.l-select, span.l-textarea { display: block; }
 .l-vstep > button[aria-current] .l-vstep-d { color: var(--l-ink-2); }
 .l-vstep-bar { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; overflow: hidden; }
 .l-vstep-bar > span { display: block; height: 100%; background: var(--l-blue); transform-origin: left center; transition: transform 250ms linear; }
-/* Ban điều hành: video laptop rộng hết khối, năm bước thành một hàng ngay dưới như dòng thời gian. */
+/* Ban điều hành: video laptop rộng hết khối, sáu bước thành một hàng ngay dưới như dòng thời gian. */
 .l-vid-play.below { display: flex; flex-direction: column; gap: 20px; }
-.l-vid-play.below .l-vsteps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 20px; border-top: 0; }
+.l-vid-play.below .l-vsteps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 16px; border-top: 0; }
 .l-vid-play.below .l-vstep { border-bottom: 0; border-top: 1px solid var(--l-rule-soft); }
 .l-vid-play.below .l-vstep-bar { top: -1px; bottom: auto; }
 .l-vid-play.below .l-vstep > button { grid-template-columns: minmax(0, 1fr); padding: 14px 0 4px; }

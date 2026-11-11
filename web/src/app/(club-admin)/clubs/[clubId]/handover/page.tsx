@@ -49,7 +49,8 @@ export default function Page() {
   );
 }
 
-/** Bàn giao một vai: mỗi người tự bàn giao vai của mình, không phải chờ chủ nhiệm mở bàn giao cả ban (09/11/2026). */
+/** Bàn giao một vai: mỗi người tự bàn giao vai của mình, không phải chờ chủ nhiệm mở bàn giao cả ban (09/11/2026).
+ *  Chỉ hiện với người đang có vai trong ban: chủ nhiệm mới chưa gõ "BAN GIAO" vẫn là thành viên thường, chưa có vai nào để bàn giao. */
 const RolesLink = ({ clubId }: { clubId: string }) => <Link className="l-btn2" href={`/clubs/${clubId}/handover/roles`}>Bàn giao vai của bạn</Link>;
 
 /** Ba bảng chung một file: tải nhiều file một lần thì trình duyệt hỏi quyền hoặc chặn các file sau. */
@@ -171,14 +172,14 @@ function HandoverSkeleton() {
 }
 
 function HandoverPage() {
-  const { club } = useLichBoard();
+  const { club, me } = useLichBoard();
   const query = useHandover(club.id);
   const sawHere = useSawPending(query.isPending);
   const sawFrame = useFrameSawPending();
   if (query.isPending) return <HandoverSkeleton />;
   if (query.isError) {
     // CLB chưa bắt đầu bàn giao: máy chủ trả 404. Vẫn xuất được dữ liệu bất cứ lúc nào.
-    if (query.error instanceof ApiError && query.error.status === 404) return <PageTop title={TITLE} sub="CLB chưa bắt đầu bàn giao cả ban." actions={<><RolesLink clubId={club.id} /><ExportAllButton /></>} />;
+    if (query.error instanceof ApiError && query.error.status === 404) return <PageTop title={TITLE} sub="CLB chưa bắt đầu bàn giao cả ban." actions={me.role !== "member" ? <><RolesLink clubId={club.id} /><ExportAllButton /></> : undefined} />;
     return <><PageTop title={TITLE} /><ErrorGate inline error={query.error} onRetry={() => query.refetch()} back={{ href: `/clubs/${club.id}`, label: "Về trang chủ CLB" }} /></>;
   }
   return <HandoverBody data={query.data} fade={sawHere || sawFrame} />;
@@ -200,7 +201,7 @@ function HandoverBody({ data, fade }: { data: HandoverRes; fade: boolean }) {
 
   return (
     <>
-      <PageTop title={TITLE} sub={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}`} actions={<><RolesLink clubId={club.id} />{me.role !== "member" && <ExportAllButton />}</>} />
+      <PageTop title={TITLE} sub={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}`} actions={me.role !== "member" ? <><RolesLink clubId={club.id} /><ExportAllButton /></> : undefined} />
       {pendingRoles > 0 && me.role !== "member" && (
         <p className="l-note" role="status">Có {pendingRoles} đơn bàn giao vai đang chờ bạn. <Link href={`/clubs/${club.id}/handover/roles`}>Mở Bàn giao từng vai</Link></p>
       )}

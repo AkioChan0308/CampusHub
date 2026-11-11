@@ -102,7 +102,8 @@ export const useSchoolPosts = () => useQuery({ queryKey: keys.schoolPosts, query
 export const useTasks = (clubId: string) => useQuery({ queryKey: keys.tasks(clubId), queryFn: () => apiGet<TasksRes>(`/clubs/${clubId}/tasks`) });
 export const useMyTasks = () => useQuery({ queryKey: keys.myTasks, queryFn: () => apiGet<MyTasksRes>("/me/tasks") });
 export const useAiStatus = (clubId: string) => useQuery({ queryKey: keys.ai(clubId), queryFn: () => apiGet<AiStatusRes>(`/clubs/${clubId}/ai`) });
-export const useRoleHandovers = (clubId: string) => useQuery({ queryKey: keys.roleHandovers(clubId), queryFn: () => apiGet<RoleHandoversRes>(`/clubs/${clubId}/role-handovers`) });
+/** Bàn giao một vai có nhiều người cùng làm (người giao, chủ nhiệm, người nhận): hỏi lại mỗi 3 giây để đơn vừa được duyệt hay vừa tới bước 6 hiện ngay ở máy của người kia. */
+export const useRoleHandovers = (clubId: string) => useQuery({ queryKey: keys.roleHandovers(clubId), queryFn: () => apiGet<RoleHandoversRes>(`/clubs/${clubId}/role-handovers`), refetchInterval: BOARD_POLL_MS });
 export const useKit = (clubId: string) => useQuery({ queryKey: keys.kit(clubId), queryFn: () => apiGet<KitRes>(`/clubs/${clubId}/handover-kit`) });
 export const ledgerQuery = (clubId: string) => ({ queryKey: keys.ledger(clubId), queryFn: () => apiGet<LedgerRes>(`/clubs/${clubId}/ledger`) });
 export const membersQuery = (clubId: string) => ({ queryKey: keys.members(clubId), queryFn: () => apiGet<MembersRes>(`/clubs/${clubId}/members`) });

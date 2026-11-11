@@ -27,7 +27,8 @@ const BOARD_STEPS: DemoStep[] = [
   { key: "check-in", title: "Chiếu mã điểm danh", text: "Ai vừa quét mã thì tên hiện ngay trên màn chiếu." },
   { key: "reconcile", title: "Đối soát sao kê", text: "Tải file sao kê ngân hàng, khoản đóng quỹ tự khớp theo nội dung chuyển khoản." },
   { key: "expenses", title: "Duyệt chi", text: "Không ai tự duyệt khoản mình đề xuất. Từ chối thì phải ghi lý do." },
-  { key: "handover", title: "Bàn giao", text: "Chọn ban mới, chốt số dư, kiểm tra kho, rồi chuyển quyền cho nhiệm kỳ sau." },
+  { key: "role", title: "Bàn giao một vai", text: "Trưởng ban tự bàn giao vai của mình: gửi đơn, chủ nhiệm duyệt, người nhận xác nhận." },
+  { key: "handover", title: "Bàn giao cả ban", text: "Chọn ban mới, chốt số dư, kiểm tra kho, rồi chuyển quyền cho nhiệm kỳ sau." },
 ];
 
 export default function Landing() {
@@ -85,7 +86,7 @@ export default function Landing() {
               <p>Từ buổi sinh hoạt đầu tiên tới ngày bàn giao cho nhiệm kỳ sau.</p>
             </div>
             <DemoVideo name="club-admin" device="laptop" layout="below" steps={BOARD_STEPS}
-              label="Video: chủ nhiệm đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi và bàn giao nhiệm kỳ trên laptop" />
+              label="Video: chủ nhiệm đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi, bàn giao một vai và bàn giao cả ban trên laptop" />
             <p className="l-vid-note">Quay từ bản demo, dữ liệu mẫu.</p>
           </ScrollFade>
 

@@ -103,6 +103,7 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
   const menu = await p.locator("nav[aria-label='Menu ban điều hành']").innerText();
   ok(/Bàn giao/.test(menu) && !/Kho bàn giao|Thành viên|Đợt thu/.test(menu), "Bàn giao: menu của chủ nhiệm mới chỉ có Bàn giao (Kho bàn giao hiện sau khi nhận vai)");
   ok((await p.getByRole("button", { name: "Xuất toàn bộ dữ liệu (Excel)" }).count()) === 0, "Bàn giao: chủ nhiệm mới không có nút xuất toàn bộ dữ liệu");
+  ok((await p.getByRole("link", { name: "Bàn giao vai của bạn" }).count()) === 0, "Bàn giao: chủ nhiệm mới chưa nhận vai nên không có nút Bàn giao vai của bạn");
   await acceptHandover(p, "Bàn giao");
   ok(await waitText(p, /Biên bản bàn giao[\s\S]*Nguyễn Minh Anh xác nhận đã nhận bàn giao/), "Bàn giao: xác nhận xong sang bước 7, biên bản có dòng xác nhận");
   ok((await p.locator(".l-ho-log li").count()) >= 10 && (await p.getByRole("button", { name: /Quay lại bước/ }).count()) === 0, "Bàn giao: biên bản ghi đủ các bước và không còn nút quay lại");

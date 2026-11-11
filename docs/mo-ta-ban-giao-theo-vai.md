@@ -104,7 +104,9 @@
 - **Quyền:** thêm vào `web/src/lib/selectors.ts` và kiểm ở `server/src/access.ts` (không tin giao diện).
 - **Giao diện:** nút "Bắt đầu bàn giao" (chọn loại, ghi lý do), nút "Bàn giao hộ", nhật ký liên hệ, danh sách các lần bàn giao cũ, hộp "Cần bạn phản hồi" cho người giữ vai (dùng khối "Cần bạn xác nhận" và chuông thông báo đã có). Giữ hệ Lịch bloc, khung xương và chuyển động theo luật.
 - **Mentor:** hiện CLB chỉ có tên mentor dạng chữ (`club.mentor`), chưa nối tới tài khoản. Màn nhà trường đã có chỗ mentor xác nhận biên bản. Cần quyết cách nối "mentor của CLB này" với tài khoản cán bộ trường.
-- **Dữ liệu mẫu và demo:** đổi bắt đầu từ bước 1 thì phải quay lại video trang đầu; để sau, khi nhóm chốt.
+- **Dữ liệu mẫu và demo:** đổi bắt đầu từ bước 1 thì phải quay lại video trang đầu; để sau, khi nhóm chốt. Đã quay lại ngày 11/11/2026: video ban điều hành có thêm cảnh "Bàn giao một vai" (trưởng ban Gia Huy gửi đơn, chủ nhiệm duyệt, Phan Thanh Tâm xác nhận) trước cảnh "Bàn giao cả ban".
+- **Nút "Bàn giao vai của bạn" (11/11/2026):** chỉ hiện với người đang có vai trong ban. Chủ nhiệm mới ở bước 6 chưa gõ BAN GIAO vẫn là thành viên thường, chưa có vai nào để bàn giao, nên màn xác nhận của họ không có nút này.
+- **Trang Bàn giao từng vai tự cập nhật (11/11/2026):** hỏi lại mỗi 3 giây, để người giao thấy đơn vừa được duyệt và người nhận thấy đơn vừa tới bước 6 mà không phải tải lại trang.
 - **Test:** thêm cho các luật mới ở cả web và máy chủ.
 
 ## 6. Việc ngoài phần mềm (phần mềm không giải quyết được)

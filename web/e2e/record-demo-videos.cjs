@@ -1,6 +1,7 @@
 // Quay hai video demo cho trang đầu (Hiệu duyệt ngày 05/10/2026), bắt đầu từ trang đăng nhập:
 //   - member: điện thoại; đăng nhập, nhận lời mời, quét mã điểm danh, đóng quỹ, xem Của tôi;
-//   - club-admin: laptop; đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi, bàn giao (chọn chủ nhiệm mới, chốt số dư).
+//   - club-admin: laptop; đăng nhập, chiếu mã QR điểm danh, đối soát sao kê, duyệt chi, bàn giao một vai (trưởng ban, người nhận vai)
+//     và bàn giao cả ban (chủ nhiệm cũ và chủ nhiệm mới). Các tab quay cùng lúc, video ghép lại bằng e2e/compose_tabs.py (cần Python và Pillow).
 // Quay bằng chính web đang chạy với dữ liệu mẫu, không dựng cảnh. Giao diện đổi thì chạy lại script này.
 //
 // Cần: web (npm run dev, cổng 3000) và máy chủ (npm start, chế độ demo, cổng 4000) đang chạy; ffmpeg
@@ -259,16 +260,93 @@ async function recordMember(browser) {
   return encode("member", result, 600);
 }
 
+/** Các tab của video ban điều hành: chủ nhiệm cũ (0), chủ nhiệm mới (1), trưởng ban bàn giao vai (2), người nhận vai (3).
+ *  Mọi tab quay cùng lúc; video chỉ hiện tab đang xem và thanh tab chỉ vẽ các tab đã "mở" ở thời điểm đó (theo lịch chuyển tab). */
+const TAB_H = 90;
+const TABS = [
+  { name: "Phạm Quốc Bảo", role: "chủ nhiệm cũ", initials: "QB" },
+  { name: "Nguyễn Minh Anh", role: "chủ nhiệm mới", initials: "MA" },
+  { name: "Trần Gia Huy", role: "trưởng ban", initials: "GH" },
+  { name: "Phan Thanh Tâm", role: "người nhận", initials: "TT" },
+];
+const [T_OLD, T_NEW, T_HEAD, T_RECV] = [0, 1, 2, 3];
+
+/** rs: danh sách các lần quay (mỗi tab một lần, theo số thứ tự trong TABS). */
+function composeTabs(name, rs, events, outWidth) {
+  const [ra] = rs;
+  const end = Math.max(...rs.map((r) => r.end));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `campushub-${name}-`));
+  const out = [];
+  let n = 0;
+  const emit = (frame, t, ev) => {
+    const file = `e${String(n++).padStart(6, "0")}.jpg`;
+    fs.writeFileSync(path.join(dir, file), Buffer.from(frame.data, "base64"));
+    out.push({ file, t, active: ev.active, tabs: ev.tabs });
+  };
+  for (let k = 0; k < events.length; k++) {
+    const ev = events[k];
+    const t1 = k + 1 < events.length ? events[k + 1].t : end;
+    const list = rs[ev.active].frames;
+    let i0 = -1;
+    for (let i = 0; i < list.length && list[i].t <= ev.t; i++) i0 = i;
+    if (i0 >= 0) emit(list[i0], ev.t, ev);
+    for (let i = i0 + 1; i < list.length && list[i].t < t1; i++) emit(list[i], list[i].t, ev);
+  }
+  if (out.length < 2) throw new Error(`${name}: không có đủ hình để ghép`);
+  fs.writeFileSync(path.join(dir, "timeline.json"), JSON.stringify({ frames: out, end, tabH: TAB_H, tabs: TABS }));
+  execFileSync("python", [path.join(__dirname, "compose_tabs.py"), dir], { stdio: "inherit" });
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  const mp4 = path.join(OUT_DIR, `${name}.mp4`);
+  execFileSync(FFMPEG, [
+    "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
+    // Khung laptop trên trang đầu có tỉ lệ cố định 1600 x 1000: co hình vừa khung, phần dư tô cùng màu thanh tab.
+    "-vf", `fps=30,scale=${outWidth}:${Math.round(outWidth * 0.625)}:force_original_aspect_ratio=decrease:flags=lanczos,pad=${outWidth}:${Math.round(outWidth * 0.625)}:(ow-iw)/2:(oh-ih)/2:color=0x1B2030,format=yuv420p`,
+    ...VIDEO_CODEC, "-movflags", "+faststart", "-an", mp4,
+  ]);
+  execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "3", path.join(OUT_DIR, `${name}.jpg`)]);
+  fs.rmSync(dir, { recursive: true, force: true });
+  const t0 = events[0].t;
+  const steps = Object.fromEntries(Object.entries(ra.marks).map(([k, t]) => [k, Math.max(0, +(t - t0).toFixed(2))]));
+  console.log(`${name}: ${(end - t0).toFixed(1)} giây, ${out.length} ảnh, ${Math.round(fs.statSync(mp4).size / 1024)} KB`);
+  return { duration: +(end - t0).toFixed(2), steps };
+}
+
 async function recordBoard(browser) {
   await prepare(browser);
-  const page = await recordingPage(browser, { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5 }, false);
+  // Khung 1280 x 740 (hình 1920 x 1110) cộng thanh tab 90 = 1920 x 1200, đúng tỉ lệ 16:10 của khung laptop trên trang đầu.
+  const opts = { viewport: { width: 1280, height: 740 }, deviceScaleFactor: 1.5 };
+  const page = await recordingPage(browser, opts, false);      // tab 0: Pham Quoc Bao, chủ nhiệm cũ
+  const pageB = await recordingPage(browser, opts, false);     // tab 1: Nguyen Minh Anh, chủ nhiệm mới
+  const pageG = await recordingPage(browser, opts, false);     // tab 2: Tran Gia Huy, trưởng ban bàn giao vai Hậu cần
+  const pageT = await recordingPage(browser, opts, false);     // tab 3: Phan Thanh Tam, người nhận vai trưởng ban
   const a = actor(page, false);
+  const b = actor(pageB, false);
+  const g = actor(pageG, false);
+  const t = actor(pageT, false);
+  // Các tab 1 đến 3 đã đăng nhập sẵn (ngoài video). Chủ nhiệm mới và người nhận vai đang ở Cộng đồng; tới lúc có việc cho họ thì chuông của tab đó tự hiện số.
+  for (const [p, personId, url, ready] of [[pageB, "a017", "/feed", "a.l-post"], [pageT, "a004", "/feed", "a.l-post"], [pageG, "a005", `/clubs/${CLUB}`, "nav[aria-label='Menu ban điều hành']"]]) {
+    await p.goto(BASE + "/login");
+    await api(p, "POST", "/auth/dev-login", { personId });
+    await p.goto(BASE + url);
+    await p.waitForSelector(ready, { timeout: 20000 });
+  }
   await page.goto(BASE + "/login");
   await page.getByLabel("Tên tài khoản hoặc email").waitFor();
   await page.mouse.move(900, 620);
   await wait(600);
-  const rec = await startRecording(page, 1920, 1200);
+  const recs = [await startRecording(page, 1920, 1110), await startRecording(pageB, 1920, 1110), await startRecording(pageG, 1920, 1110), await startRecording(pageT, 1920, 1110)];
+  const rec = recs[T_OLD];
+  const events = [{ t: Date.now() / 1000, active: T_OLD, tabs: [T_OLD] }];
+  const show = (active, tabs) => events.push({ t: Date.now() / 1000, active, tabs });
+  const navOf = (p) => (label) => p.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: label }).first();
   const nav = (label) => page.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: label }).first();
+  // Menu gom các mục tiền vào nhóm "Quỹ" (thu gọn sẵn): mở nhóm nếu mục cần bấm chưa hiện.
+  const openFunds = async (label) => {
+    if (await nav(label).isVisible()) return;
+    await a.tap(page.getByRole("navigation", { name: "Menu ban điều hành" }).getByRole("button", { name: /Quỹ/ }));
+    await nav(label).waitFor();
+  };
+
 
   rec.mark("login");
   await wait(500 + BOARD_HOLD);
@@ -300,9 +378,7 @@ async function recordBoard(browser) {
   await a.tap(page.getByRole("link", { name: "Thoát chế độ chiếu" }));
   await page.waitForURL(`**/clubs/${CLUB}`);
   rec.mark("reconcile");
-  // Nhóm "Quỹ" của menu đóng sẵn: mở ra rồi mới bấm Đối soát sao kê và Đề xuất và duyệt chi.
-  const fundToggle = page.locator('[data-tour="nav-fund"]');
-  if ((await fundToggle.getAttribute("aria-expanded")) === "false") { await a.tap(fundToggle); await wait(400); }
+  await openFunds("Đối soát sao kê");
   await a.tap(nav("Đối soát sao kê"));
   await page.waitForURL("**/reconcile");
   await page.getByRole("heading", { name: /Cần gán tay/ }).waitFor();
@@ -317,6 +393,7 @@ async function recordBoard(browser) {
   await wait(1700 + BOARD_HOLD);
 
   rec.mark("expenses");
+  await openFunds("Đề xuất và duyệt chi");
   await a.tap(nav("Đề xuất và duyệt chi"));
   await page.waitForURL("**/expenses");
   await a.tap(page.locator("button.l-pick", { hasText: "Thuê sân tuần 6–7" }));
@@ -325,24 +402,163 @@ async function recordBoard(browser) {
   await page.getByText("Đã duyệt · chờ chi").first().waitFor();
   await wait(1300 + BOARD_HOLD);
 
+  // Bàn giao một vai (09/11/2026): trưởng ban Gia Huy tự bàn giao vai của mình cho Thanh Tâm, không chờ cả ban sang nhiệm kỳ mới.
+  // Gia Huy gửi đơn, chủ nhiệm duyệt, Gia Huy làm các bước của mình, Thanh Tâm xác nhận ở máy của Tâm.
+  rec.mark("role");
+  show(T_HEAD, [T_OLD, T_HEAD]);
+  await wait(900);
+  await g.tap(navOf(pageG)("Bàn giao"));
+  await pageG.waitForURL("**/handover/roles");
+  await pageG.getByRole("heading", { name: "Bàn giao vai của bạn" }).waitFor();
+  await wait(1300);
+  await g.tap(pageG.locator("#role-to"));
+  await pageG.selectOption("#role-to", { label: "Phan Thanh Tâm" });
+  await wait(450);
+  await g.type(pageG.locator("#role-reason"), "Mình chuyển sang phụ trách truyền thông.");
+  await wait(500);
+  await g.tap(pageG.getByRole("button", { name: "Gửi đơn bàn giao" }));
+  await pageG.getByText("Chờ duyệt").first().waitFor();
+  await wait(1700);
+
+  // Chủ nhiệm thấy lời nhắc "có đơn bàn giao vai đang chờ" ở màn Bàn giao, mở Bàn giao từng vai và duyệt.
+  show(T_OLD, [T_OLD, T_HEAD]);
+  await wait(800);
+  await a.tap(nav("Bàn giao"));
+  await page.waitForURL("**/handover");
+  await page.getByText(/đơn bàn giao vai đang chờ bạn/).waitFor();
+  await wait(1500);
+  await a.tap(page.getByRole("link", { name: "Mở Bàn giao từng vai" }));
+  await page.waitForURL("**/handover/roles");
+  await a.tap(page.getByRole("button", { name: "Duyệt đơn" }));
+  await a.tap(page.locator("[role=alertdialog]").getByRole("button", { name: "Duyệt đơn" }));
+  await page.getByText(/Đang bàn giao · bước/).first().waitFor();
+  await wait(1800);
+
+  // Gia Huy quay lại: đơn đã được duyệt, tới bước 3 viết lời dặn cho người nhận, rồi bước 5.
+  show(T_HEAD, [T_OLD, T_HEAD]);
+  await pageG.getByRole("heading", { name: /^Bước 3/ }).waitFor({ timeout: 15000 }); // trang tự cập nhật, không cần tải lại
+  await wait(1700);
+  await g.type(pageG.locator("textarea[id^=note-]"), "Đặt sân thứ Bảy còn dở: hỏi chủ sân về giờ, giữ sân đến thứ Sáu.");
+  await wait(600);
+  await g.tap(pageG.getByRole("button", { name: "Đã xem xong" }));
+  await pageG.getByRole("heading", { name: /^Bước 5/ }).waitFor();
+  await wait(1400);
+  await g.tap(pageG.getByRole("button", { name: "Xong bước 5" }));
+  await pageG.getByText(/Chờ Phan Thanh Tâm xác nhận/).first().waitFor();
+  await wait(1500);
+
+  // Thanh Tâm (thành viên thường) nhận thông báo, xem lời dặn rồi tự xác nhận nhận vai ở máy của mình.
+  show(T_RECV, [T_OLD, T_HEAD, T_RECV]);
+  await pageT.locator(".l-bell-cnt").waitFor({ timeout: 15000 });
+  await wait(1300);
+  await t.tap(pageT.locator("button.l-bell"));
+  await pageT.locator(".l-notif-item").first().waitFor();
+  await wait(1800);
+  await t.tap(pageT.locator(".l-notif-item").first());
+  await pageT.waitForURL("**/handover/roles");
+  await pageT.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).waitFor({ timeout: 20000 });
+  await wait(2200);
+  await t.tap(pageT.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }));
+  await pageT.locator("#typed-confirm").waitFor();
+  await wait(500);
+  await t.type(pageT.locator("#typed-confirm"), "BAN GIAO");
+  await wait(700);
+  await t.tap(pageT.locator("[role=alertdialog]").getByRole("button", { name: /^Nhận vai/ }));
+  await pageT.getByText(/Đã xong · bước 7/).first().waitFor({ timeout: 20000 });
+  await wait(1800);
+
+  // Gia Huy đã không còn là trưởng ban: tab tự về Của tôi và hộp thông báo "Bàn giao vai xong" tự mở.
+  show(T_HEAD, [T_OLD, T_HEAD, T_RECV]);
+  await pageG.waitForURL("**/me", { timeout: 15000 });
+  // Hộp thông báo tự mở; nếu chưa mở kịp (tab nằm nền lúc bị đưa ra khỏi ban) thì bấm chuông.
+  await pageG.locator(".l-notif").waitFor({ timeout: 5000 }).catch(async () => {
+    await g.tap(pageG.locator("button.l-bell"));
+    await pageG.locator(".l-notif").waitFor({ timeout: 8000 });
+  });
+  await wait(2800);
+
+  show(T_OLD, [T_OLD]);
+  await wait(500);
   rec.mark("handover");
   await a.tap(nav("Bàn giao"));
   await page.waitForURL("**/handover");
-  await wait(700);
-  // Dữ liệu mẫu bắt đầu đợt bàn giao ở bước 1 (từ 09/11/2026): chọn chủ nhiệm mới rồi chốt số dư.
-  await a.tap(page.locator("#handover-president"));
-  await page.selectOption("#handover-president", { label: "Nguyễn Minh Anh" });
+  // Dữ liệu mẫu bắt đầu đợt bàn giao ở bước 1 (từ 09/11/2026): chọn ban mới, chốt số dư, kiểm tra kho rồi mới tới bước 4.
+  await page.getByRole("heading", { name: "Chọn ban mới" }).waitFor();
+  await wait(1000);
+  await page.locator("#handover-president").selectOption("a017");
+  await wait(350);
+  await page.locator("#handover-vice").selectOption("a003");
+  await wait(250);
+  await page.locator("#handover-treasurer").selectOption("a006");
+  await wait(250);
+  await page.locator("#handover-head-1").selectOption("a008"); // ban Chuyên môn
+  await page.locator("#handover-head-2").selectOption("a004"); // ban Hậu cần: Thanh Tâm, người vừa nhận vai ở cảnh trên
   await wait(500);
-  await a.tap(page.locator("button[type=submit]", { hasText: "Lưu và sang bước 2" }));
-  await page.getByText(/Bước 2 \/ 7/).first().waitFor();
+  await a.tap(page.getByRole("button", { name: "Lưu và sang bước 2" }));
+  await page.getByRole("heading", { name: "Chốt số dư" }).waitFor();
   await wait(900);
   await a.tap(page.getByRole("button", { name: "Chốt số dư" }));
-  await page.getByText(/Bước 3 \/ 7/).first().waitFor();
-  await wait(1600 + BOARD_HOLD);
+  await page.getByRole("heading", { name: "Kiểm tra kho bàn giao" }).waitFor();
+  await wait(1100);
+  await a.tap(page.getByRole("button", { name: /^Đã xem kho|^Tiếp tục|^Sang bước 4/ }).first());
+  await page.getByRole("heading", { name: "Đổi tài khoản nhận quỹ" }).waitFor();
+  await wait(1200);
+  await page.locator("#handover-receiver").selectOption("a006");
+  await wait(500);
+  await a.type(page.locator("#handover-bank"), "[Ngân hàng thử]");
+  await a.type(page.locator("#handover-account-number"), "0123456789");
+  await wait(400);
+  await a.tap(page.getByRole("button", { name: "Lưu và sang bước 5" }));
+  await page.getByRole("heading", { name: "Chuyển quyền quản trị" }).waitFor();
+  await wait(1100);
+  for (const service of ["Fanpage Facebook", "Google Drive", "Email của CLB", "Tài khoản ngân hàng nhận quỹ"]) {
+    await a.tap(page.getByRole("button", { name: `Ghi đã chuyển ${service}` }));
+    await wait(650);
+  }
+  await a.tap(page.getByRole("button", { name: "Tiếp tục" }));
+  await page.getByRole("heading", { name: /Ban mới xác nhận/ }).waitFor();
+  await wait(1800);
 
-  const result = await rec.stop();
-  await page.context().close();
-  return encode("club-admin", result, 1600);
+  // Tab thứ hai hiện ra: chủ nhiệm mới thấy thông báo ngay trong Cộng đồng, không cần ai gọi.
+  show(T_OLD, [T_OLD, T_NEW]);
+  await wait(1100);
+  show(T_NEW, [T_OLD, T_NEW]);
+  await pageB.locator(".l-bell-cnt").waitFor({ timeout: 15000 });
+  await wait(1600);
+  await b.tap(pageB.locator("button.l-bell"));
+  await pageB.locator(".l-notif-item").first().waitFor();
+  await wait(2200);
+  await b.tap(pageB.locator(".l-notif-item").first());
+  await pageB.waitForURL("**/handover");
+  await pageB.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).waitFor({ timeout: 20000 });
+  await wait(1800);
+  await b.tap(pageB.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }));
+  await pageB.locator("#typed-confirm").waitFor();
+  await wait(600);
+  await b.type(pageB.locator("#typed-confirm"), "BAN GIAO");
+  await wait(800);
+  await b.tap(pageB.getByRole("button", { name: /^Đổi ban và xác nhận/ }));
+  // exact: tiêu đề "Biên bản bàn giao gồm" ở ô bên phải có sẵn cả lúc trang còn là khung xương, không phải dấu hiệu bước 7 đã mở.
+  await pageB.getByRole("heading", { name: "Biên bản bàn giao", exact: true }).waitFor({ timeout: 20000 });
+  await wait(1800);
+
+  // Về tab chủ nhiệm cũ: màn tự chuyển về Của tôi và hộp thông báo tự mở "Bàn giao xong" (không ai bấm gì).
+  show(T_OLD, [T_OLD, T_NEW]);
+  await page.waitForURL("**/me", { timeout: 15000 });
+  await page.locator(".l-notif").waitFor({ timeout: 10000 });
+  await wait(4200);
+
+  // Tab chủ nhiệm mới: đã là chủ nhiệm, menu đủ mục.
+  show(T_NEW, [T_OLD, T_NEW]);
+  await wait(900);
+  await b.tap(pageB.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: "Trang chủ" }).first());
+  await pageB.getByRole("heading", { name: "Cần bạn xử lý" }).waitFor({ timeout: 20000 });
+  await wait(3200);
+
+  const results = [];
+  for (const r of recs) results.push(await r.stop());
+  for (const p of [page, pageB, pageG, pageT]) await p.context().close();
+  return composeTabs("club-admin", results, events, 1600);
 }
 
 (async () => {
