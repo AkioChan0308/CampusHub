@@ -67,7 +67,8 @@ Mỗi thư mục có `page.tsx` (nội dung trang) và `layout.tsx` (tên trên 
 | `/clubs/[clubId]/reconcile` | `…/reconcile/` | thủ quỹ, chủ nhiệm | BDH-DoiSoat |
 | `/clubs/[clubId]/expenses` | `…/expenses/` | ban điều hành | BDH-DuyetChi |
 | `/clubs/[clubId]/budget` | `…/budget/` | ban điều hành | BDH-DuTru |
-| `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm; chủ nhiệm mới ở bước 6 | BDH-BanGiao, 7 bước |
+| `/clubs/[clubId]/handover` | `…/handover/` | chủ nhiệm; chủ nhiệm mới ở bước 6 | BDH-BanGiao, 7 bước (bàn giao cả ban) |
+| `/clubs/[clubId]/handover/roles` | `…/handover/roles/` | ban điều hành; người nhận bàn giao một vai (kể cả thành viên thường) | Bàn giao từng vai và bàn giao hộ (chưa có bản vẽ; `docs/mo-ta-ban-giao-theo-vai.md`) |
 | `/clubs/[clubId]/handover-kit` | `…/handover-kit/` | ban điều hành xem và sửa | Kho bàn giao: biểu mẫu, quy trình, tài khoản (chưa có bản vẽ) |
 | `/clubs/[clubId]/tasks` | `…/tasks/` | ban điều hành | Việc cần làm (chưa có bản vẽ) |
 | `/clubs/[clubId]/posts` | `…/posts/` | ban điều hành | Bảng tin của CLB: đăng tin, xem tin ở mọi trạng thái (chờ trường duyệt hiện mờ) (`docs/mo-ta-bang-tin-chung.md`) |
@@ -156,6 +157,7 @@ server/
       board.ts            ban điều hành: thành viên, buổi, mã QR, bàn giao 7 bước
       kit.ts              kho bàn giao: biểu mẫu, quy trình, tài khoản
       tasks.ts            việc cần làm
+      roles.ts            bàn giao một vai và bàn giao hộ (đơn, duyệt, các bước, ảnh bằng chứng)
       ai.ts               trợ lý bàn giao: tóm tắt, hỏi đáp trong kho, lưu bản tóm tắt vào biên bản
       setup.ts            tạo dữ liệu từ đầu: tạo CLB, thêm thành viên, buổi, đợt thu
       money.ts            đợt thu, đối soát, khoản chi, dự trù
@@ -169,7 +171,7 @@ server/
     db/               bản lưu PostgreSQL của các phần trên
     ai.ts             tầng trợ lý (AI_MODE=mock|real): bản mẫu tính từ dữ liệu của CLB; bản thật chưa nối
     qr.ts, google.ts, password.ts, demo-accounts.ts, config.ts, errors.ts
-  db/migrations/      lược đồ cơ sở dữ liệu, chạy theo thứ tự số
+  db/migrations/      lược đồ cơ sở dữ liệu, chạy theo thứ tự số (010 ban, 011 và 012 bàn giao một vai)
   test/               test máy chủ (npm test; npm run test:db chạy trên PostgreSQL)
 ```
 

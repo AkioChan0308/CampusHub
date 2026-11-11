@@ -290,7 +290,7 @@ Ngoài CLB:
 - Nhập sai mật khẩu 5 lần thì phải chờ 15 phút mới thử mật khẩu lại được; đăng nhập Google vẫn dùng được.
 - **Quên mật khẩu:** đăng nhập bằng Google, rồi đặt mật khẩu mới trong 15 phút sau đó, không cần mật khẩu cũ.
 - Đổi tên tài khoản hay mật khẩu: trang "Của tôi", mục "Đăng nhập".
-- Bản demo: dưới ô đăng nhập có bảng tài khoản mẫu cho 7 vai, mật khẩu chung `CauLong#2026`; bấm một vai là điền sẵn. Phần này không có trong bản thật.
+- Bản demo: dưới ô đăng nhập có bảng tài khoản mẫu cho 10 vai, mật khẩu chung `CauLong#2026`; bấm một vai là điền sẵn. Phần này không có trong bản thật.
 
 ---
 
@@ -386,7 +386,7 @@ Mở http://localhost:3000/login. Nên dùng cửa sổ ẩn danh, và mỗi vai
 
 Đặt lại dữ liệu mẫu, đăng nhập `quocbao`, menu **Bàn giao**.
 
-**K4.1 Màn bước 4 (dữ liệu mẫu)**
+**K4.1 Màn bước 4** (từ 09/11/2026 dữ liệu mẫu bắt đầu bàn giao ở bước 1; muốn tới bước 4 thì làm bước 1 đến 3: chọn ban mới, chốt số dư, kiểm tra kho)
 - [ ] Dải 7 bước nằm gọn trong một hàng; bước 1 đến 3 có dấu tích, bước 4 nổi bật.
 - [ ] Cột phải có "Ban mới Spring 2027": chủ nhiệm Nguyễn Minh Anh, phó Đinh Công Minh, thủ quỹ Võ Ngọc Lan, trưởng ban Trần Gia Huy và Lương Khánh Linh.
 - [ ] Số dư cần chuyển hiện 3.120.000 ₫.

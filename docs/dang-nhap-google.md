@@ -1,6 +1,6 @@
 # Bật đăng nhập Google trên máy của bạn
 
-Code đăng nhập Google **đã có sẵn** trong CampusHub (luồng mã có PKCE, ghép email với người trong dữ liệu mẫu). Repo **không có khóa Google**, nên mỗi người pull về phải tự tạo khóa của mình một lần (khoảng 10 phút, miễn phí) rồi điền vào `server/.env`. Chưa có khóa thì mọi thứ vẫn chạy: trang đăng nhập chỉ ẩn nút Google, còn 7 tài khoản mẫu dùng như bình thường.
+Code đăng nhập Google **đã có sẵn** trong CampusHub (luồng mã có PKCE, ghép email với người trong dữ liệu mẫu). Repo **không có khóa Google**, nên mỗi người pull về phải tự tạo khóa của mình một lần (khoảng 10 phút, miễn phí) rồi điền vào `server/.env`. Chưa có khóa thì mọi thứ vẫn chạy: trang đăng nhập chỉ ẩn nút Google, còn 10 tài khoản mẫu dùng như bình thường.
 
 Cách này chỉ chạy ở `http://localhost:3000` trên máy bạn. Chưa dùng cho bản đưa lên mạng.
 

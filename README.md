@@ -58,7 +58,7 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000. Trang đầu là trang giới thiệu, có hai video demo ngắn (thành viên trên điện thoại, ban điều hành trên laptop) và nút Đăng nhập, Đăng ký. Bấm **Đăng nhập**: dưới ô đăng nhập có bảng **tài khoản mẫu** cho 7 vai (chỉ có ở bản demo). Bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", là điền sẵn tên tài khoản và mật khẩu (mật khẩu chung `CauLong#2026`), rồi bấm Đăng nhập. Đổi vai thì Đăng xuất rồi đăng nhập tài khoản khác: ban điều hành và nhà trường bấm "Đăng xuất" ở thanh bên; thành viên và sinh viên bấm avatar ở góc phải trên rồi chọn "Đăng xuất". Nút "Đặt lại dữ liệu mẫu" nằm dưới bảng.
+Mở http://localhost:3000. Trang đầu là trang giới thiệu, có hai video demo ngắn (thành viên trên điện thoại, ban điều hành trên laptop) và nút Đăng nhập, Đăng ký. Bấm **Đăng nhập**: dưới ô đăng nhập có bảng **tài khoản mẫu** cho 10 vai (chỉ có ở bản demo). Bấm một vai, ví dụ "Chủ nhiệm CLB" hay "Thành viên", là điền sẵn tên tài khoản và mật khẩu (mật khẩu chung `CauLong#2026`), rồi bấm Đăng nhập. Đổi vai thì Đăng xuất rồi đăng nhập tài khoản khác: ban điều hành và nhà trường bấm "Đăng xuất" ở thanh bên; thành viên và sinh viên bấm avatar ở góc phải trên rồi chọn "Đăng xuất". Nút "Đặt lại dữ liệu mẫu" nằm dưới bảng.
 
 Người mới vào code: đọc `docs/cay-thu-muc.md` để biết thư mục nào làm gì và trang nào nằm ở đâu.
 
@@ -104,7 +104,7 @@ Cổng 5432 đã có chương trình khác dùng, hoặc gặp lỗi khác: xem 
 
 ### Đăng nhập bằng Google (tùy chọn)
 
-Repo **không có khóa Google**. Chưa có khóa thì trang đăng nhập chỉ ẩn nút Google, còn 7 tài khoản mẫu vẫn dùng bình thường. Muốn thử đăng nhập Google trên máy mình (miễn phí, khoảng 10 phút):
+Repo **không có khóa Google**. Chưa có khóa thì trang đăng nhập chỉ ẩn nút Google, còn 10 tài khoản mẫu vẫn dùng bình thường. Muốn thử đăng nhập Google trên máy mình (miễn phí, khoảng 10 phút):
 
 1. Tạo OAuth client trên Google Cloud Console, thêm Gmail của bạn vào Test users, và thêm redirect `http://localhost:3000/api/v1/auth/google/callback`.
 2. Chép `server/.env.example` thành `server/.env`, điền `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` và `LOGIN_AS` (ghép Gmail với một vai mẫu).

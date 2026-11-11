@@ -384,6 +384,10 @@ Màn có danh sách và chi tiết (Duyệt chi) chia tờ giấy thành hai c�
 
 **Bàn giao.** Dưới đầu trang là một tờ giấy: phần đầu là dải sáu bước, dưới là hai cột chia nét dọc (tỉ lệ 1.55 : 0.75, cột phải tối thiểu 280px). Cột trái là bước đang làm, cột phải là các ghi chú cố định của bàn giao.
 
+**Khung ban điều hành thu gọn (`compact`).** `BoardFrame` gắn lớp `compact` cho `.l-board` khi board chưa tải xong hoặc vai là thành viên: người chưa có vai ban điều hành (chủ nhiệm mới, người nhận bàn giao một vai) chỉ thấy mục Bàn giao và mở được trên điện thoại. Luật CSS ở cuối `lich.css`, chỉ áp dưới 1100px (`@media (max-width: 1099px)`): một cột, bỏ bề rộng tối thiểu 1100px; thanh bên thành hàng ngang (không dính, nét kẻ ở đáy, lề 12px 16px, nhãn nhóm ẩn, tên CLB xuống hàng riêng, người dùng dồn sang phải); vùng nội dung lề 16px, đáy 40px; dải bước bàn giao xếp dọc, ngăn bằng rule-soft; đầu trang xuống dòng, tiêu đề 28px, hàng nút rộng hết hàng. Từ 1100px khung giữ bố cục laptop như cũ.
+
+**Bàn giao từng vai** (`/clubs/[clubId]/handover/roles`). Một tờ giấy, các phần xếp từ trên xuống theo thứ tự việc cần xem: "Đơn đang chạy (N)" trên cùng; form "Bàn giao vai của bạn" (gửi đơn); khối bàn giao hộ; câu báo trống nếu chưa có gì; "Lịch sử (N)" cuối cùng. Form gửi đơn ẩn với vai đã có đơn chưa xong, vì đơn đang chạy mới là việc cần xem. Mỗi đơn là một khối chi tiết: tiêu đề, dòng meta, lý do, dải bước, phần để lại, nút thao tác, lịch sử gập trong `details`.
+
 **Màn chiếu (BDH-QR).** Vừa đúng một màn hình (100dvh), không có thanh bên, lề 24px 32px 28px. Đầu màn mở bằng tờ lịch hôm nay cỡ vừa, tiêu đề 30px, bên phải là giờ đóng điểm danh và nút. Dưới là một tờ giấy chia hai cột bằng nét dọc (tỉ lệ 1.3 : 0.7, cột phải tối thiểu 360px). Cột trái: mã QR lớn (rộng clamp 260–440px, theo 44vh), thanh đếm giờ cùng bề rộng và câu hướng dẫn. Cột phải: số "N / tổng", danh sách người vừa điểm danh (máy chiếu hỏi lại máy chủ mỗi 3 giây), và điểm danh tay. Danh sách điểm danh tay cuộn bên trong cột, nên nút "Đóng điểm danh" luôn thấy.
 
 Bảng có độ rộng cột cố định (xem Components). Bảng rộng tối thiểu 960px; màn hẹp hơn thì bảng cuộn ngang, không đè chữ.
@@ -493,7 +497,7 @@ Phẳng, chắc, không bóng.
 - **Cặp nhãn và giá trị chỉ đọc** (màn đóng quỹ): nhãn 13.5px mực 3 ở trên, giá trị ở dưới.
 
 ### Navigation
-- **Thanh bên (laptop):** nền giấy, nét kẻ bên phải. Trên cùng là logo và tên, rồi ô tên CLB nền xám, rồi danh sách mục. Mục cao 40px, chữ 15px mực 2, bo 10px. Rê chuột: nền xám. Đang chọn: nền blue-tint, chữ xanh mực đậm. Số đếm bên phải dùng Barlow Condensed đậm trên ô xám bo 6px. Nhãn nhóm 12.5px mực 3. Cuối thanh là người dùng, ngăn bằng nét kẻ mờ.
+- **Thanh bên (laptop):** nền giấy, nét kẻ bên phải. Trên cùng là logo và tên, rồi ô tên CLB nền xám, rồi danh sách mục. Mục cao 40px, chữ 15px mực 2, bo 10px. Rê chuột: nền xám. Đang chọn: nền blue-tint, chữ xanh mực đậm. Số đếm bên phải dùng Barlow Condensed đậm trên ô xám bo 6px. Nhãn nhóm 12.5px mực 3. Cuối thanh là người dùng, ngăn bằng nét kẻ mờ. Mục Bàn giao có số đếm (`BoardRes.counts.roleHandovers`): số việc đang chờ chính người đang xem, không phải của cả ban.
 - **Thanh bên nhà trường** (`SchoolFrame`): cùng kiểu thanh bên. Ô tên là "[Tên trường]" và "Ban quản lý CLB · <học kỳ>". Mục chưa làm ("Dự trù và báo cáo") là mục khóa, cuối mục có chữ "chưa có" 12.5px 500 mực 3, nối bằng `aria-describedby`. Dưới tên người là chức danh 13px mực 3.
 - **Thanh tab (điện thoại):** ba tab (Điểm danh, Quỹ, Của tôi), biểu tượng 22px trên nhãn 13px. Tab thường mực 3; tab đang chọn xanh mực đậm. Màn quét mã, danh sách CLB, trang một CLB và lời mời không có thanh tab (xem Layout).
 - **Thanh tab của trang chung** (`HubNav`, `l-tabs hub`): hai mục chung cho mọi vai ("Trang chung", "Khám phá"; biểu tượng 22px, chia đều chỗ), rồi các mục theo vai do `web/src/lib/hub.ts` chọn: cán bộ trường "Nhà trường"; ban điều hành "Quản lý CLB"; thành viên hoặc người chưa ở CLB nào "Của tôi"; người chưa ở CLB nào thêm "Tạo CLB". Tin nhắn không còn là tab mà là bong bóng chat. Đang tải thì mục theo vai giữ chỗ bằng một thanh giữ chỗ, nên thanh không nhảy.
@@ -550,11 +554,21 @@ Thông báo sau khi làm xong ("Đã ghi: … chuyển khoản …", "Đã từ 
 - **Nút màn chiếu:** cao 52px, lề 28px, chữ 17px, cho nút mở điểm danh khi chưa mở.
 
 ### Dải bước bàn giao
-Sáu bước nằm trên một hàng, chia đều, ngăn bằng nét dọc rule-soft. Mỗi bước: ô số 30px bo 8px viền 1px, số Barlow Condensed 17px, rồi tên bước 14px.
+Sáu bước (bàn giao cả ban) hoặc bảy bước (bàn giao từng vai, cùng lớp `.l-steps`) nằm trên một hàng, chia đều, ngăn bằng nét dọc rule-soft. Mỗi bước: ô số 30px bo 8px viền 1px, số Barlow Condensed 17px, rồi tên bước 14px.
 - **Đã xong:** ô số nền ok-tint, dấu tích ok thay cho số; tên mực 2.
 - **Đang làm:** cả ô bước nền blue-tint, tên mực đậm 700; ô số tô xanh mực, số trắng. Có `aria-current="step"`.
 - **Chưa làm:** ô số chỉ có viền rule, số và tên mực 3.
 - Trình đọc màn hình nghe thêm "(xong)", "(đang làm)", "(chưa làm)".
+- **Bàn giao từng vai:** bước 1 đến 7, bước 1 là "Đơn lên chủ nhiệm". Bước không áp dụng với vai đó (bước 2 và 4 chỉ có với thủ quỹ) vẫn có mặt trong dải, tên ghi thêm "(không áp dụng)" và trình đọc nghe "không áp dụng". Đơn đã xong thì mọi bước tính là xong. Dải chỉ hiện khi đơn đang bàn giao hoặc đã xong. Trong khung `compact` dưới 1100px, dải xếp dọc.
+
+### Bàn giao từng vai
+- **Form gửi đơn:** lưới hai cột (vai bàn giao, người nhận đề xuất), ô lý do nhiều dòng, một dòng lỗi chung (`l-alert`, `role="alert"`) trên hàng nút; thiếu ô nào thì focus về ô đó. Vai đã có đơn chưa xong thì form ẩn. Chủ nhiệm bàn giao vai của mình không cần đơn, nên nút ghi "Bắt đầu bàn giao".
+- **Bàn giao hộ:** là lối thoát hiếm nên đóng sẵn: một câu giải thích và nút phụ "Bàn giao hộ khi không liên lạc được" (`aria-expanded`, `aria-controls`). Bấm thì form mở và focus vào tiêu đề form; cạnh nút gửi có nút phụ "Đóng", đóng xong thì focus về nút mở. Nhật ký liên hệ trong form: mỗi lần liên hệ là một lưới ô (ngày, kênh, kết quả, ảnh), các lần cách nhau một nét rule-soft (`.l-contact`). Ảnh tải lên ngay khi chọn; mỗi ảnh có nút nhỏ "Gỡ ảnh <tên>".
+- **Nhật ký liên hệ của một đơn và ảnh bằng chứng** (`web/src/components/lich/Proxy.tsx`, dùng ở trang này và ở chi tiết CLB của nhà trường): `ContactLog` liệt kê ngày, kênh, kết quả mỗi lần. Ảnh chỉ tải khi bấm nút nhỏ "Xem ảnh <tên>" (`EvidencePhoto`, `aria-busy` lúc tải), rồi hiện ngay trong trang. Ảnh là `.l-evidence`: vừa khung, cao tối đa 360px, viền rule 1px, bo 10px. Ảnh hoặc nút của một lần liên hệ nằm trong `.l-evidence-row` (hàng xuống dòng, cách 8px). Người không được xem ảnh chỉ thấy số ảnh. `ProxyReview` có "Duyệt bằng chứng" (hộp hỏi lại), "Từ chối" (hộp nhập lý do) và, khi mentor làm thay vai chủ nhiệm, "Thực hiện bàn giao hộ".
+- **Từ chối:** lý do hiện trong `l-note` (`role="status"`), "Bị từ chối" đậm, kèm người từ chối và câu hướng dẫn gửi lại. Không dùng nền đỏ (xem The Neutral Refusal Rule).
+- **Vùng nguy hiểm** (`.l-danger`, nền warn-tint, viền warn, tiêu đề `h4` 16px 700 hổ phách): chỉ ở bước 6 và chỉ cho người nhận. Liệt kê hệ quả (nhận vai, người giao về thành viên thường hoặc thôi làm trưởng ban, biên bản khóa) và nói rõ đổi vai ngay, không hoàn tác. Nút "Xác nhận đã nhận bàn giao" là `TypedConfirm`: hộp hỏi lại bắt gõ `BAN GIAO` rồi mới bấm "Nhận vai". Người khác chỉ thấy dòng `l-note` "Chờ <tên> xác nhận".
+- **Khối "để lại"** (lời dặn và danh sách biểu mẫu, tài khoản, việc chưa xong chụp ở bước 3): tiêu đề `h4` "<người giao> để lại cho <người nhận>". Chỉ người trong cuộc thấy.
+- **Tên vai trong câu:** tên ban bỏ tiền tố "Ban " khi ghép sau "trưởng ban" (`bareDept` trong `web/src/lib/format.ts`): "trưởng ban Truyền thông", không phải "trưởng ban Ban Truyền thông".
 
 ### Điểm danh trên điện thoại
 - **Kết quả quét mã:** căn giữa: tờ lịch xl của buổi, tiêu đề, dòng tên buổi và giờ. Lỗi thì tờ lịch hôm nay, tiêu đề 26px, câu giải thích 15px mực 2 rộng tối đa 34ch.
@@ -685,6 +699,8 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 
 ### Don't:
 - **Don't** dùng đỏ cho thứ không phải hôm nay, hạn gấp hay lỗi nhập, kể cả khoản chi, khoản bị từ chối, quỹ thiếu hay người chưa đóng.
+- **Don't** dùng nền đỏ cho lý do từ chối của đơn bàn giao: dùng `l-note`. Nền đỏ (`l-alert`) chỉ cho lỗi nhập hoặc lỗi máy chủ.
+- **Don't** ghép "trưởng ban" với tên ban còn nguyên tiền tố "Ban ": đi qua `bareDept`.
 - **Don't** dùng bóng đổ hay gradient.
 - **Don't** chia bảng làm việc thành nhiều thẻ trắng rời có ô số liệu ở góc.
 - **Don't** dùng Barlow Condensed cho chữ đơn vị cạnh số.
@@ -701,6 +717,12 @@ Chuyển động chỉ để cho thấy cái gì vừa đổi. Thời lượng 1
 - **Don't** đặt nhãn nhỏ phía trên tiêu đề (như "Lời mời tham gia" trên tên CLB). Nhãn như vậy trong bản vẽ thì bỏ, hoặc đổi thành đầu phần: tiêu đề phần và ghi chú bên phải. Ở trang đầu, người dùng của khối nằm ngay trong tiêu đề.
 - **Don't** hiện chữ lấy từ đường dẫn (như lỗi đăng nhập); đổi mã thành câu có sẵn.
 - **Don't** lấy màu hay kiểu từ bản vẽ trong `design/screens/` (hệ tím cũ, đã bỏ). Bản vẽ chỉ cho nội dung, chữ và luật. Component thêm bằng `npx shadcn add` dùng biến theme đã nối vào Lịch bloc; không thêm màu riêng cho nó.
+
+## Việc giao diện đang chờ
+
+Hai chỗ của trang Bàn giao từng vai (09/11/2026) chưa sửa:
+- Form gửi đơn chỉ có một dòng lỗi chung cuối form (focus về ô lỗi đầu tiên), chưa có dòng lỗi dưới từng ô như luật ở mục Inputs / Fields. Form bàn giao hộ cũng vậy.
+- Nút chọn file ảnh bằng chứng là ô `type="file"` mặc định của trình duyệt, nên chữ "Choose files" và "No file chosen" còn là tiếng Anh theo ngôn ngữ trình duyệt.
 
 ## Câu hỏi còn mở
 

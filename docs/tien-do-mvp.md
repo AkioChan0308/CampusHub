@@ -46,6 +46,7 @@ Agent hay người mới nhận việc: đọc file này trước, rồi tới:
 - Trang đầu cho người chưa đăng nhập, có hai video demo; đăng ký bằng Google rồi đặt tên tài khoản và mật khẩu; đăng nhập bằng mật khẩu (Hiệu duyệt 05/10/2026).
 - Máy chủ kiểm tra quyền ở mọi API.
 - Dữ liệu lưu trong bộ nhớ, hoặc trong PostgreSQL khi đặt `DATABASE_URL`.
+- Ban và trưởng ban, bàn giao từng vai (09/11/2026, code xong, chưa commit, chờ Hiệu xem giao diện và báo Khoa vì đổi hợp đồng API và thêm migration 010, 011): mô tả ở `docs/mo-ta-ban-giao-theo-vai.md`. Bàn giao hộ (mentor duyệt, chờ 3 ngày) và ảnh bằng chứng cũng đã code xong cùng ngày (mục 8 của mô tả ghi các điểm tự chọn để Hiệu sửa).
 
 **Chưa có:**
 - Dữ liệu vẫn là dữ liệu mẫu (giả).
@@ -87,7 +88,7 @@ cd server && npm install && npm run dev   # http://localhost:4000/api/v1, chế 
 cd web && npm install && npm run dev      # http://localhost:3000
 ```
 
-- **Thử:** mở http://localhost:3000/login. Dưới ô đăng nhập là bảng tài khoản mẫu cho 7 vai (chỉ có ở bản demo, mật khẩu chung `CauLong#2026`); bấm một vai là điền sẵn, rồi bấm Đăng nhập. http://localhost:3000 là trang đầu cho người chưa đăng nhập (mở bằng cửa sổ ẩn danh nếu trình duyệt đang đăng nhập).
+- **Thử:** mở http://localhost:3000/login. Dưới ô đăng nhập là bảng tài khoản mẫu cho 10 vai (chỉ có ở bản demo, mật khẩu chung `CauLong#2026`); bấm một vai là điền sẵn, rồi bấm Đăng nhập. http://localhost:3000 là trang đầu cho người chưa đăng nhập (mở bằng cửa sổ ẩn danh nếu trình duyệt đang đăng nhập).
 - **Dùng PostgreSQL:** xem `docs/postgresql.md`, có cách chạy bằng Docker và không Docker.
 - **Lệnh kiểm tra:**
 
