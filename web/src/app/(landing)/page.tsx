@@ -27,7 +27,7 @@ const BOARD_STEPS: DemoStep[] = [
   { key: "check-in", title: "Chiếu mã điểm danh", text: "Ai vừa quét mã thì tên hiện ngay trên màn chiếu." },
   { key: "reconcile", title: "Đối soát sao kê", text: "Tải file sao kê ngân hàng, khoản đóng quỹ tự khớp theo nội dung chuyển khoản." },
   { key: "expenses", title: "Duyệt chi", text: "Không ai tự duyệt khoản mình đề xuất. Từ chối thì phải ghi lý do." },
-  { key: "handover", title: "Bàn giao", text: "Chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền cho nhiệm kỳ sau." },
+  { key: "handover", title: "Bàn giao", text: "Chọn ban mới, chốt số dư, kiểm tra kho, rồi chuyển quyền cho nhiệm kỳ sau." },
 ];
 
 export default function Landing() {

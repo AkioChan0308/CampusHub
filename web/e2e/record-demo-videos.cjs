@@ -20,6 +20,8 @@ const path = require("path");
 const { BASE, launch } = require("./common.cjs");
 
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
+/** Bộ mã hóa video. Mặc định libx264; ffmpeg không có libx264 (ví dụ bản của CapCut) thì đặt FFMPEG_VCODEC="-c:v h264_mf -b:v 4M". */
+const VIDEO_CODEC = process.env.FFMPEG_VCODEC ? process.env.FFMPEG_VCODEC.split(" ") : ["-c:v", "libx264", "-preset", "slow", "-crf", "24"];
 const ROOT = path.join(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "public", "video");
 const STEPS_FILE = path.join(ROOT, "src", "app", "(landing)", "video-steps.json");
@@ -116,7 +118,7 @@ function encode(name, rec, outWidth) {
   execFileSync(FFMPEG, [
     "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
     "-vf", `fps=30,scale=${outWidth}:-2:flags=lanczos,format=yuv420p`,
-    "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-movflags", "+faststart", "-an", mp4,
+    ...VIDEO_CODEC, "-movflags", "+faststart", "-an", mp4,
   ]);
   // Ảnh đầu video = hình đầu tiên, để lúc video bắt đầu chạy không bị đổi hình.
   execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "3", path.join(OUT_DIR, `${name}.jpg`)]);
@@ -298,6 +300,9 @@ async function recordBoard(browser) {
   await a.tap(page.getByRole("link", { name: "Thoát chế độ chiếu" }));
   await page.waitForURL(`**/clubs/${CLUB}`);
   rec.mark("reconcile");
+  // Nhóm "Quỹ" của menu đóng sẵn: mở ra rồi mới bấm Đối soát sao kê và Đề xuất và duyệt chi.
+  const fundToggle = page.locator('[data-tour="nav-fund"]');
+  if ((await fundToggle.getAttribute("aria-expanded")) === "false") { await a.tap(fundToggle); await wait(400); }
   await a.tap(nav("Đối soát sao kê"));
   await page.waitForURL("**/reconcile");
   await page.getByRole("heading", { name: /Cần gán tay/ }).waitFor();

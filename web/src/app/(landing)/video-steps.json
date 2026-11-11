@@ -1,22 +1,22 @@
 {
   "member": {
-    "duration": 27.35,
+    "duration": 28.47,
     "steps": {
-      "login": 0,
-      "invite": 5.54,
-      "check-in": 12.38,
-      "pay": 16.09,
-      "me": 21.82
+      "login": 0.1,
+      "invite": 5.88,
+      "check-in": 12.32,
+      "pay": 16.3,
+      "me": 22.64
     }
   },
   "club-admin": {
-    "duration": 36.56,
+    "duration": 45.13,
     "steps": {
       "login": 0,
-      "check-in": 7.01,
-      "reconcile": 18.42,
-      "expenses": 23.48,
-      "handover": 28.48
+      "check-in": 7.29,
+      "reconcile": 18.69,
+      "expenses": 26.91,
+      "handover": 34.44
     }
   }
 }
