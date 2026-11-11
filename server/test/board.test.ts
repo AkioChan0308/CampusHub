@@ -2,12 +2,12 @@
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { CLUB, startServer, type TestServer } from "./helpers.ts";
+import { CLUB, startServer, type TestServer, useMidHandover } from "./helpers.ts";
 
 let srv: TestServer;
 before(async () => { srv = await startServer(); });
 after(async () => { await srv.close(); });
-beforeEach(() => { srv.store.reset(); });
+beforeEach(() => { srv.store.reset(); useMidHandover(srv); });
 
 const C = `/clubs/${CLUB}`;
 
@@ -15,7 +15,7 @@ test("khung ban điều hành: vai của mình và số việc đang chờ", asy
   const r = await srv.call("GET", `${C}/board`, { as: "a001" });
   assert.equal(r.status, 200);
   assert.equal(r.body.me.role, "president");
-  assert.deepEqual(r.body.counts, { pendingApplications: 3, openManualTxns: 4, pendingExpenses: 2 });
+  assert.deepEqual(r.body.counts, { pendingApplications: 3, openManualTxns: 4, pendingExpenses: 2, roleHandovers: 0 });
   assert.equal(r.body.nextSessionId, "tuan-5");
   assert.equal(r.body.collectionId, "quy-fall-2026");
 });

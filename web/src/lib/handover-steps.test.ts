@@ -11,13 +11,14 @@ import {
 const AT = "2026-10-22T10:00:00+07:00";
 const handover = (s: ReturnType<typeof createSeed>) => s.handovers.find((h) => h.clubId === CLUB)!;
 
-test("dữ liệu mẫu: bàn giao đang ở bước 4, đã có ban mới và số dư chốt", () => {
+test("dữ liệu mẫu: bàn giao cả ban mới bắt đầu, ở bước 1, chưa chọn ban mới (Hiệu chọn 09/11/2026)", () => {
   const h = handover(createSeed());
-  assert.equal(h.step, 4);
-  assert.equal(h.newBoard?.president, "a017");
-  assert.equal(h.lockedBalance, balance(createSeed(), CLUB));
-  assert.equal(h.history.length, 3);
+  assert.equal(h.step, 1);
+  assert.equal(h.newBoard, undefined);
+  assert.equal(h.lockedBalance, 0);
+  assert.equal(h.history.length, 0);
   assert.deepEqual(h.transferred, []);
+  assert.ok(balance(createSeed(), CLUB) > 0); // số dư chốt ở bước 2 sẽ lấy từ sổ quỹ
 });
 
 test("đi hết 7 bước, mỗi bước ghi vào biên bản", () => {
@@ -46,7 +47,7 @@ test("đi hết 7 bước, mỗi bước ghi vào biên bản", () => {
   const presidents = s.memberships.filter((m) => m.clubId === CLUB && m.role === "president").map((m) => m.personId);
   assert.deepEqual(presidents, [h.newBoard!.president]);
   const board = h.newBoard!;
-  const keep = new Set([board.president, board.vice, board.treasurer, ...board.heads]);
+  const keep = new Set([board.president, board.vice, board.treasurer, ...board.heads.map((x) => x.personId)]);
   for (const m of s.memberships.filter((x) => x.clubId === CLUB && x.role !== "member")) assert.ok(keep.has(m.personId), `${m.personId} không thuộc ban mới mà vẫn giữ vai ${m.role}`);
 });
 

@@ -9,6 +9,8 @@ export const systemHandlers: Pick<Handlers, "health" | "resetDemo"> = {
   resetDemo: async (ctx) => {
     if (ctx.config.authMode !== "demo") throw notFound("Không có API này.");
     ctx.resetStore();
+    // ?clean=1: bỏ kịch bản bàn giao hộ có sẵn trong dữ liệu mẫu (các script bấm thử cần dữ liệu không có đơn nào).
+    if (ctx.query.clean === "1") ctx.update((s) => ({ ...s, roleHandovers: [], evidence: [], notifications: s.notifications.filter((n) => !n.kind.startsWith("role-handover")) }));
     ctx.auth.accounts.reset(); // tài khoản đặt mật khẩu trên dữ liệu cũ không còn người tương ứng
     await seedDemoAccounts(ctx.auth.accounts, ctx.state, true);
     return { ok: true };

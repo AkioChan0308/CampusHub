@@ -20,7 +20,7 @@ const PHONE = { width: 390, height: 844 };
     return p;
   }
   const dim = (p, title) => p.locator("a.l-post", { hasText: title }).evaluate((el) => el.classList.contains("dim")).catch(() => null);
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // Trưởng ban (a005) đăng một sự kiện
   let p = await as("a005", LAPTOP);

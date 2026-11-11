@@ -8,7 +8,7 @@ import { createDbAccounts } from "../src/db/accounts.ts";
 import { createDbSessions } from "../src/db/sessions.ts";
 import { createDbStore } from "../src/db/store.ts";
 import { createSeed, type AppState } from "../src/domain.ts";
-import { CLUB, COL, csv, NOW, startServer } from "./helpers.ts";
+import { CLUB, COL, csv, NOW, startServer, useMidHandover } from "./helpers.ts";
 import { createPgliteDb } from "./pglite.ts";
 
 /** So dữ liệu theo nội dung: bỏ trường trống và vai đang chọn của bản demo (không lưu). */
@@ -36,6 +36,7 @@ test("cơ sở dữ liệu trống: tạo bảng, nạp dữ liệu mẫu, đọ
 
 test("làm việc qua API rồi khởi động lại máy chủ: dữ liệu còn nguyên, phiên đăng nhập còn dùng được", () => withDb(async (db) => {
   const srv = await startServer({ db });
+  useMidHandover(srv);
   const C = `/clubs/${CLUB}`;
   const K = `${C}/collections/${COL}`;
   const E = `${C}/events/tuan-5`;

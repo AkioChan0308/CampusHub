@@ -15,9 +15,12 @@ export interface DemoAccount {
 
 export const DEMO_ACCOUNTS: DemoAccount[] = [
   { personId: "a001", role: "Chủ nhiệm CLB", username: "quocbao" },
+  { personId: "a003", role: "Phó chủ nhiệm", username: "congminh" },
   { personId: "a002", role: "Thủ quỹ", username: "thuha" },
   { personId: "a005", role: "Trưởng ban", username: "giahuy" },
   { personId: "a017", role: "Thành viên", username: "minhanh" },
+  { personId: "a006", role: "Thành viên (người nhận trong kịch bản bàn giao hộ)", username: "ngoclan" },
+  { personId: "a007", role: "Trưởng ban Truyền thông (bị bàn giao hộ)", username: "haidang" },
   { personId: "a022", role: "Thành viên mới được mời", username: "hoangnam" },
   { personId: "p-bao-chau", role: "Sinh viên chưa vào CLB", username: "baochau" },
   { personId: "p-thu-trang", role: "Ban quản lý CLB của trường", username: "thutrang" },

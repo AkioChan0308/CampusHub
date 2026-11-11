@@ -15,7 +15,7 @@ async function marks(p, sels) {
   return p.evaluate((sels) => sels.map((s) => { const e = document.querySelector(s); if (!e) return `${s}: -`; const r = e.getBoundingClientRect(); return `${s}: x${Math.round(r.left)} y${Math.round(r.top)} w${Math.round(r.width)} h${Math.round(r.height)}`; }), sels);
 }
 (async () => {
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
   const browser = await launch();
   for (const [name, who, viewport, path, ready, sels] of pages) {
     const ctx = await browser.newContext({ viewport, reducedMotion: "reduce", locale: "vi-VN", timezoneId: "Asia/Ho_Chi_Minh" });

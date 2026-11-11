@@ -2,12 +2,12 @@
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { CLUB, startServer, type TestServer } from "./helpers.ts";
+import { CLUB, startServer, type TestServer, useMidHandover } from "./helpers.ts";
 
 let srv: TestServer;
 before(async () => { srv = await startServer(); });
 after(async () => { await srv.close(); });
-beforeEach(() => { srv.store.reset(); });
+beforeEach(() => { srv.store.reset(); useMidHandover(srv); });
 
 const H = `/clubs/${CLUB}/handover`;
 const list = async (as: string) => (await srv.call("GET", "/me/notifications", { as })).body;

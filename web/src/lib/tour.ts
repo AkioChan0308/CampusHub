@@ -18,8 +18,10 @@ export interface TourStep {
   target: string;
   title: string;
   text: string;
-  /** "all": cả chủ nhiệm mới (vai thành viên, chỉ vào được Bàn giao và Kho bàn giao). Không ghi thì chỉ ban điều hành. */
+  /** "all": cả chủ nhiệm mới (vai thành viên, chỉ vào được Bàn giao; Kho bàn giao hiện sau khi bàn giao xong). Không ghi thì chỉ ban điều hành. */
   scope?: "all";
+  /** Tiến độ bàn giao cả ban: chỉ chủ nhiệm. Phó chủ nhiệm, thủ quỹ, trưởng ban không có trang này; chủ nhiệm mới chỉ thấy màn xác nhận (09/11/2026). */
+  wholeHandover?: true;
 }
 
 export const BOARD_TOUR: TourStep[] = [
@@ -48,14 +50,14 @@ export const BOARD_TOUR: TourStep[] = [
   { group: "Bảng tin", page: "/posts", target: "b:Đăng tin", title: "Đăng tin", text: "Đăng tin của CLB lên Cộng đồng. Tin cần cán bộ trường duyệt rồi mới hiện cho mọi người. Chỉ chủ nhiệm, phó chủ nhiệm và trưởng ban có quyền đăng." },
   { group: "Bảng tin", target: "h:Tin đã đăng", title: "Tin đã đăng", text: "Tin của CLB ở mọi trạng thái. Tin chờ trường duyệt hoặc bị từ chối hiện mờ kèm nhãn; bị từ chối thì kèm lý do." },
 
-  { group: "Bàn giao", page: "/handover", target: "css:.l-steps", scope: "all", title: "Bảy bước bàn giao", text: "Chọn ban mới, chốt số dư, kiểm tra kho bàn giao, đổi tài khoản nhận quỹ, chuyển quyền quản trị, ban mới xác nhận, rồi lập biên bản." },
-  { group: "Bàn giao", target: "css:.l-detail", scope: "all", title: "Nội dung từng bước", text: "Phần việc của bước hiện tại. Làm xong bước này mới sang bước sau; cần thì quay lại bước trước." },
+  { group: "Bàn giao", page: "/handover", target: "css:.l-steps", scope: "all", wholeHandover: true, title: "Bảy bước bàn giao", text: "Chọn ban mới, chốt số dư, kiểm tra kho bàn giao, đổi tài khoản nhận quỹ, chuyển quyền quản trị, ban mới xác nhận, rồi lập biên bản." },
+  { group: "Bàn giao", target: "css:.l-detail", scope: "all", wholeHandover: true, title: "Nội dung từng bước", text: "Phần việc của bước hiện tại. Làm xong bước này mới sang bước sau; cần thì quay lại bước trước." },
 
-  { group: "Kho bàn giao", page: "/handover-kit", target: "css:section[aria-label='Trợ lý bàn giao']", scope: "all", title: "Trợ lý bàn giao", text: "Hỏi đáp trong kho và tóm tắt cho ban mới. Trợ lý không trả lời về tiền hay dữ liệu cá nhân, không tự gửi và không tự đổi dữ liệu." },
-  { group: "Kho bàn giao", target: "css:[aria-label='Chọn phần của kho']", scope: "all", title: "Ba phần của kho", text: "Kho có ba phần: Biểu mẫu, Quy trình, Tài khoản và quyền truy cập. Bấm để chuyển." },
-  { group: "Kho bàn giao", click: "b:Biểu mẫu", target: "css:[role='region'][aria-label='Biểu mẫu']", scope: "all", title: "Biểu mẫu", text: "Biểu mẫu của CLB: tên, người giữ, ngày cập nhật và link. Chỉ lưu đường link, không lưu file." },
-  { group: "Kho bàn giao", click: "b:Quy trình", target: "css:[role='region'][aria-label='Quy trình']", scope: "all", title: "Quy trình", text: "Các bước làm một việc (ví dụ xin phòng họp): ai làm ở mỗi bước và biểu mẫu đi kèm." },
-  { group: "Kho bàn giao", click: "b:Tài khoản và quyền truy cập", target: "css:[role='region'][aria-label='Tài khoản và quyền truy cập']", scope: "all", title: "Tài khoản và quyền truy cập", text: "Dịch vụ của CLB (fanpage, Drive, email...): ai giữ quyền quản trị, đứng tên CLB hay cá nhân. Không lưu mật khẩu." },
+  { group: "Kho bàn giao", page: "/handover-kit", target: "css:section[aria-label='Trợ lý bàn giao']", title: "Trợ lý bàn giao", text: "Hỏi đáp trong kho và tóm tắt cho ban mới. Trợ lý không trả lời về tiền hay dữ liệu cá nhân, không tự gửi và không tự đổi dữ liệu." },
+  { group: "Kho bàn giao", target: "css:[aria-label='Chọn phần của kho']", title: "Ba phần của kho", text: "Kho có ba phần: Biểu mẫu, Quy trình, Tài khoản và quyền truy cập. Bấm để chuyển." },
+  { group: "Kho bàn giao", click: "b:Biểu mẫu", target: "css:[role='region'][aria-label='Biểu mẫu']", title: "Biểu mẫu", text: "Biểu mẫu của CLB: tên, người giữ, ngày cập nhật và link. Chỉ lưu đường link, không lưu file." },
+  { group: "Kho bàn giao", click: "b:Quy trình", target: "css:[role='region'][aria-label='Quy trình']", title: "Quy trình", text: "Các bước làm một việc (ví dụ xin phòng họp): ai làm ở mỗi bước và biểu mẫu đi kèm." },
+  { group: "Kho bàn giao", click: "b:Tài khoản và quyền truy cập", target: "css:[role='region'][aria-label='Tài khoản và quyền truy cập']", title: "Tài khoản và quyền truy cập", text: "Dịch vụ của CLB (fanpage, Drive, email...): ai giữ quyền quản trị, đứng tên CLB hay cá nhân. Không lưu mật khẩu." },
 
   { group: "Quỹ", target: "nav-fund", title: "Nhóm Quỹ", text: "Thu quỹ, đối soát sao kê, duyệt chi và dự trù nằm trong nhóm này. CampusHub chỉ ghi sổ, không giữ tiền: tiền đi thẳng vào tài khoản của thủ quỹ." },
   { group: "Quỹ", page: "/collections", target: "css:.l-main .l-sheet > :first-child", title: "Đợt thu", text: "Mỗi đợt thu cho từng thành viên một mã chuyển khoản riêng và hạn đóng; thủ quỹ thấy ai đã đóng, ai chưa." },
@@ -72,7 +74,7 @@ export const BOARD_TOUR: TourStep[] = [
 ];
 
 /** Các bước của một vai: chủ nhiệm mới (vai thành viên) chỉ có phần Bàn giao và Kho bàn giao. */
-export const stepsFor = (role: string | undefined): TourStep[] => (role === undefined ? [] : role === "member" ? BOARD_TOUR.filter((s) => s.scope === "all") : BOARD_TOUR);
+export const stepsFor = (role: string | undefined): TourStep[] => (role === undefined ? [] : role === "member" ? BOARD_TOUR.filter((s) => s.scope === "all" && !s.wholeHandover) : role === "president" ? BOARD_TOUR : BOARD_TOUR.filter((s) => !s.wholeHandover));
 
 /** Trang của bước: ghi ở chính nó, hoặc ở bước gần nhất phía trước có ghi trang (để quay lại bước cũng về đúng trang). */
 export function pageOf(steps: TourStep[], i: number): string {

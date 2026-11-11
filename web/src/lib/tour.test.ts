@@ -49,11 +49,15 @@ test("trang của bước: ghi ở chính nó hoặc lấy từ bước gần nh
   assert.equal(pageOf(BOARD_TOUR, fund), "/handover-kit", "bước chỉ nhóm Quỹ ở lại trang kho");
 });
 
-test("chủ nhiệm mới (vai thành viên) chỉ có giới thiệu, Bàn giao, Kho bàn giao và phần kết", () => {
+test("chủ nhiệm mới (vai thành viên) chỉ có giới thiệu và phần kết (chưa có tiến độ bàn giao cả ban và Kho bàn giao)", () => {
   const groups = [...new Set(stepsFor("member").map((s) => s.group))];
-  assert.deepEqual(groups, ["Giới thiệu", "Bàn giao", "Kho bàn giao", "Kết thúc"]);
+  assert.deepEqual(groups, ["Giới thiệu", "Kết thúc"]);
   assert.deepEqual(stepsFor("president"), BOARD_TOUR);
-  assert.deepEqual(stepsFor("treasurer"), BOARD_TOUR);
+  // Phó chủ nhiệm, thủ quỹ, trưởng ban không có trang Bàn giao cả ban (09/11/2026): bỏ hai bước của trang đó.
+  for (const role of ["vice", "treasurer", "head"]) {
+    assert.deepEqual(stepsFor(role), BOARD_TOUR.filter((s) => !s.wholeHandover));
+    assert.equal(stepsFor(role).some((s) => s.page === "/handover"), false);
+  }
   assert.deepEqual(stepsFor(undefined), []);
 });
 

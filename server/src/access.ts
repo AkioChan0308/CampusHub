@@ -26,9 +26,40 @@ export function requireBoard(s: AppState, clubId: string, me: Person): { club: C
 export function requireBoardOrIncoming(s: AppState, clubId: string, me: Person): { club: Club; ms: Membership } {
   const club = findClub(s, clubId);
   const ms = membershipOf(s, clubId, me.id);
-  const incoming = s.handovers.some((h) => h.clubId === clubId && h.newBoard?.president === me.id);
-  if (ms && ms.invite === "accepted" && incoming) return { club, ms };
+  if (ms && ms.invite === "accepted" && isIncomingPresident(s, clubId, me.id)) return { club, ms };
   return requireBoard(s, clubId, me);
+}
+
+/**
+ * Trang Bàn giao cả ban (09/11/2026): chỉ chủ nhiệm và chủ nhiệm mới (được chọn ở bước 1). Phó chủ nhiệm, thủ quỹ, trưởng ban chỉ bàn giao vai của chính mình
+ * (API /role-handovers), nên không xem tiến độ bàn giao cả ban.
+ */
+export function canViewWholeHandover(s: AppState, clubId: string, me: Person): boolean {
+  const ms = membershipOf(s, clubId, me.id);
+  if (!ms || ms.invite !== "accepted") return false;
+  return ms.role === "president" || isIncomingPresident(s, clubId, me.id);
+}
+
+/**
+ * Chủ nhiệm mới được chọn ở bước 1 chỉ có quyền vào đúng lúc bàn giao ở bước 6 (họ phải xác nhận). Trước đó họ vẫn là thành viên thường,
+ * chưa thuộc ban điều hành (Hiệu chọn 09/11/2026); sang bước 7 họ đã là chủ nhiệm thật. Bản ghi bàn giao ở lại mãi, nên không dùng `step >= 6`: người này sau đó có thể bàn giao
+ * vai chủ nhiệm và về thành viên thường mà không được giữ quyền xem.
+ */
+export function isIncomingPresident(s: AppState, clubId: string, personId: string): boolean {
+  return s.handovers.some((h) => h.clubId === clubId && h.step === 6 && !h.acceptedAt && h.newBoard?.president === personId);
+}
+
+/**
+ * Ban điều hành, hoặc thành viên đang là người nhận của một đơn bàn giao một vai (09/11/2026): họ cần khung trang để vào trang Bàn giao từng vai và xác nhận ở bước 6.
+ * Chỉ dùng cho khung trang (getBoard); các trang khác của ban điều hành vẫn chặn họ.
+ */
+export function requireBoardOrRoleReceiver(s: AppState, clubId: string, me: Person): { club: Club; ms: Membership } {
+  const club = findClub(s, clubId);
+  const ms = membershipOf(s, clubId, me.id);
+  // Người nhận (đang làm bước 6 hoặc đã xong) và người giao đã xong (xem lại biên bản của mình, dù đã về thành viên thường).
+  const receiving = s.roleHandovers.some((h) => h.clubId === clubId && ((h.toId === me.id && (h.status === "active" || h.status === "done")) || (h.fromId === me.id && h.status === "done")));
+  if (ms && ms.invite === "accepted" && receiving) return { club, ms };
+  return requireBoardOrIncoming(s, clubId, me);
 }
 
 /** Vai trò phải có quyền làm việc này (bảng quyền ở web/src/lib/selectors.ts). */

@@ -3,16 +3,17 @@
 
 import { findClub, requireBoard, requireRight } from "../access.ts";
 import {
-  addMembers, createClub, createCollection, createEvent, deleteEvent, membershipOf, nowIso, slugify, toAsciiUpper, uid, updateCollection,
-  updateEvent, updateMember, type AppState, type ClubEvent, type Collection,
+  addMembers, createClub, createCollection, createDepartment, createEvent, deleteDepartment, deleteEvent, departmentDeleteBlock, departmentNameError, findDepartment,
+  headBlock, membershipOf, NO_DEPARTMENT, nowIso, renameDepartment, setDepartmentHead, slugify, toAsciiUpper, uid, updateCollection,
+  updateEvent, updateMember, type AppState, type ClubEvent, type Collection, type Department,
 } from "../domain.ts";
 import { conflict, HttpError, invalid, notFound } from "../errors.ts";
-import { addMembersBody, createClubBody, createCollectionBody, eventBody, parseBody, updateCollectionBody, updateMemberBody } from "../schemas.ts";
+import { addMembersBody, createClubBody, createCollectionBody, createDepartmentBody, eventBody, parseBody, updateCollectionBody, updateDepartmentBody, updateMemberBody } from "../schemas.ts";
 import { randomToken } from "../sessions.ts";
-import { clubRef, collectionDto, collectionsRes, eventDto, memberRow } from "../responses.ts";
+import { clubRef, collectionDto, collectionsRes, departmentDtos, eventDto, memberRow } from "../responses.ts";
 import type { Handlers } from "./types.ts";
 
-type Keys = "createClub" | "addMembers" | "updateMember" | "createEvent" | "updateEvent" | "deleteEvent" | "listCollections" | "createCollection" | "updateCollection";
+type Keys = "createClub" | "addMembers" | "updateMember" | "createDepartment" | "updateDepartment" | "deleteDepartment" | "createEvent" | "updateEvent" | "deleteEvent" | "listCollections" | "createCollection" | "updateCollection";
 
 const PAST_EVENT = "Buổi này đã qua. Chọn ngày giờ sau bây giờ.";
 
@@ -26,6 +27,12 @@ function findEvent(s: AppState, clubId: string, eventId: string): ClubEvent {
   const ev = s.events.find((e) => e.id === eventId && e.clubId === clubId);
   if (!ev) throw notFound("Không tìm thấy buổi này.");
   return ev;
+}
+
+function findDepartmentById(s: AppState, clubId: string, departmentId: string): Department {
+  const d = s.departments.find((x) => x.id === departmentId && x.clubId === clubId);
+  if (!d) throw notFound("Không tìm thấy ban này.");
+  return d;
 }
 
 function findCollection(s: AppState, clubId: string, collectionId: string): Collection {
@@ -58,6 +65,22 @@ export const setupHandlers: Pick<Handlers, Keys> = {
     const byEmail = (email: string) => ctx.state.persons.find((p) => p.email.toLowerCase() === email.toLowerCase());
     const already = body.members.filter((m) => { const p = byEmail(m.email); return p && membershipOf(ctx.state, club.id, p.id); });
     if (already.length) throw new HttpError(409, "CONFLICT", `Đã có trong CLB: ${already.map((m) => m.email).join(", ")}.`, { emails: already.map((m) => m.email) });
+    // Ban phải có trong danh sách ban của CLB. Ban chưa có thì chỉ tạo khi chủ nhiệm đồng ý (createMissingDepartments), không tự tạo.
+    const wanted = [...new Set(body.members.map((m) => (m.department ?? "").replace(/\s+/g, " ").trim()).filter((d) => d && d.toLowerCase() !== NO_DEPARTMENT.toLowerCase()))];
+    const missing = wanted.filter((d) => !findDepartment(ctx.state, club.id, d));
+    const toCreate = missing.filter((d, i) => missing.findIndex((x) => x.toLowerCase() === d.toLowerCase()) === i);
+    if (toCreate.length && !body.createMissingDepartments) {
+      throw new HttpError(409, "CONFLICT", `Ban chưa có trong CLB: ${toCreate.join(", ")}. Tạo các ban này hoặc sửa tên ban trong danh sách.`, { departments: toCreate });
+    }
+    let base = ctx.state;
+    if (toCreate.length) {
+      requireRight(ms, "assignRole"); // chỉ chủ nhiệm cấu hình ban
+      for (const name of toCreate) {
+        const bad = departmentNameError(base, club.id, name);
+        if (bad) throw invalid(`Ban "${name}": ${bad}`);
+        base = ctx.update(createDepartment(club.id, uid("ban"), name));
+      }
+    }
     const usedCodes = new Set(ctx.state.memberships.map((m) => m.inviteCode).filter(Boolean));
     const inviteCode = () => {
       let code = `moi-${randomToken(6)}`;
@@ -67,9 +90,10 @@ export const setupHandlers: Pick<Handlers, Keys> = {
     };
     const people = body.members.map((m) => {
       const p = byEmail(m.email);
+      const ban = (m.department ?? "").replace(/\s+/g, " ").trim();
       return {
         personId: p?.id ?? uid("p"), name: p?.name ?? m.name.replace(/\s+/g, " "), email: p?.email ?? m.email,
-        year: m.year, department: m.department || "Chưa xếp ban", inviteCode: inviteCode(),
+        year: m.year, department: (ban && findDepartment(base, club.id, ban)?.name) || NO_DEPARTMENT, inviteCode: inviteCode(),
       };
     });
     const s = ctx.update(addMembers(club.id, people, ctx.nowIso()));
@@ -89,8 +113,56 @@ export const setupHandlers: Pick<Handlers, Keys> = {
     if (!target) throw notFound("Người này không có trong danh sách thành viên.");
     const body = parseBody(updateMemberBody, ctx.body);
     if ((target.role === "president") !== (body.role === "president")) throw conflict("Đổi chủ nhiệm làm ở màn Bàn giao.");
-    const s = ctx.update(updateMember(club.id, target.personId, { role: body.role, department: body.department }));
+    // Ban chọn từ danh sách ban của CLB (hoặc "Chưa xếp ban"), không gõ tay.
+    const inList = body.department.trim().toLowerCase() === NO_DEPARTMENT.toLowerCase() ? undefined : findDepartment(ctx.state, club.id, body.department);
+    const isNone = body.department.trim().toLowerCase() === NO_DEPARTMENT.toLowerCase();
+    if (!inList && !isNone) throw invalid(`Ban "${body.department}" chưa có trong CLB. Tạo ban trước ở khối Các ban.`);
+    if (body.role === "head" && !inList) throw invalid("Trưởng ban phải chọn ban mà người này làm trưởng.");
+    if (body.role === "head" && target.invite !== "accepted") throw invalid("Trưởng ban phải là thành viên đã nhận lời mời.");
+    const s = ctx.update(updateMember(club.id, target.personId, { role: body.role, department: inList ? inList.name : NO_DEPARTMENT }));
     return { member: memberRow(s, club, membershipOf(s, club.id, target.personId)!) };
+  },
+
+  /** Thêm ban (chỉ chủ nhiệm). Ban mới chưa có trưởng và chưa có thành viên. */
+  createDepartment: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "assignRole");
+    const body = parseBody(createDepartmentBody, ctx.body);
+    const bad = departmentNameError(ctx.state, club.id, body.name);
+    if (bad) throw bad.startsWith("CLB đã có") ? conflict(bad) : invalid(bad);
+    const s = ctx.update(createDepartment(club.id, uid("ban"), body.name));
+    return { departments: departmentDtos(s, club.id) };
+  },
+
+  /** Đổi tên ban và/hoặc đặt, bỏ trưởng ban. Trưởng ban là thành viên đã nhận lời mời, không phải chủ nhiệm, phó chủ nhiệm, thủ quỹ. */
+  updateDepartment: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "assignRole");
+    const d = findDepartmentById(ctx.state, club.id, ctx.params.departmentId);
+    const body = parseBody(updateDepartmentBody, ctx.body);
+    if (body.name !== undefined) {
+      const bad = departmentNameError(ctx.state, club.id, body.name, d.id);
+      if (bad) throw bad.startsWith("CLB đã có") ? conflict(bad) : invalid(bad);
+    }
+    if (typeof body.headId === "string") {
+      const bad = headBlock(ctx.state, club.id, body.headId);
+      if (bad) throw invalid(bad);
+    }
+    let s = ctx.state;
+    if (body.name !== undefined) s = ctx.update(renameDepartment(d.id, body.name));
+    if (body.headId !== undefined) s = ctx.update(setDepartmentHead(d.id, body.headId ?? undefined));
+    return { departments: departmentDtos(s, club.id) };
+  },
+
+  /** Xóa ban: bị chặn khi ban còn thành viên hoặc còn trưởng ban. */
+  deleteDepartment: (ctx) => {
+    const { club, ms } = requireBoard(ctx.state, ctx.params.clubId, ctx.me);
+    requireRight(ms, "assignRole");
+    const d = findDepartmentById(ctx.state, club.id, ctx.params.departmentId);
+    const block = departmentDeleteBlock(ctx.state, d.id);
+    if (block) throw conflict(block);
+    const s = ctx.update(deleteDepartment(d.id));
+    return { departments: departmentDtos(s, club.id) };
   },
 
   createEvent: (ctx) => {

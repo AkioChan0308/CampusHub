@@ -15,6 +15,7 @@ import { kitHandlers } from "./handlers/kit.ts";
 import { meHandlers } from "./handlers/me.ts";
 import { moneyHandlers } from "./handlers/money.ts";
 import { schoolHandlers } from "./handlers/school.ts";
+import { roleHandlers } from "./handlers/roles.ts";
 import { setupHandlers } from "./handlers/setup.ts";
 import { systemHandlers } from "./handlers/system.ts";
 import { postHandlers } from "./handlers/posts.ts";
@@ -37,13 +38,13 @@ export interface AppOptions {
   exchangeGoogleCode?: ExchangeGoogleCode;
 }
 
-const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...kitHandlers, ...taskHandlers, ...postHandlers, ...aiHandlers };
+const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...roleHandlers, ...kitHandlers, ...taskHandlers, ...postHandlers, ...aiHandlers };
 
 export function createApp({ config, store = createStore(), now = Date.now, sessions = createSessions(now), accounts = createAccounts(), exchangeGoogleCode = googleExchange(config, now) }: AppOptions) {
   const app = express();
   app.disable("x-powered-by");
   app.use(cors(config.webOrigin));
-  app.use(express.json({ limit: "3mb" }));
+  app.use(express.json({ limit: "8mb" }));
 
   const router = express.Router();
   for (const id of Object.keys(ENDPOINTS) as EndpointId[]) {

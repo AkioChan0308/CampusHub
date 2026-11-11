@@ -56,6 +56,9 @@ export function agoLabel(t: string | number | Date): string {
 }
 
 /** Thời điểm hiện tại dạng ISO có múi giờ +07:00, dùng để lưu. */
+/** Tên ban bỏ tiền tố "Ban " ("Ban chủ nhiệm" thành "chủ nhiệm"), để ghép sau chữ "trưởng ban" không bị lặp. */
+export const bareDept = (name: string): string => name.replace(/^ban\s+/i, "");
+
 export function nowIso(now: number = Date.now()): string {
   const d = vn(now);
   return `${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())}T${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}:${p2(d.getUTCSeconds())}+07:00`;

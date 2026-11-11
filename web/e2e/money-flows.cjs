@@ -22,7 +22,7 @@ async function tall(page, file) {
   p.on("console", (m) => { if ((m.type() === "error" || m.type() === "warning") && !/status of (401|403)|favicon|React DevTools|HMR|Reduced Motion/.test(m.text() + JSON.stringify(m.location()))) errs.push(m.text().slice(0, 240)); });
   p.on("pageerror", (e) => errs.push("pageerror " + e.message));
   const login = (id) => p.evaluate(async (id) => { await fetch("/api/v1/auth/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ personId: id }) }); }, id);
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
   await p.goto(`${BASE}/login`);
   await login("a002");
 

@@ -4,6 +4,7 @@
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createApp } from "../src/app.ts";
+import type { AppState } from "../src/domain.ts";
 import { loadConfig } from "../src/config.ts";
 import type { ExchangeGoogleCode } from "../src/google.ts";
 import { qrStep, qrToken } from "../src/qr.ts";
@@ -41,7 +42,13 @@ export async function startServer(opts: { env?: Record<string, string>; exchange
   const sessions: Sessions = db ? await createDbSessions(db, () => NOW) : createSessions(() => NOW);
   const accounts: Accounts = db ? await createDbAccounts(db) : createAccounts();
   const config = loadConfig({ AUTH_MODE: "demo", QR_SECRET: "khoa-chi-de-test", WEB_ORIGIN: "http://localhost:3000", ...opts.env });
-  const app = createApp({ config, store, sessions, accounts, now: () => NOW, exchangeGoogleCode: opts.exchangeGoogleCode });
+  // Dữ liệu mẫu có sẵn một kịch bản bàn giao hộ; test cần dữ liệu không có đơn nào nên bỏ nó ở lần dựng đầu và mỗi lần đặt lại (test kịch bản mẫu tự nạp lại bằng createSeed).
+  const stripScenario = (s: AppState): AppState => ({ ...s, roleHandovers: [], evidence: [], notifications: s.notifications.filter((n) => !n.kind.startsWith("role-handover")) });
+  store.update(stripScenario);
+  const resetStore = store.reset.bind(store);
+  store.reset = () => { resetStore(); store.update(stripScenario); };
+  let clock = NOW; // đồng hồ của máy chủ; test đổi bằng setNow để thử việc phụ thuộc thời gian (ví dụ 3 ngày chờ)
+  const app = createApp({ config, store, sessions, accounts, now: () => clock, exchangeGoogleCode: opts.exchangeGoogleCode });
   const server = await new Promise<Server>((resolve) => {
     const s = app.listen(0, () => resolve(s));
   });
@@ -68,6 +75,7 @@ export async function startServer(opts: { env?: Record<string, string>; exchange
     config,
     base,
     call,
+    setNow: (ms: number) => { clock = ms; },
     /** Mã QR đúng của buổi tại thời điểm NOW; offset âm là mã của các bước 30 giây trước đó. */
     qr: (eventId: string, offset = 0) => qrToken(config.qrSecret, eventId, qrStep(NOW) + offset),
     close: async () => {
@@ -88,4 +96,24 @@ export type TestServer = Awaited<ReturnType<typeof startServer>>;
 export function csv(rows: string[][]): string {
   const cell = (v: string) => (/[",]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
   return ["Ngày,Số tiền,Người chuyển,Nội dung", ...rows.map((r) => r.map(cell).join(","))].join("\n");
+}
+
+/**
+ * Đợt bàn giao cả ban đang ở giữa chừng (bước 4: đã chọn ban mới, chốt số dư, kiểm kho), như dữ liệu mẫu trước 09/11/2026.
+ * Dữ liệu mẫu hiện nay bắt đầu ở bước 1, nên test nào cần đợt bàn giao đã đi một đoạn thì gọi hàm này sau khi đặt lại dữ liệu.
+ */
+export function useMidHandover(srv: { store: Store }): void {
+  srv.store.update((s) => ({
+    ...s,
+    handovers: [{
+      clubId: CLUB, fromTerm: "Fall 2026", toTerm: "Spring 2027", step: 4, lockedBalance: 3_120_000, lockedAt: "2026-10-10T20:00:00+07:00",
+      newBoard: { president: "a017", vice: "a003", treasurer: "a006", heads: [{ department: "Hậu cần", personId: "a005" }, { department: "Chuyên môn", personId: "a008" }] },
+      newReceiver: { personId: "a006", bank: "", account: "" }, transferred: [],
+      history: [
+        { at: "2026-10-10T19:40:00+07:00", by: "a001", text: "chọn ban mới: chủ nhiệm Nguyễn Minh Anh" },
+        { at: "2026-10-10T20:00:00+07:00", by: "a001", text: "chốt số dư 3.120.000 ₫" },
+        { at: "2026-10-10T20:05:00+07:00", by: "a001", text: "kiểm tra kho bàn giao: 5 biểu mẫu, 3 quy trình, 5 tài khoản, 1 mục thiếu" },
+      ],
+    }],
+  }));
 }

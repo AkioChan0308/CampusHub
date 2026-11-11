@@ -22,7 +22,7 @@ const LAPTOP = { width: 1440, height: 900 };
     return p;
   }
   const tabs = async (p) => (await p.locator(".l-tabs.hub .l-tab").allInnerTexts()).join("|");
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // Sinh viên chưa vào CLB nào
   let p = await as("p-bao-chau", PHONE);

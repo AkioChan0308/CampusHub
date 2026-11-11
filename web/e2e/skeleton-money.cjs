@@ -10,7 +10,7 @@ async function marks(p) {
   });
 }
 (async () => {
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
   const browser = await launch();
   const p = await (await browser.newContext({ viewport: { width: 1440, height: 1200 }, reducedMotion: "reduce" })).newPage();
   await p.goto(`${BASE}/login`);

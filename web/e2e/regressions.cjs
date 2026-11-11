@@ -28,7 +28,7 @@ const C = "/clubs/cau-long-san-nha";
     const r = await fetch(`/api/v1${u}`, { method: m, headers: { "Content-Type": "application/json" }, body: b ? JSON.stringify(b) : undefined });
     return r.status;
   }, [method, url, body]);
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // ---- 6. Link QR khi chưa đăng nhập: sang trang đăng nhập mà giữ đủ ?e=&t= ----
   let p = await as(null, PHONE);

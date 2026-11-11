@@ -14,16 +14,18 @@ import { toast } from "sonner";
 import type { ExpenseRes, SchoolClubRes, SchoolClubRowDto, SchoolHandoverDto, SchoolHandoverRes } from "@contract";
 import { apiPost } from "@/api/client";
 import { schoolBudgetRows } from "@/api/excel-rows";
-import { errorText, keys, useSchoolClub, useSchoolClubs } from "@/api/queries";
+import { errorText, keys, useRoleHandovers, useSchoolClub, useSchoolClubs } from "@/api/queries";
 import { Icon } from "@/components/Icon";
 import { ErrorGate, NOT_IN_MVP } from "@/components/lich/Gate";
 import { daysLeft, Leaf } from "@/components/lich/Leaf";
 import { LeafSkel, LichPage, LinkIcon, Loading, Reveal, SkelLine, useSawPending } from "@/components/lich/motion";
 import { ColGroup, PageTop, TableSkeleton } from "@/components/lich/PageTop";
+import { ContactLog, ProxyReview } from "@/components/lich/Proxy";
 import { SchoolFrame } from "@/components/lich/SchoolFrame";
 import { downloadCsv } from "@/lib/csv";
-import { dm, dmy, hm, longDate, money, num } from "@/lib/format";
+import { bareDept, dm, dmy, hm, longDate, money, num } from "@/lib/format";
 import { MENTOR_THRESHOLD } from "@/lib/selectors";
+import { ROLE_LABEL } from "@/lib/types";
 
 type Detail = NonNullable<SchoolClubRes["detail"]>;
 type Waiting = Detail["waitingMentor"][number];
@@ -205,6 +207,7 @@ function DetailBody({ data, detail, fade }: { data: SchoolClubRes; detail: Detai
               {detail.waitingMentor.map((w) => <MentorReview key={w.id} item={w} clubId={club.id} focusAfter={waitingRef} />)}
             </AnimatePresence>
           </section>
+          <ProxyHandovers clubId={club.id} />
           {budget.support && (
             <section className="l-sec" aria-labelledby="support-section">
               <div className="l-sec-head">
@@ -235,6 +238,41 @@ function DetailBody({ data, detail, fade }: { data: SchoolClubRes; detail: Detai
 }
 
 /** Đầu phần khoản chờ duyệt: như các phần khác của cột (tiêu đề bên trái, chú thích bên cạnh), không dùng nhãn nhỏ trên tên khoản. */
+/**
+ * Bàn giao hộ chờ mentor (09/11/2026): người giữ vai không liên lạc được, ban điều hành xin bàn giao hộ kèm nhật ký liên hệ và ảnh bằng chứng.
+ * Mentor duyệt hoặc từ chối bằng chứng; vai chủ nhiệm thì chỉ mentor thực hiện. Ảnh chỉ mentor và người gửi xem được, xóa sau 30 ngày.
+ */
+function ProxyHandovers({ clubId }: { clubId: string }) {
+  const query = useRoleHandovers(clubId);
+  if (query.isError) {
+    return (
+      <section className="l-sec" aria-labelledby="proxy-handovers">
+        <div className="l-sec-head"><h2 id="proxy-handovers">Bàn giao hộ</h2></div>
+        <div className="l-sec-body"><p className="l-note" role="status">Không tải được các yêu cầu bàn giao hộ. <button type="button" className="l-linkbtn" onClick={() => void query.refetch()}>Thử lại</button></p></div>
+      </section>
+    );
+  }
+  const items = (query.data?.items ?? []).filter((h) => h.status === "requested" || h.status === "waiting" || h.status === "active");
+  if (items.length === 0) return null;
+  return (
+    <section className="l-sec" aria-labelledby="proxy-handovers">
+      <div className="l-sec-head"><h2 id="proxy-handovers">Bàn giao hộ ({items.length})</h2></div>
+      {items.map((h) => (
+        <article key={h.id} className="l-sec-body l-form" aria-labelledby={`proxy-${h.id}`}>
+          <h3 id={`proxy-${h.id}`}>Vai {h.role === "head" ? `trưởng ban ${bareDept(h.department ?? "")}` : ROLE_LABEL[h.role].toLowerCase()}: {h.from.name} → {h.to.name}</h3>
+          <p className="l-meta">
+            {h.status === "requested" ? "Chờ bạn duyệt bằng chứng" : h.status === "waiting" ? `Người giữ vai có đến ${dmy(h.waitUntil ?? h.requestedAt)} để phản hồi` : `Đang bàn giao · bước ${h.step} / 7`} · gửi bởi {h.requester?.name}
+          </p>
+          <p className="l-fine">Lý do: {h.reason}</p>
+          <ContactLog clubId={clubId} h={h} />
+          <ProxyReview clubId={clubId} h={h} />
+          {h.role === "president" && h.status === "active" && !h.can.execute && <p className="l-note">Chờ người nhận xác nhận ở bước 6.</p>}
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function WaitingHead() {
   return <div className="l-sec-head"><h2 id="awaiting-approval">Chờ bạn duyệt</h2><span className="l-note">Khoản trên {money(MENTOR_THRESHOLD)}</span></div>;
 }

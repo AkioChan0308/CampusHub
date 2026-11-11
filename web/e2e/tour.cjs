@@ -37,7 +37,7 @@ const ALL = (tourBlock.match(/\{ group:/g) || []).length;
     }
     return seen;
   }
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // Chủ nhiệm: tự mở, đi hết mọi bước
   let p = await as("a001");

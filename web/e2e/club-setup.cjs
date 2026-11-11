@@ -31,7 +31,7 @@ async function tall(page, file, size) {
     await p.evaluate(async (id) => { await fetch("/api/v1/auth/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ personId: id }) }); }, personId);
     return p;
   }
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // ---- Tạo CLB (sinh viên chưa vào CLB nào) ----
   let p = await as("p-bao-chau", PHONE);
@@ -82,7 +82,7 @@ async function tall(page, file, size) {
   await p.getByRole("button", { name: "Sửa vai trò và ban của Phan Thị Thử" }).click();
   const dlg = p.getByRole("dialog");
   await dlg.waitFor();
-  await dlg.locator("select").selectOption("treasurer");
+  await dlg.locator("select[id^=role-]").selectOption("treasurer");
   await tall(p, "5-edit-role.png", LAPTOP);
   await dlg.getByRole("button", { name: "Lưu" }).click();
   ok(await waitText(p, /Đã lưu: Phan Thị Thử · Thủ quỹ/), "Thành viên: chủ nhiệm đổi vai thành thủ quỹ");

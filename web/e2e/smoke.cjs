@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { BASE, launch, outDir, inactiveClubsAfterCheckin, collectionSizeAfterApproval } = require("./common.cjs");
+const { BASE, launch, midHandover, outDir, inactiveClubsAfterCheckin, collectionSizeAfterApproval } = require("./common.cjs");
 const OUT = outDir("smoke");
 fs.mkdirSync(OUT, { recursive: true });
 const errors = [];
@@ -61,6 +61,9 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     await page.goto(BASE + "/login");
     await page.locator("button", { hasText: "Đặt lại dữ liệu mẫu" }).click();
     await confirmDialog("Đặt lại");
+    await page.waitForTimeout(1000);
+    await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" }); // bỏ kịch bản bàn giao hộ có sẵn trong dữ liệu mẫu
+    await midHandover(); // dữ liệu mẫu bắt đầu bàn giao ở bước 1; script này bấm thử từ bước 4
     await choose("Chủ nhiệm CLB");
     await page.waitForURL("**/clubs/cau-long-san-nha");
     await page.getByRole("heading", { name: "Cần bạn xử lý" }).waitFor();
@@ -77,10 +80,10 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     await nav("Thành viên");
     await page.waitForURL("**/members");
     await page.getByRole("heading", { name: "Danh sách thành viên" }).waitFor();
-    await page.locator("table.l-table tbody tr").first().waitFor();
-    check("Thành viên: hiện 6 dòng", (await page.locator("table.l-table tbody tr").count()) === 6);
+    await page.locator("table.l-table >> nth=0 >> tbody tr").first().waitFor();
+    check("Thành viên: hiện 6 dòng", (await page.locator("table.l-table >> nth=0 >> tbody tr").count()) === 6);
     await page.fill("#member-search", "minh anh");
-    t = await page.locator("table.l-table tbody").innerText();
+    t = await page.locator("table.l-table >> nth=0 >> tbody").innerText();
     check("Thành viên: tìm không dấu ra Nguyễn Minh Anh", t.includes("Nguyễn Minh Anh"), t.split("\n")[0]);
     await page.fill("#member-search", "");
     await page.locator(".l-app", { hasText: "Võ Thị Hồng Nhung" }).getByRole("button", { name: "Duyệt", exact: true }).click();
@@ -121,7 +124,7 @@ const skip = (name, why) => skipped.push(`BỎ QUA ${name} :: ${why}`);
     t = await body();
     check(`Đợt thu: ${collectionSizeAfterApproval()} người sau khi duyệt đơn (43 trước hạn 10/10, 42 sau hạn)`, t.includes(`Tất cả (${collectionSizeAfterApproval()})`));
     await page.getByRole("button", { name: /^Chưa đóng \(/ }).click();
-    await page.locator("table.l-table tbody tr").first().getByRole("button", { name: "Ghi tiền mặt" }).click();
+    await page.locator("table.l-table >> nth=0 >> tbody tr").first().getByRole("button", { name: "Ghi tiền mặt" }).click();
     await confirmDialog("Ghi vào sổ");
     check("Đợt thu: ghi tiền mặt lên 30 người", await waitText(/Đã đóng\s*30 người/));
     await shot("04-collection.png");

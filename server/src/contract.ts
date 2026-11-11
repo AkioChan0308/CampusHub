@@ -243,13 +243,83 @@ export interface MeRes {
 /** Một thông báo trong mục Thông báo (chuông) của chính người gọi. */
 export interface NotificationDto {
   id: string;
-  kind: "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected";
+  kind: "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected"
+    | "role-handover-request" | "role-handover-decision" | "role-handover-accept" | "role-handover-done" | "role-handover-proxy";
   title: string;
   body: string;
   at: IsoTime;
   /** Đường dẫn trong web để mở khi bấm. */
   href?: string;
   read: boolean;
+}
+
+/**
+ * Một đơn bàn giao MỘT vai (09/11/2026), tách khỏi bàn giao cả ban. Xem docs/mo-ta-ban-giao-theo-vai.md, mục 2.11.
+ * status: requested (chờ chủ nhiệm duyệt, step 1), active (đang làm các bước 2 đến 6), done (bước 7, biên bản), rejected, cancelled.
+ */
+export interface RoleHandoverDto {
+  id: string;
+  role: Exclude<Role, "member">;
+  /** Chỉ có khi role là "head". */
+  department?: string;
+  from: PersonRef;
+  to: PersonRef;
+  reason: string;
+  /** Bàn giao hộ có thêm: requested = chờ duyệt bằng chứng, waiting = chờ hết 3 ngày, kept = người giữ vai bấm "Tôi vẫn đảm nhận". */
+  status: "requested" | "waiting" | "kept" | "rejected" | "cancelled" | "active" | "done";
+  /** self: người giữ vai tự bàn giao; proxy: bàn giao hộ (người giữ vai không liên lạc được). Với proxy, `from` là người giữ vai. */
+  kind: "self" | "proxy";
+  step: number;
+  requestedAt: IsoTime;
+  decidedAt?: IsoTime;
+  decidedBy?: PersonRef;
+  rejectReason?: string;
+  lockedBalance?: number;
+  lockedAt?: IsoTime;
+  /** Tài khoản nhận quỹ mới (thủ quỹ); chỉ 4 số cuối. */
+  newReceiver?: { bank: string; accountLast4: string };
+  transferRef?: string;
+  /** Phần người giao đang nắm (bước 3 và 5). Chỉ người trong cuộc và chủ nhiệm xem được. */
+  holding: {
+    documents: { id: string; name: string }[];
+    tasks: { id: string; title: string; due: IsoTime }[];
+    accounts: { id: string; service: string; label: string; required: boolean; transferred: boolean }[];
+  };
+  /** Lời dặn của người giao cho người nhận (viết ở bước 3). Chỉ người giao, người nhận và người gửi yêu cầu (bàn giao hộ) thấy; ban điều hành khác, kể cả chủ nhiệm, không thấy. */
+  note?: string;
+  /** Những gì người giao đang giữ lúc bước 3, giữ lại cho người nhận và biên bản (có từ khi qua bước 3). Cùng người thấy như `note`. */
+  snapshot?: {
+    documents: { id: string; name: string }[];
+    accounts: { id: string; service: string; label: string; required: boolean }[];
+    tasks: { id: string; title: string; due: IsoTime }[];
+  };
+  acceptedAt?: IsoTime;
+  history: { at: IsoTime; by: PersonRef; text: string }[];
+  /** Chỉ bàn giao hộ: người gửi yêu cầu (làm các bước 2 đến 5 thay; vai chủ nhiệm do mentor làm). */
+  requester?: PersonRef;
+  /** Chỉ bàn giao hộ: người duyệt bằng chứng (mentor hoặc phó chủ nhiệm). */
+  approver?: PersonRef;
+  /** Hết hạn chờ 3 ngày của người giữ vai (có từ lúc bằng chứng được duyệt). */
+  waitUntil?: IsoTime;
+  keptAt?: IsoTime;
+  /**
+   * Chỉ bàn giao hộ: nhật ký liên hệ. Ảnh (`evidence`) chỉ người gửi yêu cầu và cán bộ trường thấy; người khác (kể cả người giữ vai) chỉ thấy `evidenceCount`.
+   * Ảnh quá 30 ngày bị xóa: `evidence` ngắn đi, `evidenceCount` giữ số ảnh đã đính kèm.
+   */
+  contacts?: { date: string; channel: "phone" | "zalo" | "email" | "friend"; result: string; evidenceCount: number; evidence?: { id: string; name: string }[] }[];
+  /** Người gọi làm được gì với đơn này. Máy chủ vẫn kiểm tra lại khi gọi. keep: người giữ vai bấm "Tôi vẫn đảm nhận"; execute: mentor thực hiện bàn giao hộ vai chủ nhiệm. */
+  can: { decide: boolean; cancel: boolean; step: boolean; accept: boolean; keep: boolean; execute: boolean };
+}
+
+export interface RoleHandoversRes {
+  /** Mới nhất trước. Ban điều hành thấy mọi đơn của CLB; người khác chỉ thấy đơn có tên mình. */
+  items: RoleHandoverDto[];
+  /** Những vai người gọi đang giữ và bàn giao được (trưởng ban: mỗi ban một dòng); trống là không bàn giao được vai nào. */
+  mine: { role: Exclude<Role, "member">; department?: string }[];
+  /** Vai người gọi gửi yêu cầu bàn giao hộ được: mọi vai khác vai của chính mình (chủ nhiệm, phó chủ nhiệm, thủ quỹ, từng trưởng ban), kèm người đang giữ vai. Chỉ ban điều hành có. */
+  proxyable: { role: Exclude<Role, "member">; department?: string; holder: PersonRef }[];
+  /** Thành viên đã nhận lời mời mà người gọi có thể chọn làm người nhận (đã bỏ chính mình); trống khi `mine` và `proxyable` đều trống. */
+  candidates: (PersonRef & { role: Role })[];
 }
 
 export interface NotificationsRes {
@@ -341,9 +411,12 @@ export interface AcceptInviteRes {
 export interface BoardRes {
   club: ClubRef;
   me: PersonRef & { role: Role };
-  counts: { pendingApplications: number; openManualTxns: number; pendingExpenses: number };
+  /** roleHandovers: số đơn bàn giao một vai đang chờ chính người này làm (duyệt, bấm Tôi vẫn đảm nhận, làm bước, xác nhận). */
+  counts: { pendingApplications: number; openManualTxns: number; pendingExpenses: number; roleHandovers: number };
   nextSessionId?: string;
   collectionId?: string;
+  /** Mở được trang Bàn giao cả ban (chủ nhiệm, hoặc chủ nhiệm mới ở bước 6). Vai khác chỉ có Bàn giao từng vai (vai của chính mình). */
+  canViewHandover: boolean;
 }
 
 export interface DashboardRes {
@@ -367,9 +440,19 @@ export interface DashboardRes {
   participation: { sessions: number; rate?: number; absentRuns: number };
 }
 
+/** Ban của CLB (09/11/2026): mỗi ban đúng một trưởng ban; một người làm trưởng nhiều ban. members: số thành viên thuộc ban. */
+export interface DepartmentDto {
+  id: string;
+  name: string;
+  head?: PersonRef;
+  members: number;
+}
+
 export interface MembersRes {
   term: string;
   heldSessions: number;
+  /** Danh sách ban để chọn ban cho thành viên và đặt trưởng ban. "Chưa xếp ban" không nằm trong danh sách. */
+  departments: DepartmentDto[];
   collection?: { id: string; amount: Money };
   members: {
     personId: string;
@@ -419,6 +502,11 @@ export interface AddMembersRes {
 
 export interface UpdateMemberRes {
   member: MembersRes["members"][number];
+}
+
+/** Danh sách ban sau khi thay đổi. Đổi trưởng ban có thể đổi vai của người liên quan: gọi lại danh sách thành viên. */
+export interface DepartmentsRes {
+  departments: DepartmentDto[];
 }
 
 export interface EventDetailRes {
@@ -531,7 +619,9 @@ export interface HandoverRes {
   transferRef?: string;
   candidates: PersonRef[]; // thành viên đã nhận lời mời: chọn vào ban mới, làm chủ tài khoản mới
   memberCount: number;
-  newBoard?: { president: PersonRef; vice?: PersonRef; treasurer?: PersonRef; heads: PersonRef[] };
+  /** Ban của CLB, để chọn trưởng từng ban ở bước 1. */
+  departments: { name: string; currentHead?: PersonRef }[];
+  newBoard?: { president: PersonRef; vice?: PersonRef; treasurer?: PersonRef; heads: { department: string; person: PersonRef }[] };
   /** Việc còn dở lúc bàn giao, hiện ở bước 2 và 3. */
   open: { unpaid: number; reported: number; pendingExpenses: number; pendingExpenseTotal: Money; openManual: number; openTasks: number };
   kit: { documents: number; processes: number; accounts: number; missing: number; personal: number };
@@ -848,7 +938,8 @@ export interface SetBoardBody {
   presidentId: string; // thành viên đã nhận lời mời
   viceId?: string;
   treasurerId?: string;
-  headIds: string[];
+  /** Trưởng của từng ban: mỗi ban tối đa một người, một người được làm trưởng nhiều ban. Ban không có trong danh sách thì để trống trưởng. */
+  heads: { department: string; personId: string }[];
   /** Chủ nhiệm hiện tại chọn lại chính mình thì phải gửi true. */
   confirmSelf?: true;
 }
@@ -924,7 +1015,70 @@ export interface CreateClubBody {
 
 export interface AddMembersBody {
   members: { name: string; email: string; department?: string; year?: number }[]; // 1–300 người; email không trùng
+  /** Ban phải có trong danh sách ban của CLB. Ban chưa có thì máy chủ báo lỗi kèm danh sách; gửi true để chủ nhiệm đồng ý tạo các ban đó. */
+  createMissingDepartments?: true;
 }
+
+export interface CreateDepartmentBody {
+  name: string; // tối đa 60 ký tự, không trùng ban khác của CLB (không phân biệt hoa thường), không phải "Chưa xếp ban"
+}
+
+export interface UpdateDepartmentBody {
+  name?: string;
+  /** Người làm trưởng ban (thành viên đã nhận lời mời, không phải chủ nhiệm, phó chủ nhiệm, thủ quỹ); null là bỏ trống trưởng. */
+  headId?: string | null;
+}
+
+export interface CreateRoleHandoverBody {
+  role: Exclude<Role, "member">;
+  /** Bắt buộc khi role là "head": tên ban đã có trong CLB. */
+  department?: string;
+  toId: string;
+  reason: string; // tối đa 500 ký tự
+  /** Có thì là bàn giao hộ: `role` là vai của người đang không liên lạc được; người gọi là người gửi yêu cầu. */
+  proxy?: { contacts: ProxyContactBody[] };
+}
+
+/** Ảnh gửi dạng base64 (JPG hoặc PNG, tối đa 5 MB sau khi giải mã). */
+export interface UploadEvidenceBody {
+  name: string;
+  mime: "image/jpeg" | "image/png";
+  dataBase64: string;
+}
+
+export interface EvidenceMetaRes {
+  id: string;
+  name: string;
+  size: number;
+}
+
+export interface EvidenceRes {
+  mime: "image/jpeg" | "image/png";
+  dataBase64: string;
+}
+
+/** Bàn giao hộ: nhật ký liên hệ, tối thiểu 3 lần, tổng cộng 1 đến 10 ảnh (mã ảnh từ API tải ảnh lên, chỉ ảnh của chính người gửi, chưa gắn yêu cầu nào). */
+export interface ProxyContactBody {
+  date: string; // YYYY-MM-DD, không ở tương lai
+  channel: "phone" | "zalo" | "email" | "friend";
+  result: string; // tối đa 200 ký tự
+  evidenceIds: string[];
+}
+
+export interface DecideRoleHandoverBody {
+  approve: boolean;
+  /** Bắt buộc khi từ chối. */
+  reason?: string;
+}
+
+/** Thao tác của từng bước. Chỉ làm được khi đơn đang đúng bước của thao tác đó. */
+export type AdvanceRoleHandoverBody =
+  | { action: "lockBalance" } // bước 2, thủ quỹ
+  | { action: "reviewKit"; note?: string } // bước 3; note: lời dặn cho người nhận, tối đa 1000 ký tự
+  | { action: "setReceiver"; bank: string; account: string; transferRef?: string } // bước 4, thủ quỹ; chủ tài khoản mới là người nhận
+  | { action: "transferAccount"; accountId: string } // bước 5, từng tài khoản trong kho
+  | { action: "finishTransfer" } // hết bước 5
+  | { action: "accept" }; // bước 6, chỉ người nhận
 
 export interface UpdateMemberBody {
   role: Role; // không đổi được thành chủ nhiệm hay đổi vai của chủ nhiệm (làm khi bàn giao)
@@ -1009,6 +1163,19 @@ export const ENDPOINTS = {
   listMembers: { method: "GET", path: "/clubs/:clubId/members", auth: "user", who: "Ban điều hành", screen: "BDH-ThanhVien" },
   addMembers: { method: "POST", path: "/clubs/:clubId/members", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "Thêm thành viên (chưa có bản vẽ)" },
   updateMember: { method: "PUT", path: "/clubs/:clubId/members/:personId", auth: "user", who: "Chủ nhiệm", screen: "BDH-ThanhVien" },
+  createDepartment: { method: "POST", path: "/clubs/:clubId/departments", auth: "user", status: 201, who: "Chủ nhiệm", screen: "Các ban (chưa có bản vẽ)" },
+  updateDepartment: { method: "PUT", path: "/clubs/:clubId/departments/:departmentId", auth: "user", who: "Chủ nhiệm", screen: "Các ban (chưa có bản vẽ)" },
+  deleteDepartment: { method: "DELETE", path: "/clubs/:clubId/departments/:departmentId", auth: "user", who: "Chủ nhiệm", screen: "Các ban (chưa có bản vẽ)" },
+  listRoleHandovers: { method: "GET", path: "/clubs/:clubId/role-handovers", auth: "user", who: "Thành viên đã nhận lời mời", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  createRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers", auth: "user", status: 201, who: "Người đang giữ vai (chủ nhiệm, phó chủ nhiệm, thủ quỹ, trưởng ban)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  decideRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers/:handoverId/decision", auth: "user", who: "Chủ nhiệm", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  cancelRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers/:handoverId/cancel", auth: "user", who: "Người giao hoặc chủ nhiệm", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  advanceRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers/:handoverId/step", auth: "user", who: "Người giao (bước 2 đến 5), người nhận (bước 6)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  uploadEvidence: { method: "POST", path: "/clubs/:clubId/evidence", auth: "user", status: 201, who: "Ban điều hành (người gửi yêu cầu bàn giao hộ)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  getEvidence: { method: "GET", path: "/clubs/:clubId/evidence/:evidenceId", auth: "user", who: "Người đã tải ảnh lên, người duyệt (cán bộ trường, hoặc phó chủ nhiệm khi CLB chưa có mentor)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  deleteEvidence: { method: "DELETE", path: "/clubs/:clubId/evidence/:evidenceId", auth: "user", who: "Người đã tải ảnh lên (chỉ ảnh chưa gắn vào yêu cầu nào)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  keepRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers/:handoverId/keep", auth: "user", who: "Người đang giữ vai", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
+  executeRoleHandover: { method: "POST", path: "/clubs/:clubId/role-handovers/:handoverId/execute", auth: "user", who: "Cán bộ trường (mentor)", screen: "Bàn giao từng vai (chưa có bản vẽ)" },
   listApplications: { method: "GET", path: "/clubs/:clubId/applications", auth: "user", who: "Ban điều hành", screen: "BDH-ThanhVien" },
   approveApplication: { method: "POST", path: "/clubs/:clubId/applications/:applicationId/approve", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "BDH-ThanhVien" },
   rejectApplication: { method: "POST", path: "/clubs/:clubId/applications/:applicationId/reject", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, trưởng ban", screen: "BDH-ThanhVien" },
@@ -1038,7 +1205,7 @@ export const ENDPOINTS = {
   getBudget: { method: "GET", path: "/clubs/:clubId/budget", auth: "user", who: "Ban điều hành", screen: "BDH-DuTru" },
   addBudgetItem: { method: "POST", path: "/clubs/:clubId/budget/items", auth: "user", status: 201, who: "Chủ nhiệm, phó chủ nhiệm, thủ quỹ", screen: "BDH-DuTru" },
   submitBudget: { method: "POST", path: "/clubs/:clubId/budget/submit", auth: "user", who: "Chủ nhiệm, phó chủ nhiệm, thủ quỹ", screen: "BDH-DuTru" },
-  getHandover: { method: "GET", path: "/clubs/:clubId/handover", auth: "user", who: "Ban điều hành", screen: "BDH-BanGiao" },
+  getHandover: { method: "GET", path: "/clubs/:clubId/handover", auth: "user", who: "Chủ nhiệm, chủ nhiệm mới", screen: "BDH-BanGiao" },
   setHandoverReceiver: { method: "PUT", path: "/clubs/:clubId/handover/receiver", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
   setHandoverStep: { method: "PUT", path: "/clubs/:clubId/handover/step", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
   setHandoverBoard: { method: "PUT", path: "/clubs/:clubId/handover/board", auth: "user", who: "Chủ nhiệm", screen: "BDH-BanGiao" },
@@ -1125,6 +1292,19 @@ export interface Api {
   listMembers: { params: Club; body: NoBody; res: MembersRes };
   addMembers: { params: Club; body: AddMembersBody; res: AddMembersRes };
   updateMember: { params: Club & { personId: string }; body: UpdateMemberBody; res: UpdateMemberRes };
+  createDepartment: { params: Club; body: CreateDepartmentBody; res: DepartmentsRes };
+  updateDepartment: { params: Club & { departmentId: string }; body: UpdateDepartmentBody; res: DepartmentsRes };
+  deleteDepartment: { params: Club & { departmentId: string }; body: NoBody; res: DepartmentsRes };
+  uploadEvidence: { params: Club; body: UploadEvidenceBody; res: EvidenceMetaRes };
+  getEvidence: { params: Club & { evidenceId: string }; body: NoBody; res: EvidenceRes };
+  deleteEvidence: { params: Club & { evidenceId: string }; body: NoBody; res: OkRes };
+  keepRoleHandover: { params: Club & { handoverId: string }; body: NoBody; res: RoleHandoversRes };
+  executeRoleHandover: { params: Club & { handoverId: string }; body: NoBody; res: RoleHandoversRes };
+  listRoleHandovers: { params: Club; body: NoBody; res: RoleHandoversRes };
+  createRoleHandover: { params: Club; body: CreateRoleHandoverBody; res: RoleHandoversRes };
+  decideRoleHandover: { params: Club & { handoverId: string }; body: DecideRoleHandoverBody; res: RoleHandoversRes };
+  cancelRoleHandover: { params: Club & { handoverId: string }; body: NoBody; res: RoleHandoversRes };
+  advanceRoleHandover: { params: Club & { handoverId: string }; body: AdvanceRoleHandoverBody; res: RoleHandoversRes };
   /** Lọc bằng ?status=pending|approved|rejected; bỏ trống là pending. */
   listApplications: { params: Club; body: NoBody; res: ApplicationsRes };
   approveApplication: { params: Club & { applicationId: string }; body: NoBody; res: ApproveApplicationRes };

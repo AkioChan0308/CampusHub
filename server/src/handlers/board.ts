@@ -1,8 +1,8 @@
 // Ban điều hành trên laptop: khung trang, trang chủ, thành viên và đơn xin vào, điểm danh, sổ quỹ (xem), bàn giao.
 
-import { requireBoard, requireBoardOrIncoming, requireRight } from "../access.ts";
+import { canViewWholeHandover, requireBoard, requireBoardOrIncoming, requireBoardOrRoleReceiver, requireRight } from "../access.ts";
 import {
-  acceptHandover, approveApplication, checkIn, closeEvent, finishHandoverTransfer, lockHandoverBalance, membershipOf, nowIso, openEvent, rejectApplication,
+  acceptHandover, approveApplication, checkIn, closeEvent, finishHandoverTransfer, findDepartment, lockHandoverBalance, membershipOf, nowIso, openEvent, rejectApplication,
   reviewHandoverKit, saveHandoverAccount, saveHandoverBoard, setHandoverStep, transferHandoverAccount,
   type AppState, type ClubEvent, type Handover,
 } from "../domain.ts";
@@ -47,7 +47,7 @@ function atStep(h: Handover, step: number, message: string): Handover {
 
 export const boardHandlers: Pick<Handlers, Keys> = {
   getBoard: (ctx) => {
-    const { club, ms } = requireBoardOrIncoming(ctx.state, ctx.params.clubId, ctx.me);
+    const { club, ms } = requireBoardOrRoleReceiver(ctx.state, ctx.params.clubId, ctx.me);
     return boardRes(ctx.state, club, ctx.me, ms);
   },
 
@@ -145,6 +145,7 @@ export const boardHandlers: Pick<Handlers, Keys> = {
 
   getHandover: (ctx) => {
     const { club } = requireBoardOrIncoming(ctx.state, ctx.params.clubId, ctx.me);
+    if (!canViewWholeHandover(ctx.state, club.id, ctx.me)) throw forbidden("Chỉ chủ nhiệm xem bàn giao cả ban. Bạn bàn giao vai của mình ở mục Bàn giao từng vai.");
     findHandover(ctx.state, club.id);
     return handoverRes(ctx.state, club, ctx.me.id)!;
   },
@@ -155,15 +156,23 @@ export const boardHandlers: Pick<Handlers, Keys> = {
     requireRight(ms, "handover");
     atStep(findHandover(ctx.state, club.id), 1, "Bàn giao đang không ở bước chọn ban mới.");
     const body = parseBody(setBoardBody, ctx.body);
-    const ids = [body.presidentId, ...(body.viceId ? [body.viceId] : []), ...(body.treasurerId ? [body.treasurerId] : []), ...body.headIds];
-    if (new Set(ids).size !== ids.length) throw invalid("Mỗi người chỉ giữ một vai trong ban mới.");
-    for (const id of ids) {
+    // Chủ nhiệm, phó chủ nhiệm, thủ quỹ: mỗi người một chức danh. Trưởng ban: mỗi ban đúng một người, một người được làm trưởng nhiều ban.
+    const top = [body.presidentId, ...(body.viceId ? [body.viceId] : []), ...(body.treasurerId ? [body.treasurerId] : [])];
+    if (new Set(top).size !== top.length) throw invalid("Mỗi người chỉ giữ một chức danh (chủ nhiệm, phó chủ nhiệm, thủ quỹ) trong ban mới.");
+    const heads = body.heads.map((h) => {
+      const d = findDepartment(ctx.state, club.id, h.department);
+      if (!d) throw invalid(`Ban "${h.department}" chưa có trong CLB.`);
+      return { department: d.name, personId: h.personId };
+    });
+    if (new Set(heads.map((h) => h.department)).size !== heads.length) throw invalid("Mỗi ban chỉ có một trưởng ban.");
+    if (heads.some((h) => top.includes(h.personId))) throw invalid("Chủ nhiệm, phó chủ nhiệm, thủ quỹ không kiêm trưởng ban.");
+    for (const id of new Set([...top, ...heads.map((h) => h.personId)])) {
       const m = membershipOf(ctx.state, club.id, id);
       if (!m || m.invite !== "accepted") throw invalid("Ban mới chỉ gồm thành viên đã nhận lời mời.");
     }
     const sitting = ctx.state.memberships.find((m) => m.clubId === club.id && m.role === "president");
     if (sitting?.personId === body.presidentId && !body.confirmSelf) throw invalid("Chủ nhiệm hiện tại đang chọn lại chính mình. Cần xác nhận.");
-    const s = ctx.update(saveHandoverBoard(club.id, { president: body.presidentId, vice: body.viceId, treasurer: body.treasurerId, heads: body.headIds }, ctx.me.id, ctx.nowIso()));
+    const s = ctx.update(saveHandoverBoard(club.id, { president: body.presidentId, vice: body.viceId, treasurer: body.treasurerId, heads }, ctx.me.id, ctx.nowIso()));
     return handoverRes(s, club, ctx.me.id)!;
   },
 

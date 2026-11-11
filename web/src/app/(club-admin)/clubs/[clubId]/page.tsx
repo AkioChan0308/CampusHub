@@ -154,7 +154,8 @@ function buildTodo(d: DashboardRes, base: string, role: Role): Todo[] {
 }
 
 function Home() {
-  const { club, me, nextSessionId } = useLichBoard();
+  const board = useLichBoard();
+  const { club, me, nextSessionId } = board;
   const query = useDashboard(club.id);
   const base = `/clubs/${club.id}`;
   const canCheckin = can(me.role, "checkin");
@@ -224,7 +225,7 @@ function Home() {
                   </div>
                   <p>
                     {d.handover.accepted ? `Bàn giao sang ban ${d.handover.toTerm} đã xong.` : <>Bàn giao sang ban {d.handover.toTerm}: bước {d.handover.step} / {HANDOVER_STEPS.length}, {stepName?.toLowerCase()}.</>}{" "}
-                    <Link className="l-linkbtn" href={`${base}/handover`}>{d.handover.accepted ? "Xem biên bản" : "Tiếp tục bàn giao"}</Link>
+                    <Link className="l-linkbtn" href={board.canViewHandover ? `${base}/handover` : `${base}/handover/roles`}>{!board.canViewHandover ? "Bàn giao vai của bạn" : d.handover.accepted ? "Xem biên bản" : "Tiếp tục bàn giao"}</Link>
                   </p>
                 </>
               ) : <p className="l-note">CLB chưa bắt đầu bàn giao.</p>}

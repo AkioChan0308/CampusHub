@@ -2,12 +2,12 @@
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { CLUB, startServer, type TestServer } from "./helpers.ts";
+import { CLUB, startServer, type TestServer, useMidHandover } from "./helpers.ts";
 
 let srv: TestServer;
 before(async () => { srv = await startServer(); });
 after(async () => { await srv.close(); });
-beforeEach(() => { srv.store.reset(); });
+beforeEach(() => { srv.store.reset(); useMidHandover(srv); });
 
 test("các CLB: 6 CLB, 5 có hoạt động trong 30 ngày, 4 đã nộp dự trù, 1 khoản chờ mentor", async () => {
   const r = (await srv.call("GET", "/school/clubs", { as: "p-thu-trang" })).body;

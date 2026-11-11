@@ -3,7 +3,7 @@
 // Chạy trong web/: node e2e/assistant-dashboard.cjs (web cổng 3000, server cổng 4000 chế độ demo, dữ liệu trong bộ nhớ).
 const fs = require("fs");
 const path = require("path");
-const { BASE, launch, outDir } = require("./common.cjs");
+const { BASE, launch, outDir, resetDemo } = require("./common.cjs");
 const OUT = outDir("assistant-dashboard");
 fs.mkdirSync(OUT, { recursive: true });
 const results = [];
@@ -39,7 +39,7 @@ const API = `${BASE}/api/v1/clubs/cau-long-san-nha`;
     ok(await go.isEnabled(), `${name}: gõ BAN GIAO (không phân biệt hoa thường và dấu) thì nút xác nhận mở`);
     await go.click();
   }
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await resetDemo(); // dữ liệu mẫu + đợt bàn giao cả ban ở bước 4
 
   // ---- Trang chủ ban điều hành ----
   let p = await as("a001", LAPTOP);

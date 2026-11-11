@@ -3,11 +3,12 @@
 
 import { classify, type MemberRef } from "./reconcile.ts";
 import { toAsciiUpper } from "./text.ts";
+import { NO_DEPARTMENT } from "./types.ts";
 import type {
-  AppState, Attendance, Club, ClubEvent, ClubPost, ClubTask, Consent, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
+  AppState, Attendance, Club, ClubEvent, ClubPost, ClubTask, Consent, Department, KitAccount, KitDocument, KitProcess, LedgerEntry, Membership, Payment, Person, Role, StatementTxn,
 } from "./types.ts";
 
-export const STATE_VERSION = 7;
+export const STATE_VERSION = 11;
 export const DEMO_CLUB_ID = "cau-long-san-nha";
 export const DEMO_COLLECTION_ID = "quy-fall-2026";
 export const DEMO_TERM = "Fall 2026";
@@ -313,12 +314,24 @@ export function createSeed(): AppState {
     { id: "trang-mo", name: "CLB Đọc sách Trang Mở", field: "Học thuật, nghiên cứu", schedule: "Sinh hoạt chiều Chủ nhật", location: "[phòng sinh hoạt]", acceptingApplications: true, term: DEMO_TERM, staticStats: { members: 12, sessions: 0, lastActivity: "2026-08-22T15:00:00+07:00", budgetSubmitted: false } },
   ];
 
+  // Ban của CLB mẫu lấy từ ban của các thành viên; trưởng ban là người có vai "head" của ban đó (mỗi ban một người).
+  const departments: Department[] = [];
+  for (const m of memberships) {
+    if (m.department === NO_DEPARTMENT || departments.some((d) => d.name === m.department)) continue;
+    departments.push({ id: `ban-${DEMO_CLUB_ID}-${departments.length + 1}`, clubId: DEMO_CLUB_ID, name: m.department });
+  }
+  for (const m of memberships) {
+    const d = m.role === "head" ? departments.find((x) => x.name === m.department) : undefined;
+    if (d) d.headId = m.personId;
+  }
+
   return {
     v: STATE_VERSION,
     persona: null,
     persons,
     clubs,
     memberships,
+    departments,
     applications: [
       { id: "don-1", clubId: DEMO_CLUB_ID, personId: "p-hong-nhung", name: "Võ Thị Hồng Nhung", email: emailOf("Võ Thị Hồng Nhung"), year: 2, reason: "Mình chơi cầu lông từ cấp 3, muốn có nhóm đánh đều mỗi tuần.", submittedAt: "2026-09-28T20:15:00+07:00", status: "pending" },
       { id: "don-2", clubId: DEMO_CLUB_ID, personId: "p-quoc-viet", name: "Đặng Quốc Việt", email: emailOf("Đặng Quốc Việt"), year: 1, reason: "", submittedAt: "2026-09-30T10:05:00+07:00", status: "pending" },
@@ -349,17 +362,34 @@ export function createSeed(): AppState {
     budgets: [
       { clubId: DEMO_CLUB_ID, term: DEMO_TERM, submittedAt: "2026-09-30T20:00:00+07:00", support: { amount: 1_000_000, purpose: "Giải nội bộ Fall 2026 (18/10/2026), mở cho cả sinh viên ngoài CLB", status: "pending" } },
     ],
+    // Đợt bàn giao cả ban mới bắt đầu: ở bước 1, chưa chọn ban mới (Hiệu chọn 09/11/2026; trước đó seed sẵn ở bước 4).
     handovers: [
+      { clubId: DEMO_CLUB_ID, fromTerm: DEMO_TERM, toTerm: "Spring 2027", step: 1, lockedBalance: 0, transferred: [], history: [] },
+    ],
+    // Kịch bản bàn giao hộ (09/11/2026, Hiệu yêu cầu): chủ nhiệm xin bàn giao hộ vai trưởng ban Truyền thông vì Nguyễn Hải Đăng không liên lạc được;
+    // mentor đã duyệt bằng chứng ngày 04/11, hết 3 ngày chờ ngày 07/11 mà Đăng không phản hồi, nên đơn đang ở bước 3 (người gửi làm thay). Người nhận: Võ Ngọc Lan.
+    roleHandovers: [
       {
-        clubId: DEMO_CLUB_ID, fromTerm: DEMO_TERM, toTerm: "Spring 2027", step: 4, lockedBalance: 3_120_000, lockedAt: "2026-10-10T20:00:00+07:00",
-        newBoard: { president: "a017", vice: "a003", treasurer: "a006", heads: ["a005", "a008"] },
-        newReceiver: { personId: "a006", bank: "", account: "" }, transferred: [],
+        id: "bh-mau-truyen-thong", clubId: DEMO_CLUB_ID, role: "head", department: "Truyền thông", fromId: "a007", toId: "a006",
+        reason: "Hải Đăng không liên lạc được từ cuối tháng 10; sắp tới kỳ tuyển thành viên, ban Truyền thông cần có người đảm nhận.",
+        status: "active", step: 3, requestedAt: "2026-11-02T20:00:00+07:00", decidedAt: "2026-11-04T09:00:00+07:00", decidedBy: "p-thu-trang", transferred: [],
         history: [
-          { at: "2026-10-10T19:40:00+07:00", by: "a001", text: "chọn ban mới: chủ nhiệm Nguyễn Minh Anh" },
-          { at: "2026-10-10T20:00:00+07:00", by: "a001", text: "chốt số dư 3.120.000 ₫" },
-          { at: "2026-10-10T20:05:00+07:00", by: "a001", text: "kiểm tra kho bàn giao: 5 biểu mẫu, 3 quy trình, 5 tài khoản, 1 mục thiếu" },
+          { at: "2026-11-02T20:00:00+07:00", by: "a001", text: "gửi đơn bàn giao hộ vai trưởng ban Truyền thông từ Nguyễn Hải Đăng sang Võ Ngọc Lan (3 lần liên hệ, 1 ảnh): Hải Đăng không liên lạc được từ cuối tháng 10; sắp tới kỳ tuyển thành viên, ban Truyền thông cần có người đảm nhận." },
+          { at: "2026-11-04T09:00:00+07:00", by: "p-thu-trang", text: "Đặng Thu Trang duyệt bằng chứng; báo Nguyễn Hải Đăng và bắt đầu chờ 3 ngày (đến 07/11/2026)" },
+          { at: "2026-11-07T09:01:00+07:00", by: "a001", text: "hết 3 ngày chờ, Nguyễn Hải Đăng không phản hồi: bắt đầu bàn giao hộ" },
         ],
+        proxy: {
+          requesterId: "a001", approverId: "p-thu-trang", waitUntil: "2026-11-07T09:00:00+07:00",
+          contacts: [
+            { date: "2026-10-28", channel: "phone", result: "Không nghe máy", evidenceIds: [] },
+            { date: "2026-10-30", channel: "zalo", result: "Đã xem, không trả lời", evidenceIds: ["anh-mau-1"] },
+            { date: "2026-11-01", channel: "email", result: "Không phản hồi", evidenceIds: [] },
+          ],
+        },
       },
+    ],
+    evidence: [
+      { id: "anh-mau-1", clubId: DEMO_CLUB_ID, uploaderId: "a001", handoverId: "bh-mau-truyen-thong", name: "tin-nhan-zalo.png", mime: "image/png", size: 70, uploadedAt: "2026-11-02T19:50:00+07:00", data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" },
     ],
     kitDocuments: KIT_DOCUMENTS,
     kitProcesses: KIT_PROCESSES,
@@ -367,7 +397,12 @@ export function createSeed(): AppState {
     tasks: TASKS,
     posts: POSTS,
     aiUsage: [],
-    notifications: [],
+    notifications: [
+      { id: "tb-mau-1", personId: "a007", kind: "role-handover-proxy", title: "Có yêu cầu bàn giao vai của bạn", at: "2026-11-04T09:00:00+07:00", href: `/clubs/${DEMO_CLUB_ID}/handover/roles`,
+        body: "Ban điều hành xin bàn giao hộ vai trưởng ban Truyền thông của CLB Cầu lông Sân Nhà sang Võ Ngọc Lan vì chưa liên lạc được với bạn. Nếu bạn vẫn đảm nhận, bấm \"Tôi vẫn đảm nhận\" trước 07/11/2026; im lặng thì việc bàn giao sẽ được làm tiếp." },
+      { id: "tb-mau-2", personId: "a001", kind: "role-handover-decision", title: "Hết thời gian chờ, làm tiếp bàn giao hộ", at: "2026-11-07T09:01:00+07:00", href: `/clubs/${DEMO_CLUB_ID}/handover/roles`,
+        body: "Nguyễn Hải Đăng không phản hồi trong 3 ngày. Làm tiếp bàn giao hộ vai trưởng ban Truyền thông." },
+    ],
     consents,
   };
 }

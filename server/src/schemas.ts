@@ -127,12 +127,66 @@ export const addMembersBody = z.object({
     year: z.number().int().min(1, { error: "Năm học từ 1 đến 5." }).max(5, { error: "Năm học từ 1 đến 5." }).optional(),
   })).min(1, { error: "Danh sách trống." }).max(300, { error: "Mỗi lần thêm tối đa 300 người." })
     .refine((list) => new Set(list.map((m) => m.email.toLowerCase())).size === list.length, { error: "Có email bị trùng trong danh sách." }),
+  createMissingDepartments: z.literal(true).optional(),
 }) satisfies z.ZodType<C.AddMembersBody>;
 
 export const updateMemberBody = z.object({
   role: z.enum(ROLES, { error: "Vai trò không hợp lệ." }),
   department: text(60, "Cần ghi ban."),
 }) satisfies z.ZodType<C.UpdateMemberBody>;
+
+// ---------- Ban và trưởng ban (09/11/2026) ----------
+
+export const createDepartmentBody = z.object({
+  name: text(60, "Cần ghi tên ban."),
+}) satisfies z.ZodType<C.CreateDepartmentBody>;
+
+export const updateDepartmentBody = z.object({
+  name: text(60, "Cần ghi tên ban.").optional(),
+  headId: z.string().trim().min(1).nullable().optional(),
+}).refine((b) => b.name !== undefined || b.headId !== undefined, { error: "Cần đổi tên ban hoặc trưởng ban." }) satisfies z.ZodType<C.UpdateDepartmentBody>;
+
+const ROLE_HANDOVER_ROLES = ["president", "vice", "treasurer", "head"] as const;
+
+export const createRoleHandoverBody = z.object({
+  role: z.enum(ROLE_HANDOVER_ROLES, { error: "Cần chọn vai bàn giao." }),
+  department: optionalText(60),
+  toId: z.string({ error: "Cần chọn người nhận." }).trim().min(1, { error: "Cần chọn người nhận." }),
+  reason: text(500, "Cần ghi lý do bàn giao."),
+  proxy: z.object({
+    contacts: z.array(z.object({
+      date: z.string({ error: "Cần ghi ngày liên hệ." }).trim().regex(/^\d{4}-\d{2}-\d{2}$/, { error: "Ngày liên hệ không hợp lệ." }),
+      channel: z.enum(["phone", "zalo", "email", "friend"], { error: "Cần chọn kênh liên hệ." }),
+      result: text(200, "Mỗi lần liên hệ cần ghi kết quả."),
+      evidenceIds: z.array(id).max(10),
+    })).min(1, { error: "Cần ghi tối thiểu 3 lần liên hệ với người giữ vai." }).max(10, { error: "Tối đa 10 lần liên hệ." }),
+  }).optional(),
+}) satisfies z.ZodType<C.CreateRoleHandoverBody>;
+
+export const uploadEvidenceBody = z.object({
+  name: text(120, "Cần ghi tên file."),
+  mime: z.enum(["image/jpeg", "image/png"], { error: "Chỉ nhận ảnh JPG hoặc PNG." }),
+  dataBase64: z.string({ error: "Cần gửi nội dung ảnh." }).min(1, { error: "Cần gửi nội dung ảnh." }),
+}) satisfies z.ZodType<C.UploadEvidenceBody>;
+
+export const decideRoleHandoverBody = z.object({
+  approve: z.boolean({ error: "Cần chọn duyệt hay từ chối." }),
+  reason: optionalText(500),
+}).refine((b) => b.approve || !!b.reason, { error: "Từ chối đơn thì phải ghi lý do.", path: ["reason"] }) satisfies z.ZodType<C.DecideRoleHandoverBody>;
+
+export const advanceRoleHandoverBody = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("lockBalance") }),
+  z.object({ action: z.literal("reviewKit"), note: optionalText(1000) }),
+  z.object({
+    action: z.literal("setReceiver"),
+    bank: text(100, "Cần ghi ngân hàng."),
+    account: z.string({ error: "Cần ghi số tài khoản." }).trim().regex(/^\d{4,30}$/, { error: "Số tài khoản chỉ gồm chữ số." }),
+    transferRef: optionalText(100),
+  }),
+  z.object({ action: z.literal("transferAccount"), accountId: z.string({ error: "Cần chọn tài khoản." }).trim().min(1, { error: "Cần chọn tài khoản." }) }),
+  z.object({ action: z.literal("finishTransfer") }),
+  z.object({ action: z.literal("accept") }),
+]) satisfies z.ZodType<C.AdvanceRoleHandoverBody>;
 
 export const eventBody = z.object({
   title: text(120, "Cần ghi tên buổi."),
@@ -201,7 +255,7 @@ export const setBoardBody = z.object({
   presidentId: z.string({ error: "Cần chọn chủ nhiệm mới." }).trim().min(1, { error: "Cần chọn chủ nhiệm mới." }),
   viceId: id.optional(),
   treasurerId: id.optional(),
-  headIds: z.array(id).max(10, { error: "Tối đa 10 trưởng ban." }),
+  heads: z.array(z.object({ department: text(60, "Cần chọn ban."), personId: id })),
   confirmSelf: z.literal(true).optional(),
 }) satisfies z.ZodType<C.SetBoardBody>;
 

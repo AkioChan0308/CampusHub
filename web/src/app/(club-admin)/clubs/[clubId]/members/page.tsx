@@ -4,6 +4,8 @@
 // Dữ liệu từ GET /clubs/:clubId/members và /applications. Duyệt, từ chối đơn: POST .../applications/:id/approve | reject.
 // Thêm ngày 04/10/2026 (mô tả được Hiệu duyệt): "Nhập từ Excel" mở màn Thêm thành viên; cột Thao tác có link mời của người
 // chưa nhận lời mời và nút "Sửa" vai trò, ban (chủ nhiệm): PUT .../members/:personId.
+// Thêm ngày 09/11/2026 (mô tả: docs/mo-ta-ban-giao-theo-vai.md): khối "Các ban" (chủ nhiệm thêm, đổi tên, đặt trưởng, xóa ban:
+// POST, PUT, DELETE .../departments); ô Ban của hộp "Sửa" chọn từ danh sách ban thay vì gõ chữ.
 
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
@@ -11,8 +13,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import type { ApplicationDto, ApplicationRes, ApproveApplicationRes, MembersRes, Role, UpdateMemberRes } from "@contract";
-import { apiPost, apiPut } from "@/api/client";
+import type { ApplicationDto, ApplicationRes, ApproveApplicationRes, DepartmentDto, DepartmentsRes, MembersRes, Role, UpdateMemberRes } from "@contract";
+import { apiDelete, apiPost, apiPut } from "@/api/client";
 import { memberRows } from "@/api/excel-rows";
 import { errorText, useApplications, useClubMutation, useMembers } from "@/api/queries";
 import { CopyButton } from "@/components/CopyButton";
@@ -29,7 +31,7 @@ import { downloadCsv } from "@/lib/csv";
 import { agoLabel, dm } from "@/lib/format";
 import { can, RIGHT_LABEL } from "@/lib/selectors";
 import { matchesSearch } from "@/lib/text";
-import { ROLE_LABEL } from "@/lib/types";
+import { NO_DEPARTMENT, ROLE_LABEL } from "@/lib/types";
 
 const FIRST_ROWS = 6;
 const WIDTHS = ["22%", "13%", "12%", "12%", "18%", "13%", "10%"];
@@ -118,7 +120,8 @@ function MembersBody({ data, applications, fade }: { data: MembersRes; applicati
   const canAssign = can(me.role, "assignRole");
   const fee = data.collection?.amount ?? 0;
   const pendingInvites = data.members.filter((x) => x.invite === "pending").length;
-  const depts = [...new Set(data.members.map((x) => x.department))].sort((a, b) => a.localeCompare(b, "vi"));
+  // Ban để lọc và để chọn: các ban của CLB, kèm "Chưa xếp ban" khi còn người chưa xếp.
+  const depts = [...data.departments.map((d) => d.name), ...(data.members.some((x) => x.department === NO_DEPARTMENT) ? [NO_DEPARTMENT] : [])];
   const rows = data.members.filter((x) => (dept === "all" || x.department === dept) && (matchesSearch(x.name, query) || matchesSearch(x.email, query)));
   const visible = showAll ? rows : rows.slice(0, FIRST_ROWS);
   const cols = columns(data.term);
@@ -195,7 +198,7 @@ function MembersBody({ data, applications, fade }: { data: MembersRes; applicati
                           <CopyButton iconOnly className="l-icon-btn l-icon-sm" icon="link" text={appUrl(`/invite/${x.inviteCode}`)}
                             label={`Sao chép link mời của ${x.name}`} notice={`Đã sao chép link mời của ${x.name}. Gửi riêng cho người này qua Zalo.`} />
                         )}
-                        {canAssign && <EditMember clubId={club.id} member={x} depts={depts} />}
+                        {canAssign && <EditMember clubId={club.id} member={x} departments={data.departments} />}
                       </span>
                     </td>
                   </tr>
@@ -211,6 +214,8 @@ function MembersBody({ data, applications, fade }: { data: MembersRes; applicati
             </div>
           )}
         </div>
+
+        <DepartmentsSection clubId={club.id} data={data} canAssign={canAssign} />
       </Reveal>
     </>
   );
@@ -221,7 +226,7 @@ type MemberRow = MembersRes["members"][number];
 const ASSIGNABLE: Role[] = ["vice", "treasurer", "head", "member"];
 
 /** Nút "Sửa" và hộp sửa vai trò, ban của một thành viên (chỉ chủ nhiệm). */
-function EditMember({ clubId, member, depts }: { clubId: string; member: MemberRow; depts: string[] }) {
+function EditMember({ clubId, member, departments }: { clubId: string; member: MemberRow; departments: DepartmentDto[] }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<Role>(member.role);
   const [dept, setDept] = useState(member.department);
@@ -237,11 +242,12 @@ function EditMember({ clubId, member, depts }: { clubId: string; member: MemberR
   function submit(e: FormEvent) {
     e.preventDefault();
     if (save.isPending) return;
-    if (!dept.trim()) { setDeptError("Cần ghi ban."); document.getElementById(`department-${member.personId}`)?.focus(); return; }
-    save.mutate({ role, department: dept.trim() });
+    if (role === "head" && dept === NO_DEPARTMENT) { setDeptError("Chọn ban mà người này làm trưởng."); document.getElementById(`department-${member.personId}`)?.focus(); return; }
+    save.mutate({ role, department: dept });
   }
 
-  const listId = `ban-${member.personId}`;
+  // Chọn vai Trưởng ban thì người này thành trưởng của ban đã chọn; trưởng cũ của ban đó về thành viên nếu không còn làm trưởng ban nào.
+  const replaced = role === "head" ? departments.find((d) => d.name === dept)?.head : undefined;
   return (
     <>
       <button type="button" className="l-btn2 l-sm" aria-label={`Sửa vai trò và ban của ${member.name}`}
@@ -258,11 +264,163 @@ function EditMember({ clubId, member, depts }: { clubId: string; member: MemberR
           </div>
           <div className="l-field">
             <label className="l-flabel" htmlFor={`department-${member.personId}`}>Ban</label>
-            <input id={`department-${member.personId}`} className="l-input" list={listId} value={dept}
-              aria-invalid={deptError ? true : undefined} aria-describedby={deptError ? `department-${member.personId}-error` : undefined}
-              onChange={(e) => { setDept(e.target.value); setDeptError(""); setError(""); }} />
+            <select id={`department-${member.personId}`} className="l-select" value={dept}
+              aria-invalid={deptError ? true : undefined} aria-describedby={deptError ? `department-${member.personId}-error` : `department-${member.personId}-hint`}
+              onChange={(e) => { setDept(e.target.value); setDeptError(""); setError(""); }}>
+              <option value={NO_DEPARTMENT}>{NO_DEPARTMENT}</option>
+              {departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+            </select>
             {deptError && <span id={`department-${member.personId}-error`} className="l-error">{deptError}</span>}
-            <datalist id={listId}>{depts.map((d) => <option key={d} value={d} />)}</datalist>
+            <span id={`department-${member.personId}-hint`} className="l-hint">
+              {role === "head"
+                ? `Người này sẽ làm trưởng ban ${dept === NO_DEPARTMENT ? "đã chọn" : dept}.${replaced && replaced.personId !== member.personId ? ` ${replaced.name} đang là trưởng ban này và sẽ về thành viên nếu không còn làm trưởng ban nào.` : ""}`
+                : "Ban chỉ chọn từ danh sách. Chưa có ban cần dùng thì chủ nhiệm thêm ở khối Các ban."}
+            </span>
+          </div>
+          {error && <p className="l-error" role="alert">{error}</p>}
+          <div className="l-dialog-actions">
+            <DialogClose className="l-btn2">Hủy</DialogClose>
+            <button type="submit" className="l-btn" aria-busy={save.isPending || undefined}>Lưu</button>
+          </div>
+        </form>
+      </LichDialog>
+    </>
+  );
+}
+
+const DEPARTMENT_WIDTHS = ["34%", "30%", "14%", "22%"];
+const DELETE_HINT_ID = "department-delete-hint";
+
+/**
+ * Các ban của CLB (09/11/2026): mỗi ban đúng một trưởng ban, một người được làm trưởng nhiều ban.
+ * Chỉ chủ nhiệm thêm, đổi tên, đặt trưởng và xóa ban; người khác trong ban điều hành chỉ xem.
+ */
+function DepartmentsSection({ clubId, data, canAssign }: { clubId: string; data: MembersRes; canAssign: boolean }) {
+  const title = useRef<HTMLHeadingElement>(null);
+  const remove = useClubMutation(clubId, (d: DepartmentDto) => apiDelete<DepartmentsRes>(`/clubs/${clubId}/departments/${d.id}`), {
+    onSuccess: (_res, d) => { toast.success(`Đã xóa ban ${d.name}.`); title.current?.focus(); },
+  });
+  const list = data.departments;
+  return (
+    <div className="l-sec">
+      <div className="l-sec-head">
+        <h2 ref={title} tabIndex={-1}>Các ban ({list.length})</h2>
+        {canAssign ? <AddDepartment clubId={clubId} /> : <span className="l-note">{RIGHT_LABEL.assignRole}</span>}
+      </div>
+      {list.length === 0 && <p className="l-empty">CLB chưa có ban nào.{canAssign ? " Bấm Thêm ban để tạo ban đầu tiên." : ""}</p>}
+      {list.length > 0 && (
+        <div className="l-table-wrap">
+          <table className="l-table l-fixed">
+            <ColGroup widths={DEPARTMENT_WIDTHS} />
+            <thead><tr><th>Ban</th><th>Trưởng ban</th><th className="r">Thành viên</th><th className="r"><span className="l-sr">Thao tác</span></th></tr></thead>
+            <tbody>
+              {list.map((d) => (
+                <tr key={d.id}>
+                  <td className="name">{d.name}</td>
+                  <td>{d.head ? d.head.name : <span className="l-note">Chưa có trưởng ban</span>}</td>
+                  <td className="r">{d.members}</td>
+                  <td className="r">
+                    {canAssign && (
+                      <span className="l-row-actions l-row-end">
+                        <EditDepartment clubId={clubId} department={d} data={data} />
+                        <LichConfirm className="l-btn2 l-sm" label={`Xóa ban ${d.name}`} describedBy={d.members > 0 || d.head ? DELETE_HINT_ID : undefined}
+                          disabled={d.members > 0 || !!d.head} busy={remove.isPending && remove.variables?.id === d.id}
+                          title={`Xóa ban ${d.name}?`} description="Ban chưa có thành viên và chưa có trưởng ban. Muốn dùng lại thì thêm ban mới."
+                          confirm="Xóa ban" focusAfter={() => title.current?.focus()} onConfirm={() => remove.mutate(d)}>Xóa</LichConfirm>
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className="l-foot">
+        <span id={DELETE_HINT_ID}>Mỗi ban có đúng một trưởng ban; một người được làm trưởng nhiều ban. Ban còn thành viên hoặc còn trưởng ban thì chưa xóa được: chuyển thành viên sang ban khác và bàn giao vị trí trưởng ban trước.</span>
+      </div>
+    </div>
+  );
+}
+
+/** Nút Thêm ban và hộp nhập tên ban. Tên không trùng ban khác của CLB. */
+function AddDepartment({ clubId }: { clubId: string }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const add = useClubMutation(clubId, (body: { name: string }) => apiPost<DepartmentsRes>(`/clubs/${clubId}/departments`, body), {
+    onSuccess: () => { toast.success(`Đã thêm ban ${name.trim()}.`); setOpen(false); },
+    onError: (e) => { setError(errorText(e)); document.getElementById("department-new")?.focus(); },
+  });
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (add.isPending) return;
+    if (!name.trim()) { setError("Cần ghi tên ban."); document.getElementById("department-new")?.focus(); return; }
+    add.mutate({ name: name.trim() });
+  }
+  return (
+    <>
+      <button type="button" className="l-btn2 l-sm" onClick={() => { setName(""); setError(""); setOpen(true); }}>Thêm ban</button>
+      <LichDialog open={open} onOpenChange={setOpen} title="Thêm ban" description="Tên ban tối đa 60 ký tự, không trùng ban khác của CLB.">
+        <form className="l-form" onSubmit={submit} noValidate>
+          <div className="l-field">
+            <label className="l-flabel" htmlFor="department-new">Tên ban</label>
+            <input id="department-new" className="l-input" value={name} maxLength={60} aria-invalid={error ? true : undefined} aria-describedby={error ? "department-new-error" : undefined}
+              onChange={(e) => { setName(e.target.value); setError(""); }} />
+            {error && <span id="department-new-error" className="l-error" role="alert">{error}</span>}
+          </div>
+          <div className="l-dialog-actions">
+            <DialogClose className="l-btn2">Hủy</DialogClose>
+            <button type="submit" className="l-btn" aria-busy={add.isPending || undefined}>Thêm ban</button>
+          </div>
+        </form>
+      </LichDialog>
+    </>
+  );
+}
+
+/** Đổi tên ban và đặt hoặc bỏ trưởng ban. Trưởng ban là thành viên đã nhận lời mời, không phải chủ nhiệm, phó chủ nhiệm, thủ quỹ. */
+function EditDepartment({ clubId, department, data }: { clubId: string; department: DepartmentDto; data: MembersRes }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(department.name);
+  const [head, setHead] = useState(department.head?.personId ?? "");
+  const [error, setError] = useState("");
+  const candidates = data.members.filter((x) => x.invite === "accepted" && (x.role === "member" || x.role === "head"));
+  const otherBans = head ? data.departments.filter((d) => d.id !== department.id && d.head?.personId === head).map((d) => d.name) : [];
+  const save = useClubMutation(clubId, (body: { name?: string; headId?: string | null }) => apiPut<DepartmentsRes>(`/clubs/${clubId}/departments/${department.id}`, body), {
+    onSuccess: () => { toast.success(`Đã lưu ban ${name.trim()}.`); setOpen(false); },
+    onError: (e) => setError(errorText(e)),
+  });
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (save.isPending) return;
+    if (!name.trim()) { setError("Cần ghi tên ban."); document.getElementById(`department-name-${department.id}`)?.focus(); return; }
+    const body: { name?: string; headId?: string | null } = {};
+    if (name.trim() !== department.name) body.name = name.trim();
+    if (head !== (department.head?.personId ?? "")) body.headId = head || null;
+    if (Object.keys(body).length === 0) { setOpen(false); return; }
+    save.mutate(body);
+  }
+  return (
+    <>
+      <button type="button" className="l-btn2 l-sm" aria-label={`Sửa ban ${department.name}`}
+        onClick={() => { setName(department.name); setHead(department.head?.personId ?? ""); setError(""); setOpen(true); }}>Sửa</button>
+      <LichDialog open={open} onOpenChange={setOpen} title={`Sửa ban ${department.name}`} description="Đổi tên ban thì thành viên và trưởng ban giữ nguyên.">
+        <form className="l-form" onSubmit={submit} noValidate>
+          <div className="l-field">
+            <label className="l-flabel" htmlFor={`department-name-${department.id}`}>Tên ban</label>
+            <input id={`department-name-${department.id}`} className="l-input" value={name} maxLength={60} onChange={(e) => { setName(e.target.value); setError(""); }} />
+          </div>
+          <div className="l-field">
+            <label className="l-flabel" htmlFor={`department-head-${department.id}`}>Trưởng ban</label>
+            <select id={`department-head-${department.id}`} className="l-select" value={head} aria-describedby={`department-head-${department.id}-hint`}
+              onChange={(e) => { setHead(e.target.value); setError(""); }}>
+              <option value="">Chưa có trưởng ban</option>
+              {candidates.map((x) => <option key={x.personId} value={x.personId}>{x.name}</option>)}
+            </select>
+            <span id={`department-head-${department.id}-hint`} className="l-hint">
+              {otherBans.length > 0 ? `${data.members.find((x) => x.personId === head)?.name} cũng là trưởng ban ${otherBans.join(", ")}. Một người được làm trưởng nhiều ban.` : "Chỉ thành viên đã nhận lời mời; chủ nhiệm, phó chủ nhiệm và thủ quỹ không kiêm trưởng ban."}
+            </span>
           </div>
           {error && <p className="l-error" role="alert">{error}</p>}
           <div className="l-dialog-actions">

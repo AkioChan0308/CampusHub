@@ -35,7 +35,7 @@ const PHONE = { width: 390, height: 844 };
     await p.getByLabel("Mật khẩu", { exact: true }).fill(password);
     await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   };
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   try {
     // ---- Trang đầu cho người chưa đăng nhập ----
@@ -55,7 +55,7 @@ const PHONE = { width: 390, height: 844 };
     await p.goto(`${BASE}/login`);
     const picks = p.locator(".l-auth-pick");
     await picks.first().waitFor();
-    ok((await picks.count()) === 7, "Tài khoản mẫu: đủ 7 vai", `${await picks.count()}`);
+    ok((await picks.count()) === 10, "Tài khoản mẫu: đủ 10 vai", `${await picks.count()}`);
     await picks.filter({ has: p.locator("strong", { hasText: /^Thủ quỹ$/ }) }).click();
     ok((await p.getByLabel("Tên tài khoản hoặc email").inputValue()) === "thuha" && (await p.getByLabel("Mật khẩu", { exact: true }).inputValue()) === "CauLong#2026", "Tài khoản mẫu: bấm vai là điền sẵn tên và mật khẩu");
     ok(await p.getByRole("button", { name: "Đăng nhập", exact: true }).evaluate((b) => b === document.activeElement), "Tài khoản mẫu: focus sang nút Đăng nhập");

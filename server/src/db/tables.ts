@@ -2,7 +2,7 @@
 // Mỗi bảng: tên cột theo đúng thứ tự, cột khóa, cách lấy các dòng từ AppState và cách dựng lại đối tượng từ một dòng.
 // Thứ tự các bảng trong TABLES là thứ tự thêm dòng (bảng cha trước bảng con); xóa thì đi ngược lại.
 
-import { nowIso, STATE_VERSION, type AppNotification, type AppState, type Budget, type Club, type ClubPost, type ClubTask, type Consent, type ExpenseRequest, type Handover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
+import { nowIso, STATE_VERSION, type AppNotification, type AppState, type Budget, type Club, type ClubPost, type ClubTask, type Consent, type ExpenseRequest, type EvidenceFile, type Handover, type RoleHandover, type KitAccount, type KitDocument, type KitProcess, type Statement } from "../domain.ts";
 
 export type Val = string | number | boolean | null;
 type Row = Record<string, unknown>;
@@ -34,6 +34,11 @@ export const TABLES: TableDef[] = [
     name: "memberships", source: "memberships", keyCount: 2,
     cols: ["club_id", "person_id", "code", "department", "role", "invite", "invite_code", "deletion_requested_at"],
     rows: (s) => s.memberships.map((m) => [m.clubId, m.personId, m.code, m.department, m.role, m.invite, n(m.inviteCode), n(m.deletionRequestedAt)]),
+  },
+  {
+    name: "departments", source: "departments", keyCount: 1,
+    cols: ["id", "club_id", "name", "head_id"],
+    rows: (s) => s.departments.map((d) => [d.id, d.clubId, d.name, n(d.headId)]),
   },
   {
     name: "applications", source: "applications", keyCount: 1,
@@ -102,6 +107,18 @@ export const TABLES: TableDef[] = [
     rows: (s) => s.handovers.map((h) => [h.clubId, h.fromTerm, h.toTerm, h.step, h.lockedBalance, n(h.newReceiver?.personId), n(h.newReceiver?.bank), n(h.newReceiver?.account), n(h.transferRef),
       n(h.lockedAt), h.newBoard ? JSON.stringify(h.newBoard) : null, JSON.stringify(h.transferred), n(h.acceptedAt), n(h.acceptedBy), JSON.stringify(h.history),
       h.summary ? JSON.stringify(h.summary) : null, n(h.mentorConfirmedBy), n(h.mentorConfirmedAt)]),
+  },
+  {
+    name: "role_handovers", source: "roleHandovers", keyCount: 1,
+    cols: ["id", "club_id", "role", "department", "from_id", "to_id", "reason", "status", "step", "requested_at", "decided_at", "decided_by", "reject_reason",
+      "locked_balance", "locked_at", "new_receiver_bank", "new_receiver_account", "transfer_ref", "transferred", "accepted_at", "history", "proxy", "note", "snapshot"],
+    rows: (s) => s.roleHandovers.map((h) => [h.id, h.clubId, h.role, n(h.department), h.fromId, h.toId, h.reason, h.status, h.step, h.requestedAt, n(h.decidedAt), n(h.decidedBy), n(h.rejectReason),
+      n(h.lockedBalance), n(h.lockedAt), n(h.newReceiver?.bank), n(h.newReceiver?.account), n(h.transferRef), JSON.stringify(h.transferred), n(h.acceptedAt), JSON.stringify(h.history), h.proxy ? JSON.stringify(h.proxy) : null, n(h.note), h.snapshot ? JSON.stringify(h.snapshot) : null]),
+  },
+  {
+    name: "evidence_files", source: "evidence", keyCount: 1,
+    cols: ["id", "club_id", "uploader_id", "handover_id", "name", "mime", "size", "uploaded_at", "data"],
+    rows: (s) => s.evidence.map((e) => [e.id, e.clubId, e.uploaderId, n(e.handoverId), e.name, e.mime, e.size, e.uploadedAt, e.data]),
   },
   {
     name: "kit_documents", source: "kitDocuments", keyCount: 1,
@@ -203,6 +220,7 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
       clubId: str(r.club_id), personId: str(r.person_id), code: str(r.code), department: str(r.department), role: r.role as AppState["memberships"][number]["role"],
       invite: r.invite as "accepted" | "pending", inviteCode: opt<string>(r.invite_code), deletionRequestedAt: optTime(r.deletion_requested_at),
     })),
+    departments: t.departments.map((r) => clean({ id: str(r.id), clubId: str(r.club_id), name: str(r.name), headId: opt<string>(r.head_id) })),
     applications: t.applications.map((r) => clean({
       id: str(r.id), clubId: str(r.club_id), personId: str(r.person_id), name: str(r.name), email: str(r.email), year: num(r.school_year),
       reason: str(r.reason), submittedAt: time(r.submitted_at), status: r.status as "pending" | "approved" | "rejected",
@@ -256,6 +274,23 @@ export function rowsToState(t: Record<string, Row[]>): AppState {
       mentorConfirmedBy: opt<string>(r.mentor_confirmed_by), mentorConfirmedAt: optTime(r.mentor_confirmed_at),
       history: json<Handover["history"]>(r.history).map((h) => ({ ...h, at: time(h.at) })),
       summary: r.summary === null || r.summary === undefined ? undefined : (() => { const v = json<NonNullable<Handover["summary"]>>(r.summary); return { ...v, at: time(v.at) }; })(),
+    })),
+    roleHandovers: t.role_handovers.map((r) => clean<RoleHandover>({
+      id: str(r.id), clubId: str(r.club_id), role: r.role as RoleHandover["role"], department: opt<string>(r.department), fromId: str(r.from_id), toId: str(r.to_id),
+      reason: str(r.reason), status: r.status as RoleHandover["status"], step: num(r.step), requestedAt: time(r.requested_at),
+      decidedAt: optTime(r.decided_at), decidedBy: opt<string>(r.decided_by), rejectReason: opt<string>(r.reject_reason),
+      lockedBalance: r.locked_balance === null || r.locked_balance === undefined ? undefined : num(r.locked_balance), lockedAt: optTime(r.locked_at),
+      newReceiver: r.new_receiver_bank === null || r.new_receiver_bank === undefined ? undefined
+        : { personId: str(r.to_id), bank: str(r.new_receiver_bank), account: str(r.new_receiver_account ?? "") },
+      transferRef: opt<string>(r.transfer_ref), transferred: json<string[]>(r.transferred), acceptedAt: optTime(r.accepted_at),
+      history: json<RoleHandover["history"]>(r.history).map((h) => ({ ...h, at: time(h.at) })),
+      proxy: r.proxy === null || r.proxy === undefined ? undefined : (() => { const v = json<NonNullable<RoleHandover["proxy"]>>(r.proxy); return clean({ ...v, waitUntil: v.waitUntil ? time(v.waitUntil) : undefined, keptAt: v.keptAt ? time(v.keptAt) : undefined }); })(),
+      note: opt<string>(r.note),
+      snapshot: r.snapshot === null || r.snapshot === undefined ? undefined : json<NonNullable<RoleHandover["snapshot"]>>(r.snapshot),
+    })),
+    evidence: t.evidence_files.map((r) => clean<EvidenceFile>({
+      id: str(r.id), clubId: str(r.club_id), uploaderId: str(r.uploader_id), handoverId: opt<string>(r.handover_id), name: str(r.name), mime: r.mime as EvidenceFile["mime"],
+      size: num(r.size), uploadedAt: time(r.uploaded_at), data: str(r.data),
     })),
     kitDocuments: t.kit_documents.map((r) => ({
       id: str(r.id), clubId: str(r.club_id), name: str(r.name), category: r.category as KitDocument["category"], link: str(r.link),

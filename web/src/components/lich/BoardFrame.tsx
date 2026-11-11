@@ -52,7 +52,8 @@ const NAV: NavItem[] = [
   { key: "tasks", icon: "check", label: "Việc cần làm", href: (base) => `${base}/tasks` },
   // Tin công khai của CLB trên trang chung (khung mẫu, 29/10/2026).
   { key: "posts", icon: "feed", label: "Bảng tin của CLB", href: (base) => `${base}/posts` },
-  { key: "handover", icon: "swap", label: "Bàn giao", href: (base) => `${base}/handover`, group: "Nhiệm kỳ" },
+  // Chủ nhiệm (và chủ nhiệm mới) vào Bàn giao cả ban; vai khác vào thẳng Bàn giao từng vai (vai của chính mình).
+  { key: "handover", icon: "swap", label: "Bàn giao", href: (base, b) => (b.canViewHandover ? `${base}/handover` : `${base}/handover/roles`), count: (b) => b.counts.roleHandovers, group: "Nhiệm kỳ" },
   { key: "kit", icon: "doc", label: "Kho bàn giao", href: (base) => `${base}/handover-kit` },
   // Nhóm "Quỹ" ở dưới cùng, đóng mặc định (phần tiền là vùng rủi ro pháp lý, không đưa lên đầu). Xem FUND bên dưới.
   // Đợt thu đang dùng; CLB chưa có đợt thu nào thì trang đó mời tạo đợt thu.
@@ -93,8 +94,8 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
 
   const board = query.data;
   const base = `/clubs/${clubId}`;
-  // Chủ nhiệm mới (đang là thành viên thường) chỉ vào được Bàn giao và Kho bàn giao cho tới khi bàn giao xong.
-  const nav = board?.me.role === "member" ? NAV.filter((n) => n.key === "handover" || n.key === "kit") : NAV;
+  // Người chưa có vai ban điều hành (chủ nhiệm mới, hoặc người nhận bàn giao một vai, chưa xác nhận) chỉ thấy mục Bàn giao. Kho bàn giao hiện sau khi bàn giao xong và họ đã có vai (Hiệu chọn 09/11/2026).
+  const nav = board?.me.role === "member" ? NAV.filter((n) => n.key === "handover") : NAV;
   // Nhóm Quỹ đóng thì vẫn thấy tổng số việc đang chờ ở đó.
   const fundCount = board ? NAV.filter((n) => FUND.includes(n.key)).reduce((sum, n) => sum + (n.count?.(board) ?? 0), 0) : 0;
 
@@ -117,7 +118,7 @@ export function BoardFrame({ clubId, active, fallback, children }: { clubId: str
     <Ctx.Provider value={board ?? null}>
       <SawCtx.Provider value={saw}>
         <div className="lich">
-          <div className="l-board">
+          <div className={`l-board${!board || board.me.role === "member" ? " compact" : ""}`}>
             <aside className="l-side">
               <Link className="l-brand" href="/feed" aria-label="CampusHub, Cộng đồng" data-tour="brand"><span className="l-logo" aria-hidden="true">C</span><span className="l-brand-name">CampusHub</span></Link>
               {board ? (

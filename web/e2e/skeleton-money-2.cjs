@@ -9,7 +9,7 @@ async function marks(p, sels) {
   return p.evaluate((sels) => sels.map((s) => { const e = document.querySelector(s); if (!e) return `${s}: -`; const r = e.getBoundingClientRect(); return `${s}: y${Math.round(r.top)} h${Math.round(r.height)}`; }).join(" | "), sels);
 }
 (async () => {
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
   const browser = await launch();
   const p = await (await browser.newContext({ viewport: { width: 1440, height: 1200 }, reducedMotion: "reduce" })).newPage();
   await p.goto(`${BASE}/login`);

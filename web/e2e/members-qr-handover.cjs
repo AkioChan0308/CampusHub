@@ -1,7 +1,7 @@
 // Nhóm 2 sau khi chuyển sang Lịch bloc và nối máy chủ: Thành viên, Chiếu QR + điểm danh, Bàn giao.
 const fs = require("fs");
 const path = require("path");
-const { BASE, launch, outDir } = require("./common.cjs");
+const { BASE, launch, outDir, resetDemo } = require("./common.cjs");
 const OUT = outDir("members-qr-handover");
 fs.mkdirSync(OUT, { recursive: true });
 const C = `${BASE}/clubs/cau-long-san-nha`;
@@ -27,7 +27,7 @@ async function tall(page, file, w = 1440, h0 = 900) {
   const p = await ctx.newPage();
   p.on("framenavigated", (f) => { if (f === p.mainFrame()) console.log("-> ", f.url()); });
   p.on("response", (r) => { if (r.url().includes("/api/v1/") && r.status() >= 400) console.log(r.status(), r.url()); });
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await resetDemo(); // dữ liệu mẫu + đợt bàn giao cả ban ở bước 4
   await p.goto(`${BASE}/login`);
   await p.evaluate(async () => { await fetch("/api/v1/auth/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ personId: "a001" }) }); });
 
@@ -37,7 +37,7 @@ async function tall(page, file, w = 1440, h0 = 900) {
   ok(await waitText(p, /Đơn xin vào đang chờ \(3\)/), "Thành viên: 3 đơn đang chờ");
   await tall(p, "1-members.png");
   await p.fill("#member-search", "minh anh");
-  ok((await p.locator("table.l-table tbody").innerText()).includes("Nguyễn Minh Anh"), "Thành viên: tìm không dấu ra Nguyễn Minh Anh");
+  ok((await p.locator("table.l-table >> nth=0 >> tbody").innerText()).includes("Nguyễn Minh Anh"), "Thành viên: tìm không dấu ra Nguyễn Minh Anh");
   await p.fill("#member-search", "");
   await p.locator(".l-app", { hasText: "Võ Thị Hồng Nhung" }).getByRole("button", { name: "Duyệt", exact: true }).click();
   ok(await waitText(p, /Đơn xin vào đang chờ \(2\)/), "Thành viên: duyệt đơn còn 2 đơn");

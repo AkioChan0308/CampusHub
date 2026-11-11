@@ -67,10 +67,15 @@ test("đổi vai trò và ban: chỉ chủ nhiệm; không đổi chủ nhiệm 
   assert.equal(r.status, 200);
   assert.equal(r.body.member.role, "head");
   assert.equal(r.body.member.department, "Hậu cần");
+  const after = (await srv.call("GET", `${C}/members`, { as: "a001" })).body;
+  assert.equal(after.departments.find((d: { name: string }) => d.name === "Hậu cần").head.personId, "a017"); // trưởng của ban đã chọn
+  assert.equal(after.members.find((m: { personId: string }) => m.personId === "a005").role, "member"); // trưởng cũ về thành viên
+  assert.equal((await srv.call("PUT", `${C}/members/a017`, { as: "a001", body: { role: "head", department: "Chưa xếp ban" } })).status, 400); // trưởng ban phải chọn ban
+  assert.equal((await srv.call("PUT", `${C}/members/a017`, { as: "a001", body: { role: "member", department: "Ban không có" } })).status, 400); // ban phải có trong danh sách
   assert.equal((await srv.call("PUT", `${C}/members/a017`, { as: "a005", body: { role: "member", department: "Hậu cần" } })).status, 403);
   assert.equal((await srv.call("PUT", `${C}/members/a017`, { as: "a001", body: { role: "president", department: "x" } })).status, 409);
   assert.equal((await srv.call("PUT", `${C}/members/a001`, { as: "a001", body: { role: "member", department: "x" } })).status, 409);
-  assert.equal((await srv.call("PUT", `${C}/members/a001`, { as: "a001", body: { role: "president", department: "Ban điều hành" } })).status, 200);
+  assert.equal((await srv.call("PUT", `${C}/members/a001`, { as: "a001", body: { role: "president", department: "Ban chủ nhiệm" } })).status, 200);
   assert.equal((await srv.call("PUT", `${C}/members/khong-co`, { as: "a001", body: { role: "member", department: "x" } })).status, 404);
 });
 

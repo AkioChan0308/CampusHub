@@ -2,12 +2,13 @@
 // Chỗ này quyết định ai thấy gì: ví dụ phía trường chỉ nhận số tổng hợp, không nhận danh sách thành viên.
 
 import type * as C from "./contract.ts";
+import { isIncomingPresident } from "./access.ts";
 import {
   attendanceOf, averageAttendance, balance, budgetView, clubCollection, clubMembers, clubSummary, collectionStats, daysAgo, DUPLICATE_TXN,
   handConfirmedTransfers, heldSessions, kitSummary, latestStatement, ledgerOf, membershipOf, nextSession, isTaskOverdue, openManualAll, openTasks, participationStats, paymentsOf,
-  pendingApplications, pendingExpenses, personName, recentLedger, statementsOf, tasksOf, upcomingEvents,
+  pendingApplications, pendingExpenses, personName, recentLedger, proxyViceApproves, roleHandoverActor, roleHandoverHolding, roleHandoverOpen, roleHolder, statementsOf, tasksOf, upcomingEvents,
   type AppState, type Application, type Attendance, type Club, type ClubEvent, type Collection, type ExpenseRequest,
-  type ClubPost, type ClubTask, type Handover, type KitAccount, type KitDocument, type KitProcess, type Membership, type Payment, type Person, type StatementTxn,
+  type ClubPost, type ClubTask, type Handover, type KitAccount, type KitDocument, type KitProcess, type Membership, type Payment, type Person, type RoleHandover, type StatementTxn,
 } from "./domain.ts";
 
 export const CONSENT_VERSION = "chinh-sach-du-lieu-v1";
@@ -110,13 +111,16 @@ export function boardRes(s: AppState, club: Club, me: Person, ms: Membership): C
   return {
     club: clubRef(club),
     me: { personId: me.id, name: me.name, role: ms.role },
+    // Người nhận bàn giao một vai (còn là thành viên thường) chỉ cần khung trang: không đưa số liệu của ban điều hành.
     counts: {
-      pendingApplications: pendingApplications(s, club.id).length,
-      openManualTxns: collection ? openManualAll(s, collection.id).length : 0,
-      pendingExpenses: pendingExpenses(s, club.id).length,
+      pendingApplications: ms.role === "member" ? 0 : pendingApplications(s, club.id).length,
+      openManualTxns: ms.role === "member" || !collection ? 0 : openManualAll(s, collection.id).length,
+      pendingExpenses: ms.role === "member" ? 0 : pendingExpenses(s, club.id).length,
+      roleHandovers: roleHandoverTodo(s, club, me),
     },
-    nextSessionId: nextSession(s, club.id)?.id,
-    collectionId: collection?.id,
+    nextSessionId: ms.role === "member" ? undefined : nextSession(s, club.id)?.id,
+    collectionId: ms.role === "member" ? undefined : collection?.id,
+    canViewHandover: ms.role === "president" || isIncomingPresident(s, club.id, me.id),
   };
 }
 
@@ -162,11 +166,20 @@ export function memberRow(s: AppState, club: Club, m: Membership): C.MembersRes[
   };
 }
 
+/** Ban của CLB theo thứ tự tạo, kèm trưởng ban và số thành viên. */
+export function departmentDtos(s: AppState, clubId: string): C.DepartmentDto[] {
+  return s.departments.filter((d) => d.clubId === clubId).map((d) => ({
+    id: d.id, name: d.name, head: d.headId ? personRef(s, d.headId) : undefined,
+    members: s.memberships.filter((m) => m.clubId === clubId && m.department === d.name).length,
+  }));
+}
+
 export function membersRes(s: AppState, club: Club): C.MembersRes {
   const collection = clubCollection(s, club.id);
   return {
     term: club.term,
     heldSessions: heldSessions(s, club.id).length,
+    departments: departmentDtos(s, club.id),
     collection: collection ? { id: collection.id, amount: collection.amount } : undefined,
     members: clubMembers(s, club.id).map((m) => memberRow(s, club, m)).sort(byCode),
   };
@@ -322,7 +335,8 @@ export function handoverRes(s: AppState, club: Club, meId: string): C.HandoverRe
     transferRef: h.transferRef || undefined,
     candidates: members.filter((m) => m.invite === "accepted").sort(byCode).map((m) => personRef(s, m.personId)),
     memberCount: members.length,
-    newBoard: b ? { president: personRef(s, b.president), vice: ref(b.vice), treasurer: ref(b.treasurer), heads: b.heads.map((id) => personRef(s, id)) } : undefined,
+    departments: s.departments.filter((d) => d.clubId === club.id).map((d) => ({ name: d.name, currentHead: ref(d.headId) })),
+    newBoard: b ? { president: personRef(s, b.president), vice: ref(b.vice), treasurer: ref(b.treasurer), heads: b.heads.map((x) => ({ department: x.department, person: personRef(s, x.personId) })) } : undefined,
     open: {
       unpaid: stats?.unpaid ?? 0, reported: stats?.reported ?? 0, pendingExpenses: exps.length, pendingExpenseTotal: exps.reduce((sum, e) => sum + e.amount, 0),
       openManual: collection ? openManualAll(s, collection.id).length : 0, openTasks: openTasks(s, club.id).length,
@@ -338,6 +352,83 @@ export function handoverRes(s: AppState, club: Club, meId: string): C.HandoverRe
     canAccept: !!b && b.president === meId,
     summary: h.summary ? { text: h.summary.text, by: personRef(s, h.summary.by), at: h.summary.at, mock: h.summary.mock } : undefined,
   };
+}
+
+// ---------- Bàn giao một vai và bàn giao hộ ----------
+
+/** `viewer` là người gọi (thành viên hoặc cán bộ trường). Cán bộ trường chỉ thấy đơn bàn giao hộ, kèm ảnh bằng chứng. */
+export function roleHandoverDto(s: AppState, h: RoleHandover, viewer: Person): C.RoleHandoverDto {
+  const ref = (id: string | undefined) => (id ? personRef(s, id) : undefined);
+  const staff = viewer.kind === "staff";
+  const me = staff ? undefined : membershipOf(s, h.clubId, viewer.id);
+  const president = me?.role === "president";
+  const holding = roleHandoverHolding(s, h);
+  const proxy = h.proxy;
+  const actor = roleHandoverActor(h) === viewer.id;
+  const involved = !staff && (h.fromId === viewer.id || h.toId === viewer.id || proxy?.requesterId === viewer.id);
+  // Phó chủ nhiệm duyệt thay mentor (CLB chưa có mentor) cũng phải xem được ảnh để duyệt.
+  const viceDecides = !!proxy && me?.role === "vice" && proxyViceApproves(s, h.clubId, h.role) && viewer.id !== h.fromId && viewer.id !== proxy.requesterId;
+  const seesPhotos = staff || proxy?.requesterId === viewer.id || (viceDecides && (h.status === "requested" || h.status === "waiting"));
+  return {
+    id: h.id, role: h.role, department: h.department, from: personRef(s, h.fromId), to: personRef(s, h.toId), reason: h.reason, status: h.status, kind: proxy ? "proxy" : "self", step: h.step,
+    requestedAt: h.requestedAt, decidedAt: h.decidedAt, decidedBy: ref(h.decidedBy), rejectReason: h.rejectReason, lockedBalance: h.lockedBalance, lockedAt: h.lockedAt,
+    newReceiver: h.newReceiver ? { bank: h.newReceiver.bank, accountLast4: h.newReceiver.account.slice(-4) } : undefined, transferRef: h.transferRef || undefined,
+    holding: {
+      documents: holding.documents, tasks: holding.tasks,
+      accounts: holding.accounts.map((a) => ({ id: a.id, service: a.service, label: a.label, required: a.required, transferred: h.transferred.includes(a.id) })),
+    },
+    // Lời dặn và danh sách để lại chỉ người trong cuộc (người giao, người nhận, người gửi yêu cầu khi bàn giao hộ) thấy, không hiện công khai trong ban điều hành (Hiệu chọn 09/11/2026).
+    ...(involved ? { note: h.note, snapshot: h.snapshot } : {}),
+    acceptedAt: h.acceptedAt,
+    history: h.history.map((x) => ({ at: x.at, by: personRef(s, x.by), text: x.text })),
+    requester: proxy ? personRef(s, proxy.requesterId) : undefined, approver: ref(proxy?.approverId), waitUntil: proxy?.waitUntil, keptAt: proxy?.keptAt,
+    contacts: proxy?.contacts.map((c) => ({
+      date: c.date, channel: c.channel, result: c.result, evidenceCount: c.evidenceIds.length,
+      ...(seesPhotos ? { evidence: c.evidenceIds.flatMap((id) => { const f = s.evidence.find((e) => e.id === id); return f ? [{ id: f.id, name: f.name }] : []; }) } : {}),
+    })),
+    can: {
+      decide: h.status === "requested" && (proxy ? staff || viceDecides : president),
+      cancel: roleHandoverOpen(h) && !staff && (proxy ? proxy.requesterId === viewer.id || (president && h.role !== "president") : h.fromId === viewer.id || president),
+      step: h.status === "active" && h.step >= 2 && h.step <= 5 && actor && !(proxy && h.role === "president"),
+      accept: h.toId === viewer.id && h.status === "active" && h.step === 6,
+      keep: !!proxy && h.status === "waiting" && h.fromId === viewer.id,
+      execute: !!proxy && h.role === "president" && staff && h.status === "active" && h.step >= 2 && h.step <= 5,
+    },
+  };
+}
+
+/** Số đơn bàn giao một vai đang chờ chính người này làm: nhãn đếm ở mục Bàn giao của menu. */
+export function roleHandoverTodo(s: AppState, club: Club, viewer: Person): number {
+  const roles = roleHandoversRes(s, club, viewer).items.filter((h) => h.can.decide || h.can.keep || h.can.accept || h.can.step).length;
+  return roles + (isIncomingPresident(s, club.id, viewer.id) ? 1 : 0); // chủ nhiệm mới ở bước 6 còn việc xác nhận bàn giao cả ban
+}
+
+export function roleHandoversRes(s: AppState, club: Club, viewer: Person): C.RoleHandoversRes {
+  if (viewer.kind === "staff") {
+    return { items: s.roleHandovers.filter((h) => h.clubId === club.id && h.proxy).reverse().map((h) => roleHandoverDto(s, h, viewer)), mine: [], proxyable: [], candidates: [] };
+  }
+  const meId = viewer.id;
+  const me = membershipOf(s, club.id, meId);
+  const board = !!me && me.role !== "member" && me.invite === "accepted";
+  const items = s.roleHandovers.filter((h) => h.clubId === club.id && (board || h.fromId === meId || h.toId === meId)).reverse().map((h) => roleHandoverDto(s, h, viewer));
+  const mine: C.RoleHandoversRes["mine"] = [];
+  const proxyable: C.RoleHandoversRes["proxyable"] = [];
+  if (me && me.invite === "accepted") {
+    if (me.role === "president" || me.role === "vice" || me.role === "treasurer") mine.push({ role: me.role });
+    for (const d of s.departments) if (d.clubId === club.id && d.headId === meId) mine.push({ role: "head", department: d.name });
+    // Mọi người trong ban điều hành gửi được yêu cầu bàn giao hộ cho mọi vai khác, trừ vai của chính mình.
+    if (me.role !== "member") {
+      for (const role of ["president", "vice", "treasurer"] as const) {
+        const holder = roleHolder(s, club.id, role);
+        if (holder && holder !== meId) proxyable.push({ role, holder: personRef(s, holder) });
+      }
+      for (const d of s.departments) if (d.clubId === club.id && d.headId && d.headId !== meId) proxyable.push({ role: "head", department: d.name, holder: personRef(s, d.headId) });
+    }
+  }
+  const candidates = mine.length + proxyable.length === 0 ? [] : clubMembers(s, club.id)
+    .filter((m) => m.invite === "accepted" && m.personId !== meId && (m.role === "member" || m.role === "head")).sort(byCode)
+    .map((m) => ({ ...personRef(s, m.personId), role: m.role }));
+  return { items, mine, proxyable, candidates };
 }
 
 // ---------- Việc cần làm ----------

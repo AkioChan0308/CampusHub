@@ -49,6 +49,9 @@ export default function Page() {
   );
 }
 
+/** Bàn giao một vai: mỗi người tự bàn giao vai của mình, không phải chờ chủ nhiệm mở bàn giao cả ban (09/11/2026). */
+const RolesLink = ({ clubId }: { clubId: string }) => <Link className="l-btn2" href={`/clubs/${clubId}/handover/roles`}>Bàn giao vai của bạn</Link>;
+
 /** Ba bảng chung một file: tải nhiều file một lần thì trình duyệt hỏi quyền hoặc chặn các file sau. */
 function ExportAllButton() {
   const { club } = useLichBoard();
@@ -105,7 +108,7 @@ function Side({ data }: { data?: HandoverRes }) {
             <li>Chủ nhiệm: {b.president.name}</li>
             {b.vice && <li>Phó chủ nhiệm: {b.vice.name}</li>}
             {b.treasurer && <li>Thủ quỹ: {b.treasurer.name}</li>}
-            {b.heads.length > 0 && <li>Trưởng ban: {b.heads.map((h) => h.name).join(", ")}</li>}
+            {b.heads.length > 0 && <li>Trưởng ban: {headsText(b.heads)}</li>}
           </ul>
         </section>
       )}
@@ -175,16 +178,18 @@ function HandoverPage() {
   if (query.isPending) return <HandoverSkeleton />;
   if (query.isError) {
     // CLB chưa bắt đầu bàn giao: máy chủ trả 404. Vẫn xuất được dữ liệu bất cứ lúc nào.
-    if (query.error instanceof ApiError && query.error.status === 404) return <PageTop title={TITLE} sub="CLB chưa bắt đầu bàn giao." actions={<ExportAllButton />} />;
+    if (query.error instanceof ApiError && query.error.status === 404) return <PageTop title={TITLE} sub="CLB chưa bắt đầu bàn giao cả ban." actions={<><RolesLink clubId={club.id} /><ExportAllButton /></>} />;
     return <><PageTop title={TITLE} /><ErrorGate inline error={query.error} onRetry={() => query.refetch()} back={{ href: `/clubs/${club.id}`, label: "Về trang chủ CLB" }} /></>;
   }
   return <HandoverBody data={query.data} fade={sawHere || sawFrame} />;
 }
 
 function HandoverBody({ data, fade }: { data: HandoverRes; fade: boolean }) {
-  const { me } = useLichBoard();
+  const { club, me, counts } = useLichBoard();
   // Chỉ chủ nhiệm hiện tại làm các bước 1–5; xuất dữ liệu cần quyền ban điều hành (chủ nhiệm mới chưa có).
   const canDo = can(me.role, "handover") && !data.acceptedAt;
+  // counts.roleHandovers đã cộng 1 việc xác nhận bàn giao cả ban (chủ nhiệm mới ở bước 6): bỏ ra để chỉ đếm đơn bàn giao vai.
+  const pendingRoles = counts.roleHandovers - (data.canAccept && data.step === 6 && !data.acceptedAt ? 1 : 0);
   // Đổi bước thì đưa focus tới tiêu đề của bước mới; lúc mới mở trang thì không.
   const shownStep = useRef(data.step);
   useEffect(() => {
@@ -195,13 +200,23 @@ function HandoverBody({ data, fade }: { data: HandoverRes; fade: boolean }) {
 
   return (
     <>
-      <PageTop title={TITLE} sub={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}`} actions={me.role === "member" ? undefined : <ExportAllButton />} />
+      <PageTop title={TITLE} sub={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}`} actions={<><RolesLink clubId={club.id} />{me.role !== "member" && <ExportAllButton />}</>} />
+      {pendingRoles > 0 && me.role !== "member" && (
+        <p className="l-note" role="status">Có {pendingRoles} đơn bàn giao vai đang chờ bạn. <Link href={`/clubs/${club.id}/handover/roles`}>Mở Bàn giao từng vai</Link></p>
+      )}
       <Reveal from={fade} className="l-sheet">
-        <Steps step={data.step} />
-        <div className="l-sec l-ho-split">
-          <StepBody data={data} canDo={canDo} />
-          <Side data={data} />
-        </div>
+        {/* Chủ nhiệm mới chưa có vai (vai thành viên) chỉ cần màn xác nhận; tiến độ cả ban dành cho ban điều hành (Hiệu chọn 09/11/2026). */}
+        {me.role === "member" ? (
+          <div className="l-sec"><StepBody data={data} canDo={false} /></div>
+        ) : (
+          <>
+            <Steps step={data.step} />
+            <div className="l-sec l-ho-split">
+              <StepBody data={data} canDo={canDo} />
+              <Side data={data} />
+            </div>
+          </>
+        )}
       </Reveal>
     </>
   );
@@ -258,31 +273,36 @@ const PermissionNote = ({ canDo, accepted }: { canDo: boolean; accepted: boolean
 
 // ---------- Bước 1: chọn ban mới ----------
 
+/** "Gia Huy (Hậu cần), Khánh Linh (Chuyên môn)": mỗi ban một trưởng ban; một người có thể xuất hiện ở nhiều ban. */
+const headsText = (heads: { department: string; person: PersonRef }[]) => heads.map((h) => `${h.person.name} (${h.department})`).join(", ");
+
 function BoardStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
   const b = data.newBoard;
-  const [f, setF] = useState({ president: b?.president.personId ?? "", vice: b?.vice?.personId ?? "", treasurer: b?.treasurer?.personId ?? "", heads: b?.heads.map((h) => h.personId) ?? ([] as string[]), self: false });
+  const [f, setF] = useState({ president: b?.president.personId ?? "", vice: b?.vice?.personId ?? "", treasurer: b?.treasurer?.personId ?? "", heads: Object.fromEntries((b?.heads ?? []).map((h) => [h.department, h.person.personId])) as Record<string, string>, self: false });
   const [error, setError] = useState("");
   const save = useHandoverCall((r) => toast.success(`Đã chọn ban mới. Bàn giao sang bước ${r.step}.`), (err) => setError(errorText(err)));
   const sitting = data.currentPresident?.personId;
   const pickingSelf = !!f.president && f.president === sitting;
   const options = (exclude: string[]) => data.candidates.filter((p) => !exclude.includes(p.personId) || false).map((p) => <option key={p.personId} value={p.personId}>{p.name}</option>);
-  const toggleHead = (id: string) => { setError(""); setF((x) => ({ ...x, heads: x.heads.includes(id) ? x.heads.filter((h) => h !== id) : [...x.heads, id] })); };
+  const setHead = (department: string, personId: string) => { setError(""); setF((x) => ({ ...x, heads: { ...x.heads, [department]: personId } })); };
   const set = (patch: Partial<typeof f>) => { setError(""); setF((x) => ({ ...x, ...patch })); };
 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (save.isPending) return;
     if (!f.president) { setError("Cần chọn chủ nhiệm mới."); document.getElementById("handover-president")?.focus(); return; }
-    const ids = [f.president, f.vice, f.treasurer, ...f.heads].filter(Boolean);
-    if (new Set(ids).size !== ids.length) { setError("Mỗi người chỉ giữ một vai trong ban mới."); return; }
+    const top = [f.president, f.vice, f.treasurer].filter(Boolean);
+    if (new Set(top).size !== top.length) { setError("Mỗi người chỉ giữ một chức danh (chủ nhiệm, phó chủ nhiệm, thủ quỹ) trong ban mới."); return; }
+    const heads = Object.entries(f.heads).filter(([, personId]) => personId).map(([department, personId]) => ({ department, personId }));
+    if (heads.some((h) => top.includes(h.personId))) { setError("Chủ nhiệm, phó chủ nhiệm, thủ quỹ không kiêm trưởng ban. Chọn người khác làm trưởng ban hoặc để trống."); return; }
     if (pickingSelf && !f.self) { setError("Bạn đang chọn lại chính mình làm chủ nhiệm. Tích ô xác nhận bên dưới nếu đúng như vậy."); document.getElementById("handover-self")?.focus(); return; }
     setError("");
-    save.mutate({ method: "PUT", path: "/board", body: { presidentId: f.president, ...(f.vice ? { viceId: f.vice } : {}), ...(f.treasurer ? { treasurerId: f.treasurer } : {}), headIds: f.heads, ...(pickingSelf ? { confirmSelf: true } : {}) } });
+    save.mutate({ method: "PUT", path: "/board", body: { presidentId: f.president, ...(f.vice ? { viceId: f.vice } : {}), ...(f.treasurer ? { treasurerId: f.treasurer } : {}), heads, ...(pickingSelf ? { confirmSelf: true } : {}) } });
   }
 
   return (
     <StepShell step={1} title="Chọn ban mới" onSubmit={submit}
-      lead={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}. Chỉ chọn được thành viên đã nhận lời mời, mỗi người một vai.`}
+      lead={`Từ ban ${data.fromTerm} sang ban ${data.toTerm}. Chỉ chọn được thành viên đã nhận lời mời. Chủ nhiệm, phó chủ nhiệm, thủ quỹ mỗi người một chức danh; mỗi ban một trưởng ban, và một người được làm trưởng nhiều ban.`}
       actions={<button type="submit" className="l-btn" disabled={!canDo} aria-describedby={canDo ? undefined : "handover-permission"} aria-busy={save.isPending || undefined}>Lưu và sang bước 2</button>}>
       <div className="l-form-grid">
         <div className="l-field">
@@ -301,8 +321,21 @@ function BoardStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
         </div>
       </div>
       <fieldset className="l-field">
-        <legend className="l-flabel">Trưởng ban (không bắt buộc)</legend>
-        <div className="l-seg">{data.candidates.map((p: PersonRef) => <button key={p.personId} type="button" className="l-chip" aria-pressed={f.heads.includes(p.personId)} disabled={!canDo} onClick={() => toggleHead(p.personId)}>{p.name}</button>)}</div>
+        <legend className="l-flabel">Trưởng từng ban (không bắt buộc)</legend>
+        {data.departments.length === 0
+          ? <p className="l-note">CLB chưa có ban nào để chọn trưởng ban. Thêm ban ở màn Thành viên, khối Các ban.</p>
+          : <div className="l-form-grid">
+            {data.departments.map((d, i) => (
+              <div key={d.name} className="l-field">
+                <label className="l-flabel" htmlFor={`handover-head-${i}`}>{/^ban\s/i.test(d.name) ? d.name : `Ban ${d.name}`}</label>
+                <select id={`handover-head-${i}`} className="l-select" value={f.heads[d.name] ?? ""} onChange={(e) => setHead(d.name, e.target.value)} disabled={!canDo}>
+                  <option value="">Chưa chọn trưởng ban</option>
+                  {data.candidates.filter((p: PersonRef) => ![f.president, f.vice, f.treasurer].includes(p.personId)).map((p: PersonRef) => <option key={p.personId} value={p.personId}>{p.name}</option>)}
+                </select>
+                <span className="l-hint">{d.currentHead ? `Hiện tại: ${d.currentHead.name}. Không chọn thì ban này chưa có trưởng ban nhiệm kỳ mới.` : "Hiện chưa có trưởng ban."}</span>
+              </div>
+            ))}
+          </div>}
       </fieldset>
       {pickingSelf && (
         <label className="l-check"><input id="handover-self" type="checkbox" checked={f.self} onChange={(e) => set({ self: e.target.checked })} disabled={!canDo} /> Tôi là chủ nhiệm hiện tại và chọn lại chính mình cho nhiệm kỳ mới</label>
@@ -376,7 +409,7 @@ function KitStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
 // ---------- Bước 4: đổi tài khoản nhận quỹ ----------
 
 function AccountStepForm({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
-  const [draft, setDraft] = useState({ receiverId: data.newReceiver?.personId ?? "", bank: data.newReceiver?.bank ?? "", account: "", ref: data.transferRef ?? "" });
+  const [draft, setDraft] = useState({ receiverId: data.newReceiver?.personId ?? data.newBoard?.treasurer?.personId ?? "", bank: data.newReceiver?.bank ?? "", account: "", ref: data.transferRef ?? "" });
   const [errors, setErrors] = useState<Partial<Record<RequiredField, string>>>({});
   const [serverError, setServerError] = useState("");
   const save = useHandoverCall(() => toast.success("Đã lưu tài khoản nhận quỹ mới. Bàn giao sang bước 5."), (err) => setServerError(errorText(err)));
@@ -541,7 +574,7 @@ function AcceptStep({ data, canDo }: { data: HandoverRes; canDo: boolean }) {
   // Hậu quả của việc đổi vai (xem acceptHandover ở lib/actions.ts), nêu rõ cho người bấm.
   const b = data.newBoard;
   const roleChanges = [
-    b && `Vai mới: ${[`chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length > 0 && `trưởng ban ${b.heads.map((h) => h.name).join(", ")}`].filter(Boolean).join("; ")}.`,
+    b && `Vai mới: ${[`chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length > 0 && `trưởng ban ${headsText(b.heads)}`].filter(Boolean).join("; ")}.`,
     `${data.currentPresident ? `Chủ nhiệm hiện tại ${data.currentPresident.name} và mọi` : "Mọi"} người đang trong ban điều hành mà không có tên trong ban mới sẽ về thành viên thường, mất quyền ban điều hành.`,
   ].filter((x): x is string => !!x);
   return (
@@ -588,7 +621,7 @@ function RecordStep({ data }: { data: HandoverRes }) {
     ["CLB", club.name],
     ["Nhiệm kỳ", `Từ ban ${data.fromTerm} sang ban ${data.toTerm}`],
     ["Chủ nhiệm cũ", oldChair?.name ?? "Không rõ"],
-    ["Ban mới", b ? [`Chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length && `trưởng ban ${b.heads.map((h) => h.name).join(", ")}`].filter(Boolean).join("; ") : "Chưa chọn"],
+    ["Ban mới", b ? [`Chủ nhiệm ${b.president.name}`, b.vice && `phó chủ nhiệm ${b.vice.name}`, b.treasurer && `thủ quỹ ${b.treasurer.name}`, b.heads.length && `trưởng ban ${headsText(b.heads)}`].filter(Boolean).join("; ") : "Chưa chọn"],
     ["Số dư đã chốt", money(data.lockedBalance)],
     ["Tài khoản nhận quỹ mới", data.newReceiver ? `${data.newReceiver.name} · ${data.newReceiver.bank} · •••• ${data.newReceiver.accountLast4}` : "Chưa có"],
     ["Mentor", data.mentorConfirmed ? `${data.mentorConfirmed.by.name} (mentor) đã xác nhận, ${hm(data.mentorConfirmed.at)} ${dmy(data.mentorConfirmed.at)}` : data.mentor ? `${data.mentor} · chưa xác nhận trên CampusHub` : "CLB chưa có mentor"],

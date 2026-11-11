@@ -62,4 +62,26 @@ function inactiveClubsAfterCheckin() {
  */
 const collectionSizeAfterApproval = () => (Date.now() <= Date.parse("2026-10-10T23:59:00+07:00") ? 43 : 42);
 
-module.exports = { BASE, launch, outDir, inactiveClubsToday, inactiveClubsAfterCheckin, collectionSizeAfterApproval };
+/**
+ * Dữ liệu mẫu bắt đầu đợt bàn giao cả ban ở bước 1. Nhiều script bấm thử cần đợt bàn giao đã đi một đoạn (bước 4: đã chọn ban mới, chốt số dư, kiểm kho),
+ * nên gọi hàm này ngay sau khi đặt lại dữ liệu mẫu. Gọi API bằng tài khoản chủ nhiệm (header demo X-Demo-User).
+ */
+async function midHandover() {
+  const H = `${BASE}/api/v1/clubs/cau-long-san-nha/handover`;
+  const call = async (method, p, body) => {
+    const r = await fetch(H + p, { method, headers: { "Content-Type": "application/json", "X-Demo-User": "a001" }, body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) throw new Error(`midHandover ${method} ${p}: ${r.status} ${await r.text()}`);
+  };
+  await call("PUT", "/board", { presidentId: "a017", viceId: "a003", treasurerId: "a006", heads: [{ department: "Hậu cần", personId: "a005" }, { department: "Chuyên môn", personId: "a008" }] });
+  await call("POST", "/lock-balance");
+  await call("POST", "/kit-review");
+}
+
+/** Đặt lại dữ liệu mẫu rồi (mặc định) đưa đợt bàn giao cả ban tới bước 4. */
+async function resetDemo({ mid = true, clean = true } = {}) {
+  // clean: bỏ kịch bản bàn giao hộ có sẵn trong dữ liệu mẫu (script bấm thử cần dữ liệu không có đơn nào). Muốn xem kịch bản thì clean: false.
+  await fetch(`${BASE}/api/v1/demo/reset${clean ? "?clean=1" : ""}`, { method: "POST" });
+  if (mid) await midHandover();
+}
+
+module.exports = { midHandover, resetDemo, BASE, launch, outDir, inactiveClubsToday, inactiveClubsAfterCheckin, collectionSizeAfterApproval };

@@ -202,12 +202,29 @@ export interface Budget {
   support: { amount: number; purpose: string; status: "pending" | "approved" | "rejected" };
 }
 
-/** Ban điều hành mới do chủ nhiệm cũ chọn ở bước 1. */
+/**
+ * Ban của một CLB (Hiệu chốt 09/11/2026): do chủ nhiệm cấu hình trước; mỗi ban đúng một trưởng ban,
+ * một người được làm trưởng nhiều ban. Thành viên thuộc ban qua Membership.department (tên ban).
+ */
+export interface Department {
+  id: string;
+  clubId: string;
+  name: string;
+  headId?: string;
+}
+
+/** Thành viên chưa xếp ban. Không phải một ban: không có trong danh sách ban và không có trưởng ban. */
+export const NO_DEPARTMENT = "Chưa xếp ban";
+
+/** Ban gợi ý khi tạo CLB mới. Chỉ là gợi ý, chưa có nguồn nào nói CLB thường có những ban này. */
+export const SAMPLE_DEPARTMENTS = ["Ban chủ nhiệm", "Hậu cần", "Truyền thông", "Sự kiện"];
+
+/** Ban điều hành mới do chủ nhiệm cũ chọn ở bước 1. heads: trưởng của từng ban (mỗi ban một người; một người có thể làm trưởng nhiều ban). */
 export interface NewBoard {
   president: string;
   vice?: string;
   treasurer?: string;
-  heads: string[];
+  heads: { department: string; personId: string }[];
 }
 
 /**
@@ -234,6 +251,74 @@ export interface Handover {
   history: { at: string; by: string; text: string }[];
   /** Bản tóm tắt cho ban mới, do ban điều hành duyệt và sửa trước khi lưu vào biên bản. mock: viết bằng bản mẫu, chưa dùng AI thật. */
   summary?: { text: string; by: string; at: string; mock: boolean };
+}
+
+/**
+ * Bàn giao MỘT vai (09/11/2026), tách khỏi bàn giao cả ban (`Handover`, mỗi CLB một bản).
+ * Phó chủ nhiệm, thủ quỹ, trưởng ban gửi đơn lên chủ nhiệm (status "requested"); duyệt xong thì "active" và đi bước 2 đến 6; xác nhận xong là "done" (bước 7, biên bản).
+ * Chủ nhiệm bàn giao vai của mình thì không cần đơn: vào "active" ngay.
+ */
+export type RoleHandoverStatus = "requested" | "waiting" | "kept" | "rejected" | "cancelled" | "active" | "done";
+
+/** Kênh liên hệ trong nhật ký bàn giao hộ. */
+export type ContactChannel = "phone" | "zalo" | "email" | "friend";
+
+/** Một lần liên hệ với người giữ vai (bàn giao hộ): ngày (YYYY-MM-DD), kênh, kết quả, ảnh chụp màn hình đính kèm. */
+export interface ContactAttempt {
+  date: string;
+  channel: ContactChannel;
+  result: string;
+  evidenceIds: string[];
+}
+
+/** Ảnh bằng chứng. Chỉ người gửi yêu cầu và cán bộ trường xem được; xóa sau 30 ngày. `data` là base64, chỉ máy chủ giữ. */
+export interface EvidenceFile {
+  id: string;
+  clubId: string;
+  uploaderId: string;
+  /** Yêu cầu bàn giao hộ mà ảnh được gắn vào; trống là chưa gắn. */
+  handoverId?: string;
+  name: string;
+  mime: "image/jpeg" | "image/png";
+  size: number;
+  uploadedAt: string;
+  data: string;
+}
+
+export interface RoleHandover {
+  id: string;
+  clubId: string;
+  role: Exclude<Role, "member">;
+  /** Chỉ có khi role là "head": tên ban được bàn giao (mỗi ban một trưởng). */
+  department?: string;
+  fromId: string;
+  /** Người nhận do người gửi đề xuất; người nhận vẫn tự xác nhận ở bước 6. */
+  toId: string;
+  reason: string;
+  status: RoleHandoverStatus;
+  /** 1 là đơn xin (chờ chủ nhiệm duyệt), 2 đến 6 là các bước làm, 7 là biên bản. */
+  step: number;
+  requestedAt: string;
+  decidedAt?: string;
+  decidedBy?: string;
+  /** Lý do từ chối (bắt buộc khi status là "rejected"). */
+  rejectReason?: string;
+  lockedBalance?: number;
+  lockedAt?: string;
+  newReceiver?: { personId: string; bank: string; account: string };
+  transferRef?: string;
+  transferred: string[];
+  acceptedAt?: string;
+  history: { at: string; by: string; text: string }[];
+  /** Lời dặn của người giao (hoặc người gửi, khi bàn giao hộ) cho người nhận, viết ở bước 3; người nhận đọc ở bước 6 và nằm trong biên bản. */
+  note?: string;
+  /** Những gì người giao đang giữ lúc làm bước 3 (biểu mẫu, tài khoản, việc chưa xong). Giữ lại để người nhận và biên bản còn thấy, dù quyền tài khoản đã chuyển ở bước 5. */
+  snapshot?: { documents: { id: string; name: string }[]; accounts: { id: string; service: string; label: string; required: boolean }[]; tasks: { id: string; title: string; due: string }[] };
+  /**
+   * Chỉ có khi là bàn giao hộ: `fromId` là người giữ vai (không liên lạc được), `requesterId` là người gửi yêu cầu và làm các bước 2 đến 5 thay.
+   * status "requested" là chờ duyệt bằng chứng; "waiting" là chờ hết `waitUntil` (3 ngày); "kept" là người giữ vai bấm "Tôi vẫn đảm nhận".
+   */
+  proxy?: { requesterId: string; contacts: ContactAttempt[]; approverId?: string; waitUntil?: string; keptAt?: string; executedBy?: string };
 }
 
 /** Số lượt dùng trợ lý theo CLB và học kỳ. Bản miễn phí giới hạn lượt hỏi theo kỳ; mức giới hạn chưa có. */
@@ -357,7 +442,8 @@ export interface Consent {
 }
 
 /** Loại thông báo trong mục Thông báo (chuông) của mỗi người. */
-export type NotificationKind = "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected";
+export type NotificationKind = "handover-accept" | "handover-done" | "handover-mentor" | "post-pending" | "post-approved" | "post-rejected"
+  | "role-handover-request" | "role-handover-decision" | "role-handover-accept" | "role-handover-done" | "role-handover-proxy";
 
 /** Một thông báo gửi cho một người, giữ lại cả khi vai của họ đã đổi (ví dụ chủ nhiệm cũ vẫn thấy "Bàn giao xong"). Chưa có readAt là chưa đọc. */
 export interface AppNotification {
@@ -378,6 +464,7 @@ export interface AppState {
   persons: Person[];
   clubs: Club[];
   memberships: Membership[];
+  departments: Department[];
   applications: Application[];
   events: ClubEvent[];
   attendance: Attendance[];
@@ -389,6 +476,8 @@ export interface AppState {
   budgetItems: BudgetItem[];
   budgets: Budget[];
   handovers: Handover[];
+  roleHandovers: RoleHandover[];
+  evidence: EvidenceFile[];
   kitDocuments: KitDocument[];
   kitProcesses: KitProcess[];
   kitAccounts: KitAccount[];

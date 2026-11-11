@@ -2,12 +2,12 @@
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { CLUB, startServer, type TestServer } from "./helpers.ts";
+import { CLUB, startServer, type TestServer, useMidHandover } from "./helpers.ts";
 
 let srv: TestServer;
 before(async () => { srv = await startServer(); });
 after(async () => { await srv.close(); });
-beforeEach(() => { srv.store.reset(); });
+beforeEach(() => { srv.store.reset(); useMidHandover(srv); });
 
 const C = `/clubs/${CLUB}`;
 const H = `${C}/handover`;
@@ -17,7 +17,8 @@ test("dữ liệu mẫu: bàn giao ở bước 4, đã có ban mới, số dư c
   const h = await get("a001");
   assert.equal(h.step, 4);
   assert.equal(h.newBoard.president.name, "Nguyễn Minh Anh");
-  assert.deepEqual(h.newBoard.heads.map((p: { personId: string }) => p.personId), ["a005", "a008"]);
+  assert.deepEqual(h.newBoard.heads.map((x: { department: string; person: { personId: string } }) => [x.department, x.person.personId]), [["Hậu cần", "a005"], ["Chuyên môn", "a008"]]);
+  assert.deepEqual(h.departments.map((d: { name: string }) => d.name), ["Ban chủ nhiệm", "Chuyên môn", "Hậu cần", "Truyền thông"]);
   assert.equal(h.lockedBalance, 3_120_000);
   assert.deepEqual(h.kit, { documents: 5, processes: 3, accounts: 5, missing: 1, personal: 3 });
   assert.equal(h.open.openTasks, 5);
@@ -28,7 +29,11 @@ test("dữ liệu mẫu: bàn giao ở bước 4, đã có ban mới, số dư c
   assert.equal(h.accounts.length, 5);
 });
 
-test("chủ nhiệm mới (đang là thành viên thường) xem được bàn giao và khung của nó, nhưng không vào được trang ban điều hành khác", async () => {
+test("chủ nhiệm mới (đang là thành viên thường) chỉ vào được bàn giao và khung của nó từ bước 6, không vào được trang ban điều hành khác", async () => {
+  // Trước bước 6 họ vẫn là thành viên thường, chưa thuộc ban điều hành: không thấy gì (Hiệu chọn 09/11/2026).
+  assert.equal((await srv.call("GET", `${C}/board`, { as: "a017" })).status, 403);
+  assert.equal((await srv.call("GET", H, { as: "a017" })).status, 403);
+  srv.store.update((st) => ({ ...st, handovers: st.handovers.map((x) => ({ ...x, step: 6 })) }));
   assert.equal((await srv.call("GET", `${C}/board`, { as: "a017" })).status, 200);
   const h = await get("a017");
   assert.equal(h.canAccept, true);
@@ -41,7 +46,7 @@ test("mỗi bước chỉ làm được khi đang ở đúng bước, và chỉ 
   assert.equal((await srv.call("POST", `${H}/lock-balance`, { as: "a001" })).status, 409); // đang bước 4
   assert.equal((await srv.call("POST", `${H}/kit-review`, { as: "a001" })).status, 409);
   assert.equal((await srv.call("POST", `${H}/transfer-done`, { as: "a001" })).status, 409);
-  assert.equal((await srv.call("POST", `${H}/accept`, { as: "a017" })).status, 409);
+  assert.equal((await srv.call("POST", `${H}/accept`, { as: "a017" })).status, 403); // chưa tới bước 6, chủ nhiệm mới chưa có quyền gì
   await srv.call("PUT", `${H}/step`, { as: "a001", body: { step: 2 } });
   assert.equal((await srv.call("POST", `${H}/lock-balance`, { as: "a002" })).status, 403); // thủ quỹ không được
   assert.equal((await srv.call("POST", `${H}/lock-balance`, { as: "a017" })).status, 403); // chủ nhiệm mới chưa có quyền làm bước của chủ nhiệm cũ
@@ -53,8 +58,11 @@ test("đi hết 7 bước, biên bản ghi từng bước, ban mới xác nhận
   assert.equal((await call("PUT", "/step", "a001", { step: 1 })).body.step, 1);
 
   // Bước 1: ban mới.
-  const board = { presidentId: "a017", viceId: "a003", treasurerId: "a006", headIds: ["a005", "a008"] };
-  assert.equal((await call("PUT", "/board", "a001", { ...board, headIds: ["a003"] })).status, 400); // a003 giữ hai vai
+  const board = { presidentId: "a017", viceId: "a003", treasurerId: "a006", heads: [{ department: "Hậu cần", personId: "a005" }, { department: "Chuyên môn", personId: "a008" }] };
+  assert.equal((await call("PUT", "/board", "a001", { ...board, heads: [{ department: "Hậu cần", personId: "a003" }] })).status, 400); // a003 là phó chủ nhiệm, không kiêm trưởng ban
+  assert.equal((await call("PUT", "/board", "a001", { ...board, heads: [{ department: "Ban không có", personId: "a005" }] })).status, 400); // ban chưa có trong CLB
+  assert.equal((await call("PUT", "/board", "a001", { ...board, heads: [{ department: "Hậu cần", personId: "a005" }, { department: "hậu cần", personId: "a008" }] })).status, 400); // một ban hai trưởng
+  assert.equal((await call("PUT", "/board", "a001", { ...board, heads: [{ department: "Hậu cần", personId: "a022" }] })).status, 400); // a022 chưa nhận lời mời
   assert.equal((await call("PUT", "/board", "a001", { ...board, presidentId: "a022" })).status, 400); // a022 chưa nhận lời mời
   assert.equal((await call("PUT", "/board", "a001", { ...board, presidentId: "a001" })).status, 400); // chọn lại chính mình mà không xác nhận
   assert.equal((await call("PUT", "/board", "a001", { ...board, presidentId: "a001", confirmSelf: true, viceId: "a003" })).status, 200);

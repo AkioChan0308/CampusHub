@@ -2,7 +2,7 @@
 // Chạy trong web/: node e2e/handover-kit-tasks.cjs (web cổng 3000, server cổng 4000 chế độ demo, dữ liệu trong bộ nhớ).
 const fs = require("fs");
 const path = require("path");
-const { BASE, launch, outDir } = require("./common.cjs");
+const { BASE, launch, outDir, resetDemo } = require("./common.cjs");
 const OUT = outDir("handover-kit-tasks");
 fs.mkdirSync(OUT, { recursive: true });
 const results = [];
@@ -37,7 +37,7 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
     ok(await go.isEnabled(), `${name}: gõ BAN GIAO (không phân biệt hoa thường và dấu) thì nút xác nhận mở`);
     await go.click();
   }
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await resetDemo(); // dữ liệu mẫu + đợt bàn giao cả ban ở bước 4
 
   // ---- Kho bàn giao (chủ nhiệm) ----
   let p = await as("a001", LAPTOP);
@@ -101,7 +101,7 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
   await p.goto(`${C}/handover`);
   ok(await waitText(p, /Vùng nguy hiểm: đổi ban điều hành[\s\S]*Xác nhận đã nhận bàn giao/), "Bàn giao: chủ nhiệm mới mở được trang Bàn giao, nút xác nhận nằm trong vùng nguy hiểm");
   const menu = await p.locator("nav[aria-label='Menu ban điều hành']").innerText();
-  ok(/Bàn giao/.test(menu) && /Kho bàn giao/.test(menu) && !/Thành viên|Đợt thu/.test(menu), "Bàn giao: menu của chủ nhiệm mới chỉ có Bàn giao và Kho bàn giao");
+  ok(/Bàn giao/.test(menu) && !/Kho bàn giao|Thành viên|Đợt thu/.test(menu), "Bàn giao: menu của chủ nhiệm mới chỉ có Bàn giao (Kho bàn giao hiện sau khi nhận vai)");
   ok((await p.getByRole("button", { name: "Xuất toàn bộ dữ liệu (Excel)" }).count()) === 0, "Bàn giao: chủ nhiệm mới không có nút xuất toàn bộ dữ liệu");
   await acceptHandover(p, "Bàn giao");
   ok(await waitText(p, /Biên bản bàn giao[\s\S]*Nguyễn Minh Anh xác nhận đã nhận bàn giao/), "Bàn giao: xác nhận xong sang bước 7, biên bản có dòng xác nhận");
@@ -110,7 +110,7 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
   await p.context().close();
 
   // ---- Bàn giao: quay lại bước trước và chọn lại chính mình (dữ liệu đặt lại) ----
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await resetDemo(); // dữ liệu mẫu + đợt bàn giao cả ban ở bước 4
   p = await as("a001", LAPTOP);
   await p.goto(`${C}/handover`);
   for (const n of [3, 2, 1]) {
@@ -133,7 +133,7 @@ const C = `${BASE}/clubs/cau-long-san-nha`;
   await p.context().close();
 
   // ---- Việc cần làm (ban điều hành) ----
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await resetDemo(); // dữ liệu mẫu + đợt bàn giao cả ban ở bước 4
   p = await as("a001", LAPTOP);
   await p.goto(`${C}/tasks`);
   ok(await waitText(p, /5 việc chưa xong · \d+ quá hạn/) && await waitText(p, /Chưa làm[\s\S]*Đang làm[\s\S]*Xong/), "Việc cần làm: ba cột trạng thái và số việc quá hạn");

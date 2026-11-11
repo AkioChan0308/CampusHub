@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type RefObject } from "react";
 import { toast } from "sonner";
 import type { AddMembersRes } from "@contract";
-import { apiPost } from "@/api/client";
+import { ApiError, apiPost } from "@/api/client";
 import { errorText, useClubMutation, useMembers } from "@/api/queries";
 import { CopyButton } from "@/components/CopyButton";
 import { Icon } from "@/components/Icon";
@@ -103,7 +103,7 @@ async function readTable(file: File): Promise<unknown[][]> {
 }
 
 function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
-  const { club } = useLichBoard();
+  const { club, me } = useLichBoard();
   const fileRef = useRef<HTMLInputElement>(null);
   const resultTitle = useRef<HTMLHeadingElement>(null);
   const [rows, setRows] = useState<DraftMember[]>([EMPTY]);
@@ -111,6 +111,9 @@ function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
   const [fileError, setFileError] = useState("");
   const [reading, setReading] = useState(false);
   const [added, setAdded] = useState<AddMembersRes["added"] | null>(null);
+  // Ban trong file mà CLB chưa có (09/11/2026): hỏi chủ nhiệm có tạo không, không tự tạo.
+  const [missing, setMissing] = useState<string[]>([]);
+  const canCreateDepartments = can(me.role, "assignRole");
 
   const errors = memberErrors(rows, existing);
   const filled = rows.map((r, i) => ({ r, i })).filter(({ r }) => !isBlank(r));
@@ -118,13 +121,17 @@ function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
   const ready = filled.length > 0 && badRows.length === 0;
   const full = rows.length >= MAX_ROWS;
 
-  const add = useClubMutation(club.id, (list: DraftMember[]) => apiPost<AddMembersRes>(`/clubs/${club.id}/members`, { members: toAddMembers(list) }), {
+  const add = useClubMutation(club.id, (v: { list: DraftMember[]; createMissing: boolean }) => apiPost<AddMembersRes>(`/clubs/${club.id}/members`, { members: toAddMembers(v.list), ...(v.createMissing ? { createMissingDepartments: true } : {}) }), {
     onSuccess: (res) => {
+      setMissing([]);
       setAdded(res.added);
       toast.success(`Đã thêm ${res.added.length} người.`);
       requestAnimationFrame(() => resultTitle.current?.focus());
     },
-    onError: (e) => toast.error(errorText(e)),
+    onError: (e) => {
+      const names = e instanceof ApiError && e.status === 409 && Array.isArray(e.details?.departments) ? (e.details.departments as string[]) : [];
+      if (names.length > 0) setMissing(names); else toast.error(errorText(e));
+    },
   });
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
@@ -147,8 +154,8 @@ function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
     }
   }
 
-  const setCell = (i: number, k: keyof DraftMember, v: string) => setRows((list) => list.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
-  const removeRow = (i: number) => setRows((list) => (list.length === 1 ? [EMPTY] : list.filter((_, j) => j !== i)));
+  const setCell = (i: number, k: keyof DraftMember, v: string) => { setMissing([]); setRows((list) => list.map((r, j) => (j === i ? { ...r, [k]: v } : r))); };
+  const removeRow = (i: number) => { setMissing([]); setRows((list) => (list.length === 1 ? [EMPTY] : list.filter((_, j) => j !== i))); };
 
   function submit() {
     if (add.isPending) return;
@@ -159,7 +166,7 @@ function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
       document.getElementById(`member-${first?.i ?? 0}-${key}`)?.focus();
       return;
     }
-    add.mutate(filled.map(({ r }) => r));
+    add.mutate({ list: filled.map(({ r }) => r), createMissing: false });
   }
 
   if (added) return <Result added={added} titleRef={resultTitle} onMore={() => { setAdded(null); setRows([EMPTY]); setFile(null); }} />;
@@ -226,6 +233,23 @@ function AddForm({ existing, fade }: { existing: Set<string>; fade: boolean }) {
               Thêm {filled.length > 0 ? `${filled.length} ` : ""}người
             </button>
           </div>
+          {missing.length > 0 && (
+            <div className="l-sec-body" role="alert">
+              <p className="l-fine">
+                Các ban sau chưa có trong CLB: <strong>{missing.join(", ")}</strong>.{" "}
+                {canCreateDepartments
+                  ? "Tạo các ban này rồi thêm người, hoặc sửa tên ban trong danh sách cho khớp ban đã có."
+                  : "Chỉ chủ nhiệm tạo được ban mới. Sửa tên ban trong danh sách cho khớp ban đã có, hoặc nhờ chủ nhiệm tạo ban."}
+              </p>
+              <div className="l-row-actions">
+                {canCreateDepartments && (
+                  <button type="button" className="l-btn" aria-busy={add.isPending || undefined}
+                    onClick={() => { if (!add.isPending) add.mutate({ list: filled.map(({ r }) => r), createMissing: true }); }}>Tạo các ban này và thêm người</button>
+                )}
+                <button type="button" className="l-btn2" onClick={() => setMissing([])}>Sửa lại danh sách</button>
+              </div>
+            </div>
+          )}
         </div>
       </Reveal>
     </>

@@ -2,12 +2,12 @@
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { CLUB, startServer, type TestServer } from "./helpers.ts";
+import { CLUB, startServer, type TestServer, useMidHandover } from "./helpers.ts";
 
 let srv: TestServer;
 before(async () => { srv = await startServer(); });
 after(async () => { await srv.close(); });
-beforeEach(() => { srv.store.reset(); });
+beforeEach(() => { srv.store.reset(); useMidHandover(srv); });
 
 const C = `/clubs/${CLUB}`;
 const ask = (as: string, question: string) => srv.call("POST", `${C}/ai/ask`, { as, body: { question } });

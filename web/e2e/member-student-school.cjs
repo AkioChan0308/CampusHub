@@ -37,7 +37,7 @@ async function readDownload(page, click) {
     await p.evaluate(async (id) => { await fetch("/api/v1/auth/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ personId: id }) }); }, personId);
     return p;
   }
-  await fetch(`${BASE}/api/v1/demo/reset`, { method: "POST" });
+  await fetch(`${BASE}/api/v1/demo/reset?clean=1`, { method: "POST" });
 
   // ---- Của tôi (thành viên a017) ----
   let p = await as("a017", PHONE);
